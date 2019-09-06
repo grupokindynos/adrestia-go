@@ -1,42 +1,37 @@
 package main
 
-import(
+import (
 	"context"
 	"encoding/json"
 	firebase "firebase.google.com/go"
 	"fmt"
 	"github.com/grupokindynos/adrestia-go/models/balance"
+	"github.com/grupokindynos/adrestia-go/services"
+	"google.golang.org/api/option"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"google.golang.org/api/option"
 )
 
-var baseUrl string = "https://delphi.polispay.com/api/"
+const baseUrl string = "https://delphi.polispay.com/api/"
+const confPath string = "conf"
 var printDebugInfo = true
 
 func main() {
 	fmt.Println("Program Started")
 
-	// service account credentials
-	sa := option.WithCredentialsFile("./fb_conf.json")
-	app, err := firebase.NewApp(context.Background(), nil, sa)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	// Gets balance from Hot Wallets
 	var balances = GetWalletBalances()
-
-
 	if printDebugInfo{
 		fmt.Println("\t\tAvailable Coins")
 		for i,_ := range balances.Data{
 			fmt.Println("\t\t",balances.Data[i].Balance, balances.Data[i].Ticker)
 		}
 	}
+
+	GetFBConfiguration()
 }
+
 
 func GetWalletBalances() balance.HotWalletBalances {
 	fmt.Println("\tRetrieving Wallet Balances...")
@@ -55,11 +50,33 @@ func GetWalletBalances() balance.HotWalletBalances {
 			fmt.Println(error)
 		}
 	}
+	fmt.Println("Finished Retrieving Balances")
 	return balances
 }
 
+// Retrieves minimum set balance configuration from Firebase conf
 func GetFBConfiguration() balance.HotWalletBalances {
-	// Retrieves minimum set balance configuration from Firebase conf
+	// service account credentials
+	opt := option.WithCredentialsFile("./fb_conf.json")
+	config := &firebase.Config{
+		DatabaseURL: "https://polispay-copay.firebaseio.com",
+	}
+	firebaseApp, err := firebase.NewApp(context.Background(), config, opt)
+	if err != nil {
+		panic(err)
+	}
+	fireBase := services.InitFirebase(firebaseApp)
+	var conf balance.MinBalanceConfResponse
+	conf, err = fireBase.GetConf()
+	if err != nil {
+		log.Fatal("Configuration not found")
+	}
+	fmt.Println(conf)
+
+	conf.ToArray()
+
+
+
 
 	var fireBaseConfBalances = new(balance.HotWalletBalances)
 
@@ -67,11 +84,11 @@ func GetFBConfiguration() balance.HotWalletBalances {
 
 }
 
-func SortBalances() ([]balance.HotWalletBalance, []balance.HotWalletBalance ){
+func SortBalances() ([]balance.Balance, []balance.Balance){
 	// Sorts Balances
 
-	var balancedWallets []balance.HotWalletBalance
-	var unbalancedWallets []balance.HotWalletBalance
+	var balancedWallets []balance.Balance
+	var unbalancedWallets []balance.Balance
 
 	return balancedWallets, unbalancedWallets
 }

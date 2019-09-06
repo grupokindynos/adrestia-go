@@ -1,11 +1,15 @@
 package main
 
 import(
+	"context"
 	"encoding/json"
+	firebase "firebase.google.com/go"
 	"fmt"
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	"io/ioutil"
+	"log"
 	"net/http"
+	"google.golang.org/api/option"
 )
 
 var baseUrl string = "https://delphi.polispay.com/api/"
@@ -13,6 +17,14 @@ var printDebugInfo = true
 
 func main() {
 	fmt.Println("Program Started")
+
+	// service account credentials
+	sa := option.WithCredentialsFile("./fb_conf.json")
+	app, err := firebase.NewApp(context.Background(), nil, sa)
+
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// Gets balance from Hot Wallets
 	var balances = GetWalletBalances()

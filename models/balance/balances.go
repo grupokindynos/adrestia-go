@@ -36,7 +36,7 @@ type MinBalanceConfResponse struct {
 
 // Gets map for Ticker to Balance Object
 // TODO Automate this part by using reflect
-func (br MinBalanceConfResponse) ToArray() map[string]Balance {
+func (br MinBalanceConfResponse) ToMap() map[string]Balance {
 	// Map structure
 	var balanceMap = make(map[string]Balance)
 	balanceMap["BTC"] = br.BTC

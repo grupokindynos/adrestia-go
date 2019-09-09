@@ -29,9 +29,11 @@ func main() {
 		}
 	}
 
-	GetFBConfiguration()
-}
+	var conf = GetFBConfiguration()
+	fmt.Println(conf)
+	SortBalances(balances, conf)
 
+}
 
 func GetWalletBalances() balance.HotWalletBalances {
 	fmt.Println("\tRetrieving Wallet Balances...")
@@ -55,7 +57,7 @@ func GetWalletBalances() balance.HotWalletBalances {
 }
 
 // Retrieves minimum set balance configuration from Firebase conf
-func GetFBConfiguration() balance.HotWalletBalances {
+func GetFBConfiguration() map[string]balance.Balance {
 	// service account credentials
 	opt := option.WithCredentialsFile("./fb_conf.json")
 	config := &firebase.Config{
@@ -73,22 +75,21 @@ func GetFBConfiguration() balance.HotWalletBalances {
 	}
 	fmt.Println(conf)
 
-	conf.ToArray()
+	var firebaseConfBalances = conf.ToMap()
 
-
-
-
-	var fireBaseConfBalances = new(balance.HotWalletBalances)
-
-	return *fireBaseConfBalances
+	return firebaseConfBalances
 
 }
 
-func SortBalances() ([]balance.Balance, []balance.Balance){
+func SortBalances(inputBalances balance.HotWalletBalances, conf map[string]balance.Balance) ([]balance.Balance, []balance.Balance){
 	// Sorts Balances
 
 	var balancedWallets []balance.Balance
 	var unbalancedWallets []balance.Balance
+
+	for i, obj := range inputBalances.Data{
+		fmt.Println(i, obj)
+	}
 
 	return balancedWallets, unbalancedWallets
 }

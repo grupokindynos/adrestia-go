@@ -13,17 +13,24 @@ type HotWalletBalances struct {
 type Balance struct {
 	Ticker  string  	`json:"ticker"`
 	Balance float64 	`json:"balance"`
-	BalanceBTC float64 	`json:"balanceBTC"`
 	RateBTC float64		`json:"rateBTC"`
 	DiffBTC float64		`json:"diffBTC"`
+	IsBalanced bool		`json:"isBalanced"`
+}
+
+func (b Balance) GetDiff(target float64){
+	b.DiffBTC = (target - b.Balance) * b.RateBTC
+	fmt.Print("Njadnsaidbsa ", b.Ticker, " ", b.DiffBTC)
+	if b.DiffBTC >= 0.0 { b.IsBalanced = true }else { b.IsBalanced = false }
+
 }
 
 // Sort Struct
-type ByBalance []Balance
+type ByDiff []Balance
 
-func (a ByBalance) Len() int           { return len(a) }
-func (a ByBalance) Less(i, j int) bool { return a[i].Balance < a[j].Balance }
-func (a ByBalance) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByDiff) Len() int           { return len(a) }
+func (a ByDiff) Less(i, j int) bool { return a[i].DiffBTC < a[j].DiffBTC }
+func (a ByDiff) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 
 func (b HotWalletBalances) PrintBalances(){
 	for i, _ := range b.Data {

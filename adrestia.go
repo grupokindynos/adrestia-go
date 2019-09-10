@@ -16,6 +16,7 @@ import (
 
 const baseUrl string = "https://delphi.polispay.com/api/"
 const confPath string = "conf"
+var ratePvdr = services.RateProvider{}
 var printDebugInfo = true
 
 func main() {
@@ -25,18 +26,21 @@ func main() {
 	var balances = GetWalletBalances()
 	if printDebugInfo{
 		fmt.Println("\t\tAvailable Coins")
-		for i,_ := range balances.Data{
-			fmt.Println("\t\t",balances.Data[i].Balance, balances.Data[i].Ticker)
+		for i,_ := range balances{
+			fmt.Println("\t\t",balances[i].Balance, balances[i].Ticker)
 		}
 	}
-
+	// Firebase Wallet Configuration
 	var conf = GetFBConfiguration()
 	fmt.Println(conf)
 	SortBalances(balances, conf)
 
+	var ratePvdr = services.RateProvider{}
+	ratePvdr.GetRate("polis")
+
 }
 
-func GetWalletBalances() balance.HotWalletBalances {
+func GetWalletBalances() []balance.Balance {
 	fmt.Println("\tRetrieving Wallet Balances...")
 
 	var balances balance.HotWalletBalances
@@ -54,7 +58,17 @@ func GetWalletBalances() balance.HotWalletBalances {
 		}
 	}
 	fmt.Println("Finished Retrieving Balances")
-	return balances
+
+	var updatedBalances []balance.Balance
+	fmt.Println("\tRetrieving Wallet Rates...")
+	for _, coin := range balances.Data{
+		fmt.Print(coin)
+		var newBalance = coin
+		newBalance.RateBTC = ratePvdr.GetRate(newBalance.Ticker)
+		updatedBalances = append(updatedBalances, newBalance)
+	}
+	fmt.Println(updatedBalances)
+	return updatedBalances
 }
 
 // Retrieves minimum set balance configuration from Firebase conf
@@ -82,22 +96,27 @@ func GetFBConfiguration() map[string]balance.Balance {
 
 }
 
-func SortBalances(inputBalances balance.HotWalletBalances, conf map[string]balance.Balance) ([]balance.Balance, []balance.Balance){
+func SortBalances(inputBalances []balance.Balance, conf map[string]balance.Balance) ([]balance.Balance, []balance.Balance){
 	// Sorts Balances
 
 	var balancedWallets []balance.Balance
 	var unbalancedWallets []balance.Balance
 
-	for _, obj := range inputBalances.Data{
-		if obj.Balance < conf[obj.Ticker].Balance {
-			unbalancedWallets = append(unbalancedWallets, obj)
-		}else {
+	for _, obj := range inputBalances{
+		fmt.Println("Debugg", conf[obj.Ticker].Balance)
+		obj.GetDiff(conf[obj.Ticker].Balance)
+		if obj.IsBalanced {
 			balancedWallets = append(balancedWallets, obj)
+		} else {
+			unbalancedWallets = append(unbalancedWallets, obj)
 		}
 	}
-	sort.Sort(balance.ByBalance(balancedWallets))
-	sort.Sort(balance.ByBalance(unbalancedWallets))
 
+
+	sort.Sort(balance.ByDiff(balancedWallets))
+	sort.Sort(balance.ByDiff(unbalancedWallets))
+
+	fmt.Println("Info Sorting")
 	fmt.Println("Unbalanced", unbalancedWallets)
 	fmt.Println("Balanced", balancedWallets)
 

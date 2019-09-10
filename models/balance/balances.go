@@ -11,9 +11,19 @@ type HotWalletBalances struct {
 }
 
 type Balance struct {
-	Ticker  string  `json:"ticker"`
-	Balance float64 `json:"balance"`
+	Ticker  string  	`json:"ticker"`
+	Balance float64 	`json:"balance"`
+	BalanceBTC float64 	`json:"balanceBTC"`
+	RateBTC float64		`json:"rateBTC"`
+	DiffBTC float64		`json:"diffBTC"`
 }
+
+// Sort Struct
+type ByBalance []Balance
+
+func (a ByBalance) Len() int           { return len(a) }
+func (a ByBalance) Less(i, j int) bool { return a[i].Balance < a[j].Balance }
+func (a ByBalance) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 
 func (b HotWalletBalances) PrintBalances(){
 	for i, _ := range b.Data {

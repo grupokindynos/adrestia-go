@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"sort"
 )
 
 const baseUrl string = "https://delphi.polispay.com/api/"
@@ -87,9 +88,18 @@ func SortBalances(inputBalances balance.HotWalletBalances, conf map[string]balan
 	var balancedWallets []balance.Balance
 	var unbalancedWallets []balance.Balance
 
-	for i, obj := range inputBalances.Data{
-		fmt.Println(i, obj)
+	for _, obj := range inputBalances.Data{
+		if obj.Balance < conf[obj.Ticker].Balance {
+			unbalancedWallets = append(unbalancedWallets, obj)
+		}else {
+			balancedWallets = append(balancedWallets, obj)
+		}
 	}
+	sort.Sort(balance.ByBalance(balancedWallets))
+	sort.Sort(balance.ByBalance(unbalancedWallets))
+
+	fmt.Println("Unbalanced", unbalancedWallets)
+	fmt.Println("Balanced", balancedWallets)
 
 	return balancedWallets, unbalancedWallets
 }

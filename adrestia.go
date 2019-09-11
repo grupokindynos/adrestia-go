@@ -3,8 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/grupokindynos/adrestia-go/models/transaction"
 	"io/ioutil"
 	"log"
+	"math"
 	"net/http"
 	"sort"
 
@@ -32,7 +34,15 @@ func main() {
 	// Firebase Wallet Configuration
 	var conf = GetFBConfiguration()
 	// fmt.Println(conf)
-	SortBalances(balances, conf)
+	 var balanced, unbalanced = SortBalances(balances, conf)
+
+
+	isBalanceable, diff := DetermineBalanceability(balanced, unbalanced)
+	if isBalanceable {
+		fmt.Printf("Wallet is balanceable by %.8f", diff)
+	} else {
+		fmt.Printf("Wallet is not balanceable by %.8f", diff)
+	}
 
 }
 
@@ -116,4 +126,24 @@ func SortBalances(inputBalances []balance.Balance, conf map[string]balance.Balan
 	}
 
 	return balancedWallets, unbalancedWallets
+}
+
+func DetermineBalanceability(balanced []balance.Balance, unbalanced []balance.Balance) (bool, float64) {
+	superavit := 0.0 	// Excedent in balanced wallets
+	deficit := 0.0	// Missing amount in unbalanced wallets
+
+	for _, wallet := range balanced {
+		superavit += wallet.DiffBTC
+	}
+	for _, wallet := range unbalanced {
+		deficit += wallet.DiffBTC
+	}
+
+	return superavit > math.Abs(deficit), superavit - math.Abs(deficit)
+}
+
+// Actual balancing action
+func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []transaction.PTx {
+	
+	return []transaction.PTx{}
 }

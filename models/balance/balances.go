@@ -5,24 +5,27 @@ import (
 )
 
 type HotWalletBalances struct {
-	Status int        `json:"status"`
-	Data   []Balance  `json:"data"`
-	Error interface{} `json:"error"`
+	Status int         `json:"status"`
+	Data   []Balance   `json:"data"`
+	Error  interface{} `json:"error"`
 }
 
 type Balance struct {
-	Ticker  string  	`json:"ticker"`
-	Balance float64 	`json:"balance"`
-	RateBTC float64		`json:"rateBTC"`
-	DiffBTC float64		`json:"diffBTC"`
-	IsBalanced bool		`json:"isBalanced"`
+	Ticker     string  `json:"ticker"`
+	Balance    float64 `json:"balance"`
+	RateBTC    float64 `json:"rateBTC"`
+	DiffBTC    float64 `json:"diffBTC"`
+	IsBalanced bool    `json:"isBalanced"`
 }
 
-func (b Balance) GetDiff(target float64){
+func (b *Balance) GetDiff(target float64) {
 	b.DiffBTC = (target - b.Balance) * b.RateBTC
-	fmt.Print("GetDiff ", b.Ticker, " ", b.DiffBTC)
-	if b.DiffBTC >= 0.0 { b.IsBalanced = true }else { b.IsBalanced = false }
-
+	// fmt.Printf("%s has diff %.8f\n", b.Ticker, b.DiffBTC)
+	if b.DiffBTC >= 0.0 {
+		b.IsBalanced = true
+	} else {
+		b.IsBalanced = false
+	}
 }
 
 // Sort Struct
@@ -32,7 +35,13 @@ func (a ByDiff) Len() int           { return len(a) }
 func (a ByDiff) Less(i, j int) bool { return a[i].DiffBTC < a[j].DiffBTC }
 func (a ByDiff) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 
-func (b HotWalletBalances) PrintBalances(){
+type ByDiffInverse []Balance
+
+func (a ByDiffInverse) Len() int           { return len(a) }
+func (a ByDiffInverse) Less(i, j int) bool { return a[i].DiffBTC > a[j].DiffBTC }
+func (a ByDiffInverse) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+
+func (b HotWalletBalances) PrintBalances() {
 	for i, _ := range b.Data {
 		fmt.Sprintf("$f %s", b.Data[i].Balance, b.Data[i].Ticker)
 	}
@@ -41,14 +50,14 @@ func (b HotWalletBalances) PrintBalances(){
 // Coins Must be addded here
 // TODO Update docs to indicate new coins must be added here
 type MinBalanceConfResponse struct {
-	BTC Balance `json:"BTC"`
-	COLX Balance `json:"COLX"`
-	DASH Balance `json:"DASH"`
-	DGB Balance `json:"DGB"`
-	GRS Balance `json:"GRS"`
-	LTC Balance `json:"LTC"`
+	BTC   Balance `json:"BTC"`
+	COLX  Balance `json:"COLX"`
+	DASH  Balance `json:"DASH"`
+	DGB   Balance `json:"DGB"`
+	GRS   Balance `json:"GRS"`
+	LTC   Balance `json:"LTC"`
 	POLIS Balance `json:"POLIS"`
-	XZC Balance `json:"XZC"`
+	XZC   Balance `json:"XZC"`
 }
 
 // Gets map for Ticker to Balance Object
@@ -64,10 +73,5 @@ func (br MinBalanceConfResponse) ToMap() map[string]Balance {
 	balanceMap["LTC"] = br.LTC
 	balanceMap["POLIS"] = br.POLIS
 	balanceMap["XZC"] = br.XZC
-	fmt.Println(balanceMap)
 	return balanceMap
-}
-
-type MinBalanceConf struct {
-
 }

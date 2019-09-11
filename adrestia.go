@@ -31,7 +31,7 @@ func main() {
 	}
 	// Firebase Wallet Configuration
 	var conf = GetFBConfiguration()
-	fmt.Println(conf)
+	// fmt.Println(conf)
 	SortBalances(balances, conf)
 
 }
@@ -61,12 +61,12 @@ func GetWalletBalances() []balance.Balance {
 	var updatedBalances []balance.Balance
 	fmt.Println("\tRetrieving Wallet Rates...")
 	for _, coin := range balances.Data {
-		fmt.Print(coin)
+		// fmt.Println(coin)
 		var newBalance = coin
 		newBalance.RateBTC = ratePvdr.GetRate(newBalance.Ticker)
 		updatedBalances = append(updatedBalances, newBalance)
 	}
-	fmt.Println(updatedBalances)
+	// fmt.Println(updatedBalances)
 	return updatedBalances
 }
 
@@ -79,7 +79,7 @@ func GetFBConfiguration() map[string]balance.Balance {
 	if err != nil {
 		log.Fatal("Configuration not found")
 	}
-	fmt.Println(conf)
+	// fmt.Println(conf)
 
 	var firebaseConfBalances = conf.ToMap()
 
@@ -94,21 +94,26 @@ func SortBalances(inputBalances []balance.Balance, conf map[string]balance.Balan
 	var unbalancedWallets []balance.Balance
 
 	for _, obj := range inputBalances {
-		fmt.Println("Debugg", conf[obj.Ticker].Balance)
 		obj.GetDiff(conf[obj.Ticker].Balance)
 		if obj.IsBalanced {
 			balancedWallets = append(balancedWallets, obj)
 		} else {
 			unbalancedWallets = append(unbalancedWallets, obj)
 		}
+		fmt.Println(obj)
 	}
 
-	sort.Sort(balance.ByDiff(balancedWallets))
+	sort.Sort(balance.ByDiffInverse(balancedWallets))
 	sort.Sort(balance.ByDiff(unbalancedWallets))
 
 	fmt.Println("Info Sorting")
-	fmt.Println("Unbalanced", unbalancedWallets)
-	fmt.Println("Balanced", balancedWallets)
+	fmt.Println()
+	for _, wallet := range unbalancedWallets {
+		fmt.Printf("%s has a deficit of %.8f BTC\n", wallet.Ticker, wallet.DiffBTC)
+	}
+	for _, wallet := range balancedWallets {
+		fmt.Printf("%s has a superavit of %.8f BTC\n", wallet.Ticker, wallet.DiffBTC)
+	}
 
 	return balancedWallets, unbalancedWallets
 }

@@ -2,10 +2,12 @@ package services
 
 import (
 	"context"
+
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
 	"firebase.google.com/go/db"
 	"github.com/grupokindynos/adrestia-go/models/balance"
+	"google.golang.org/api/option"
 )
 
 type Firebase struct {
@@ -13,13 +15,24 @@ type Firebase struct {
 	Auth *auth.Client
 }
 
-func InitFirebase(fbApp *firebase.App) *Firebase {
+func InitFirebase() *Firebase {
+	// service account credentials
+	opt := option.WithCredentialsFile("./fb_conf.json")
 	ctx := context.Background()
-	dbClient, err := fbApp.Database(ctx)
+
+	config := &firebase.Config{
+		DatabaseURL: "https://polispay-copay.firebaseio.com",
+	}
+	firebaseApp, err := firebase.NewApp(ctx, config, opt)
 	if err != nil {
 		panic(err)
 	}
-	authClient, err := fbApp.Auth(ctx)
+
+	dbClient, err := firebaseApp.Database(ctx)
+	if err != nil {
+		panic(err)
+	}
+	authClient, err := firebaseApp.Auth(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -39,5 +52,3 @@ func (fb *Firebase) GetConf() (conf balance.MinBalanceConfResponse, err error) {
 	}
 	return conf, nil
 }
-
-

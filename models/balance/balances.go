@@ -20,7 +20,7 @@ type Balance struct {
 
 func (b Balance) GetDiff(target float64){
 	b.DiffBTC = (target - b.Balance) * b.RateBTC
-	fmt.Print("Njadnsaidbsa ", b.Ticker, " ", b.DiffBTC)
+	fmt.Print("GetDiff ", b.Ticker, " ", b.DiffBTC)
 	if b.DiffBTC >= 0.0 { b.IsBalanced = true }else { b.IsBalanced = false }
 
 }

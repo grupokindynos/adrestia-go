@@ -39,10 +39,10 @@ func main() {
 
 	isBalanceable, diff := DetermineBalanceability(balanced, unbalanced)
 	if isBalanceable {
-		fmt.Printf("Wallet is balanceable by %.8f", diff)
+		fmt.Printf("Wallet is balanceable by %.8f\n", diff)
 		BalanceHW(balanced, unbalanced) // Balances HW
 	} else {
-		fmt.Printf("Wallet is not balanceable by %.8f", diff)
+		fmt.Printf("Wallet is not balanceable by %.8f\n", diff)
 		BalanceHW(balanced, unbalanced)
 		/*
 			TODO Handle buy and sell requests on Adrestia as well as proper retrial
@@ -144,6 +144,9 @@ func DetermineBalanceability(balanced []balance.Balance, unbalanced []balance.Ba
 	for _, wallet := range unbalanced {
 		deficit += wallet.DiffBTC
 	}
+
+	fmt.Println("Superavit: ", superavit)
+	fmt.Println("Deficit: ", deficit)
 
 	return superavit > math.Abs(deficit), superavit - math.Abs(deficit)
 }

@@ -37,5 +37,11 @@ func (r RateProvider) GetRate(coin string) float64 {
 			fmt.Println(err)
 		}
 	}
-	return rates.Data.BTC
+
+	for _, rate := range rates.Data {
+		if rate.Code == "BTC" {
+			return rate.Rate
+		}
+	}
+	return 0.00
 }

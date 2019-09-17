@@ -3,12 +3,13 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/grupokindynos/adrestia-go/models/transaction"
 	"io/ioutil"
 	"log"
 	"math"
 	"net/http"
 	"sort"
+
+	"github.com/grupokindynos/adrestia-go/models/transaction"
 
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	"github.com/grupokindynos/adrestia-go/services"
@@ -34,8 +35,7 @@ func main() {
 	// Firebase Wallet Configuration
 	var conf = GetFBConfiguration()
 	// fmt.Println(conf)
-	 var balanced, unbalanced = SortBalances(balances, conf)
-
+	var balanced, unbalanced = SortBalances(balances, conf)
 
 	isBalanceable, diff := DetermineBalanceability(balanced, unbalanced)
 	if isBalanceable {
@@ -43,6 +43,7 @@ func main() {
 		BalanceHW(balanced, unbalanced) // Balances HW
 	} else {
 		fmt.Printf("Wallet is not balanceable by %.8f", diff)
+		BalanceHW(balanced, unbalanced)
 		/*
 			TODO Handle buy and sell requests on Adrestia as well as proper retrial
 			on condition fulfillments
@@ -134,8 +135,8 @@ func SortBalances(inputBalances []balance.Balance, conf map[string]balance.Balan
 }
 
 func DetermineBalanceability(balanced []balance.Balance, unbalanced []balance.Balance) (bool, float64) {
-	superavit := 0.0 	// Excedent in balanced wallets
-	deficit := 0.0	// Missing amount in unbalanced wallets
+	superavit := 0.0 // Excedent in balanced wallets
+	deficit := 0.0   // Missing amount in unbalanced wallets
 
 	for _, wallet := range balanced {
 		superavit += wallet.DiffBTC
@@ -150,9 +151,18 @@ func DetermineBalanceability(balanced []balance.Balance, unbalanced []balance.Ba
 // Actual balancing action
 func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []transaction.PTx {
 	var pendingTransactions []transaction.PTx
-
+	bIndex := 0
 	for i, wallet := range unbalanced {
 		fmt.Println(i, " ", wallet)
+		if wallet.DiffBTC < balanced[bIndex].DiffBTC {
+			var newTx = transaction.PTx{
+				ToCoin:   wallet.Ticker,
+				FromCoin: balanced[bIndex].Ticker,
+				Amount:   math.Abs(wallet.DiffBTC),
+			}
+			pendingTransactions = append(pendingTransactions, newTx)
+		}
+
 	}
 
 	return pendingTransactions

@@ -10,6 +10,7 @@ import (
 	"sort"
 
 	"github.com/grupokindynos/adrestia-go/models/transaction"
+	CoinFactory "github.com/grupokindynos/common/coin-factory"
 
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	"github.com/grupokindynos/adrestia-go/services"
@@ -155,8 +156,12 @@ func DetermineBalanceability(balanced []balance.Balance, unbalanced []balance.Ba
 func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []transaction.PTx {
 	var pendingTransactions []transaction.PTx
 	bIndex := 0
-	for i, wallet := range unbalanced {
-		fmt.Println(i, " ", wallet)
+	for _, wallet := range unbalanced {
+		// fmt.Println(i, " ", wallet)
+		coinData, _ := CoinFactory.GetCoin(wallet.Ticker)
+
+		fmt.Printf("The exchange for %s is %s\n", wallet.Ticker, coinData.Exchange)
+		// TODO Optimize sendind TXs for the same coin (instead of making 5 dash transactions, make one)
 		if wallet.DiffBTC < balanced[bIndex].DiffBTC {
 			var newTx = transaction.PTx{
 				ToCoin:   wallet.Ticker,
@@ -165,8 +170,6 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 			}
 			pendingTransactions = append(pendingTransactions, newTx)
 		}
-
 	}
-
 	return pendingTransactions
 }

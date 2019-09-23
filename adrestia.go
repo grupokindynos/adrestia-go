@@ -160,7 +160,7 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 		// fmt.Println(i, " ", wallet)
 		coinData, _ := CoinFactory.GetCoin(wallet.Ticker)
 
-		fmt.Printf("The exchange for %s is %s\n", wallet.Ticker, coinData.Exchange)
+		fmt.Printf("The exchange for %s is %s\n", wallet.Ticker, "MISING EXCHANGE") // TODO Replace with exchange factory method
 		// TODO Optimize sendind TXs for the same coin (instead of making 5 dash transactions, make one)
 		if wallet.DiffBTC < balanced[bIndex].DiffBTC {
 			var newTx = transaction.PTx{

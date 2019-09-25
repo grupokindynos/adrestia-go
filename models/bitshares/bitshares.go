@@ -64,3 +64,13 @@ type CBAsset struct {
 	} `json:"asset"`
 	Symbol string `json:"symbol"`
 }
+
+type CBRates []struct {
+	ID            string  `json:"id"`
+	Last          string  `json:"last"`
+	Volume        string  `json:"volume"`
+	Ask           string  `json:"ask"`
+	Bid           string  `json:"bid"`
+	PercentChange float64 `json:"percentChange"`
+	Restricted    bool    `json:"restricted"`
+}

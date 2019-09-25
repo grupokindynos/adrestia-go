@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -43,7 +44,27 @@ func (c Cryptobridge) GetAddress(coin coins.Coin) string {
 }
 
 func (c Cryptobridge) OneCoinToBtc(coin coins.Coin) float64 {
-	panic("Missing Implementation")
+	var rates = new(bitshares.CBRates)
+	url := "v1/ticker"
+	getRequest(c.BaseUrl + url, http.MethodGet, nil, &rates)
+
+	var pair = coin.Tag + "_BTC"
+	var pair2 = "BTC_" + coin.Tag
+
+	var r = 0.0
+
+	for _, rate := range *rates {
+		if rate.ID == pair {
+			r, _ = strconv.ParseFloat(rate.Last, 64)
+			return r
+		}
+		if rate.ID == pair2 {
+			r, _ = strconv.ParseFloat(rate.Last, 64)
+			return 1/r
+		}
+	}
+	log.Fatalln("Not implemented")
+	return 0.0
 }
 
 func (c Cryptobridge) GetBalances(coin coins.Coin) []balance.Balance {

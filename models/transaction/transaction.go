@@ -1,6 +1,8 @@
 package transaction
 
-import coinfactory "github.com/grupokindynos/common/coin-factory"
+import (
+	"github.com/grupokindynos/common/coin-factory/coins"
+)
 
 // Placeholder transaction
 type PTx struct {
@@ -11,7 +13,7 @@ type PTx struct {
 }
 
 type ExchangeSell struct {
-	FromCoin coinfactory.Coin
-	ToCoin   coinfactory.Coin
+	FromCoin coins.Coin
+	ToCoin   coins.Coin
 	Amount   float64
 }

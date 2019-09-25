@@ -16,3 +16,5 @@
 main
 fb_conf.json
 models/docs/exchanges.md
+api/exchanges/config/*.json
+api/testfile.go

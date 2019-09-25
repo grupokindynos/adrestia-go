@@ -9,7 +9,6 @@ require (
 	github.com/gin-gonic/gin v1.4.0
 	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/grupokindynos/common v0.0.0-20190923184255-a3e9d535f915
-	github.com/grupokindynos/plutus v0.0.0-20190917210457-0321056a6ee9 // indirect
 	github.com/heroku/x v0.0.9
 	github.com/joho/godotenv v1.3.0
 	github.com/json-iterator/go v1.1.7 // indirect

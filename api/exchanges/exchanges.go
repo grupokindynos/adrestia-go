@@ -16,10 +16,6 @@ type ExchangeBehaviour interface {
 }
 
 type Exchange struct {
-	Name string
-}
-
-type Auth struct{
-	User string
-	Token string
+	Name 	string
+	BaseUrl string
 }

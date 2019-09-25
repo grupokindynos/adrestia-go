@@ -6,9 +6,11 @@ import (
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	"github.com/grupokindynos/adrestia-go/models/bitshares"
 	"github.com/grupokindynos/common/coin-factory/coins"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 )
 
 type Cryptobridge struct {
@@ -60,30 +62,37 @@ func (c Cryptobridge) GetBalances(coin coins.Coin) []balance.Balance {
 	var balances []balance.Balance
 	var CBResponse = new(bitshares.CBBalance)
 	url := "balance"
-	client := &http.Client{}
-	req, _ := http.NewRequest(http.MethodGet, c.BitSharesUrl + url, nil)
-	req.Header.Add("key", "asjldfajsdlkfjasldflasjdfl")
-	res, _ := client.Do(req)
-	body, readErr := ioutil.ReadAll(res.Body)
-	if readErr != nil {
-		log.Fatalln(readErr)
-	}
-	jsonErr := json.Unmarshal(body, &CBResponse)
-	if jsonErr != nil {
-		log.Fatalln(jsonErr)
-	}
-	fmt.Println("Balances")
+	getRequest(c.BitSharesUrl + url, http.MethodGet, nil, &CBResponse)
+
 	for _,asset := range CBResponse.Data {
+		if strings.Contains(asset.Symbol, "BRIDGE.") {
+			asset.Symbol = asset.Symbol[7:]
+		}
 		var balance = balance.Balance{
-			Ticker:     asset.Asset.Symbol,
+			Ticker:     asset.Symbol,
 			Balance:    asset.Amount,
 			RateBTC:    0,
 			DiffBTC:    0,
 			IsBalanced: false,
 		}
-
-		fmt.Println(balance)
 		balances = append(balances, balance)
 	}
 	return balances
+}
+
+// Builds requests with the appropriate header and returns the content in the desired struct
+func getRequest(url string, method string, body io.Reader, outType interface{}) interface{} {
+	client := &http.Client{}
+	req, _ := http.NewRequest(method, url, body)
+	req.Header.Add("key", "asjldfajsdlkfjasldflasjdfl")
+	res, _ := client.Do(req)
+	bodyResp, readErr := ioutil.ReadAll(res.Body)
+	if readErr != nil {
+		log.Fatalln(readErr)
+	}
+	jsonErr := json.Unmarshal(bodyResp, &outType)
+	if jsonErr != nil {
+		log.Fatalln(jsonErr)
+	}
+	return outType
 }

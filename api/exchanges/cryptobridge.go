@@ -46,18 +46,6 @@ func (c Cryptobridge) OneCoinToBtc(coin coins.Coin) float64 {
 	panic("Missing Implementation")
 }
 
-func (c Cryptobridge) GetBalance(coin coins.Coin) []balance.Balance {
-	client := &http.Client{}
-	url := "balance"
-	req, _ := http.NewRequest("GET", c.BitSharesUrl + url, nil)
-	// ...
-	req.Header.Add("key", "asjldfajsdlkfjasldflasjdfl")
-	fmt.Println(c.BitSharesUrl + url)
-	res, _ := client.Do(req)
-	fmt.Println(res)
-	panic("Missing Implementation")
-}
-
 func (c Cryptobridge) GetBalances(coin coins.Coin) []balance.Balance {
 	var balances []balance.Balance
 	var CBResponse = new(bitshares.CBBalance)

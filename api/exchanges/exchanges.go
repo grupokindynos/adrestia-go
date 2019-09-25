@@ -9,13 +9,14 @@ import (
 type ExchangeBehaviour interface {
 	GetAddress(coin coins.Coin) string
 	OneCoinToBtc(coin coins.Coin) float64
-	GetBalance(coin coins.Coin) []balance.Balance
+	GetBalances(coin coins.Coin) []balance.Balance
 	SellAtMarketPrice() bool
 	Withdraw(coin string, address string, amount float64) //
 	GetRateByAmount(sell transaction.ExchangeSell)
 }
 
 type Exchange struct {
+	ExchangeBehaviour
 	Name 	string
 	BaseUrl string
 }

@@ -98,15 +98,34 @@ func (c Cryptobridge) SellAtMarketPrice(SellOrder transaction.ExchangeSell) bool
 
 	calculatedPrice := 0.0
 	auxAmount := 0.0
+	amountToSell:= 0.0
 	index := 0
 
+	fmt.Println("Selling Order ", SellOrder.Amount, " ", SellOrder.FromCoin)
+
 	for auxAmount < SellOrder.Amount {
-		auxAmount += openOrders.Data.Asks[index].Price
+		fmt.Println("Current Amount Before: ", auxAmount)
+		currentAsk := openOrders.Data.Asks[index]
+		auxAmount += currentAsk.Base.Amount;
+		calculatedPrice = (1/currentAsk.Price) * 0.9999; // TODO I don't quite understand this way of calculating.
+
+
+
+		if currentAsk.Base.Amount < auxAmount {
+			amountToSell = currentAsk.Base.Amount
+		} else {
+			amountToSell = auxAmount
+		}
+		fmt.Println("Calculated Price: ", calculatedPrice)
+		fmt.Println("Current Amount: ", auxAmount)
+		auxAmount -= currentAsk.Base.Amount
+		index++
 	}
 
 	fmt.Println(openOrders)
 	fmt.Println(calculatedPrice)
 	fmt.Println(auxAmount)
+	fmt.Println(amountToSell)
 	panic("Not implemented")
 }
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	"github.com/grupokindynos/adrestia-go/models/bitshares"
+	"github.com/grupokindynos/adrestia-go/models/transaction"
 	"github.com/grupokindynos/common/coin-factory/coins"
 	"io"
 	"io/ioutil"
@@ -89,19 +90,29 @@ func (c Cryptobridge) GetBalances(coin coins.Coin) []balance.Balance {
 	return balances
 }
 
+func (c Cryptobridge) SellAtMarketPrice(SellOrder transaction.ExchangeSell) bool {
+	// sellorders/BRIDGE.{sell.To.tag}/BRIDGE.{sell.From.tag}
+	url := "sellorders/BRIDGE." + strings.ToUpper(SellOrder.ToCoin.Tag) + "/BRIDGE." + strings.ToUpper(SellOrder.FromCoin.Tag)
+	fmt.Println(c.BitSharesUrl + url)
+	panic("Not implemented")
+}
+
+
 // Builds requests with the appropriate header and returns the content in the desired struct
 func getRequest(url string, method string, body io.Reader, outType interface{}) interface{} {
+	// fmt.Println(url)
 	client := &http.Client{}
 	req, _ := http.NewRequest(method, url, body)
 	req.Header.Add("key", "asjldfajsdlkfjasldflasjdfl")
 	res, _ := client.Do(req)
 	bodyResp, readErr := ioutil.ReadAll(res.Body)
 	if readErr != nil {
-		log.Fatalln(readErr)
+		log.Fatalln("Error reading body: ", readErr)
 	}
 	jsonErr := json.Unmarshal(bodyResp, &outType)
 	if jsonErr != nil {
-		log.Fatalln(jsonErr)
+		fmt.Println(res)
+		log.Fatalln("Error in unmarshall: ",jsonErr)
 	}
 	return outType
 }

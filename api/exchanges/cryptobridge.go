@@ -93,11 +93,20 @@ func (c Cryptobridge) GetBalances(coin coins.Coin) []balance.Balance {
 func (c Cryptobridge) SellAtMarketPrice(SellOrder transaction.ExchangeSell) bool {
 	// sellorders/BRIDGE.{sell.To.tag}/BRIDGE.{sell.From.tag}
 	url := "sellorders/BRIDGE." + strings.ToUpper(SellOrder.ToCoin.Tag) + "/BRIDGE." + strings.ToUpper(SellOrder.FromCoin.Tag)
-	fmt.Println(c.BitSharesUrl + url)
 	var openOrders = new(bitshares.Orders)
 	getBitSharesRequest(c.BitSharesUrl + url, http.MethodGet, nil, &openOrders)
 
+	calculatedPrice := 0.0
+	auxAmount := 0.0
+	index := 0
+
+	for auxAmount < SellOrder.Amount {
+		auxAmount += openOrders.Data.Asks[index].Price
+	}
+
 	fmt.Println(openOrders)
+	fmt.Println(calculatedPrice)
+	fmt.Println(auxAmount)
 	panic("Not implemented")
 }
 

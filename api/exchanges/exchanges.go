@@ -6,17 +6,18 @@ import (
 	"github.com/grupokindynos/common/coin-factory/coins"
 )
 
-type ExchangeBehaviour interface {
+type IExchange interface {
 	GetAddress(coin coins.Coin) string
 	OneCoinToBtc(coin coins.Coin) float64
 	GetBalances(coin coins.Coin) []balance.Balance
 	SellAtMarketPrice(SellOrder transaction.ExchangeSell) bool
 	Withdraw(coin string, address string, amount float64) //
 	GetRateByAmount(sell transaction.ExchangeSell)
+	GetSettings()
 }
 
 type Exchange struct {
-	ExchangeBehaviour
+	IExchange
 	Name 	string
 	BaseUrl string
 }

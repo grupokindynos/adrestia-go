@@ -7,13 +7,16 @@ import (
 )
 
 type ExchangeFactory struct {
-	Exchanges []exchanges.ExchangeBehaviour
+	Exchanges []exchanges.IExchange
 }
 
-func (e ExchangeFactory)GetExchangeByCoin(coin coins.Coin) exchanges.ExchangeBehaviour{
+func (e ExchangeFactory)GetExchangeByCoin(coin coins.Coin) exchanges.IExchange{
 	var coinName = strings.ToLower(coin.Tag)
 	if coinName == "polis" || coinName == "dash" {
 		return exchanges.NewCryptobridge()
+	}
+	if coinName == "btc" || coinName == "dash" {
+		return exchanges.NewBinance()
 	}
 	return *new(exchanges.Exchange)
 }

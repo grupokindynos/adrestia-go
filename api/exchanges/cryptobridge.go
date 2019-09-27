@@ -108,7 +108,7 @@ func (c Cryptobridge) SellAtMarketPrice(SellOrder transaction.ExchangeSell) bool
 		fmt.Println("Current Amount Before: ", auxAmount)
 		currentAsk := openOrders.Data.Asks[index]
 		auxAmount += currentAsk.Base.Amount
-		calculatedPrice = currentAsk.Price // TODO I (Helios) don't quite understand this way of calculating.
+		calculatedPrice = 1/currentAsk.Price * 0.9999 // TODO I (Helios) don't quite understand this way of calculating.
 		fmt.Println(calculatedPrice)
 		if currentAsk.Base.Amount < copySellOrder {
 			amountToSell = currentAsk.Base.Amount

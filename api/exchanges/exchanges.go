@@ -11,9 +11,8 @@ type IExchange interface {
 	OneCoinToBtc(coin coins.Coin) float64
 	GetBalances(coin coins.Coin) []balance.Balance
 	SellAtMarketPrice(SellOrder transaction.ExchangeSell) bool
-	Withdraw(coin string, address string, amount float64) //
+	Withdraw(coin string, address string, amount float64) bool//
 	GetRateByAmount(sell transaction.ExchangeSell)
-	GetSettings()
 }
 
 type Exchange struct {

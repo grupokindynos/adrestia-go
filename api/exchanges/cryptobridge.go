@@ -98,6 +98,7 @@ func (c Cryptobridge) SellAtMarketPrice(SellOrder transaction.ExchangeSell) bool
 
 	calculatedPrice := 0.0
 	auxAmount := 0.0
+	copySellOrder := SellOrder.Amount
 	amountToSell:= 0.0
 	index := 0
 
@@ -106,33 +107,27 @@ func (c Cryptobridge) SellAtMarketPrice(SellOrder transaction.ExchangeSell) bool
 	for auxAmount < SellOrder.Amount {
 		fmt.Println("Current Amount Before: ", auxAmount)
 		currentAsk := openOrders.Data.Asks[index]
-		auxAmount += currentAsk.Base.Amount;
-		calculatedPrice = (1/currentAsk.Price) * 0.9999; // TODO I don't quite understand this way of calculating.
-
-
-
-		if currentAsk.Base.Amount < auxAmount {
+		auxAmount += currentAsk.Base.Amount
+		calculatedPrice = currentAsk.Price // TODO I (Helios) don't quite understand this way of calculating.
+		fmt.Println(calculatedPrice)
+		if currentAsk.Base.Amount < copySellOrder {
 			amountToSell = currentAsk.Base.Amount
 		} else {
-			amountToSell = auxAmount
+			amountToSell = copySellOrder
 		}
 		fmt.Println("Calculated Price: ", calculatedPrice)
 		fmt.Println("Current Amount: ", auxAmount)
-		auxAmount -= currentAsk.Base.Amount
+		copySellOrder -= currentAsk.Base.Amount
 		index++
 	}
-
-	fmt.Println(openOrders)
-	fmt.Println(calculatedPrice)
-	fmt.Println(auxAmount)
-	fmt.Println(amountToSell)
-	panic("Not implemented")
+	fmt.Print("Calculated Price: " , calculatedPrice)
+	fmt.Println("Amount to Sell: ", amountToSell)
+	return true
 }
 
 
 // Builds requests with the appropriate header and returns the content in the desired struct
 func getBitSharesRequest(url string, method string, body io.Reader, outType interface{}) interface{} {
-	// fmt.Println(url)
 	client := &http.Client{}
 	req, _ := http.NewRequest(method, url, body)
 	req.Header.Add("key", "asjldfajsdlkfjasldflasjdfl")

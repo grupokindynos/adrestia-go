@@ -104,8 +104,8 @@ github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1/go.mod h1:wJfORR
 github.com/gostaticanalysis/analysisutil v0.0.0-20190318220348-4088753ea4d3/go.mod h1:eEOZF4jCKGi+aprrirO9e7WKB3beBRtWgqGunKl6pKE=
 github.com/grpc-ecosystem/go-grpc-middleware v1.0.0/go.mod h1:FiyG127CGDf3tlThmgyCl78X/SZQqEOJBCDaAfeWzPs=
 github.com/grpc-ecosystem/grpc-gateway v1.9.0/go.mod h1:vNeuVxBJEsws4ogUvrchl83t/GYV9WGTSLVdBhOQFDY=
-github.com/grupokindynos/common v0.0.0-20190923184255-a3e9d535f915 h1:hGbVMXbC806jgSAthkrJtIMxB1zpH7fwCmfhAA5755o=
-github.com/grupokindynos/common v0.0.0-20190923184255-a3e9d535f915/go.mod h1:HPJYsCCOe1qlwpFlz6Na8SbqypUKEldUXL4dXx2nX00=
+github.com/grupokindynos/common v0.0.0-20190927185224-3d043e9d3287 h1:UEEAn2X88e6iPMa+mM7AqnM8crwGTWB2vVgZarYai2A=
+github.com/grupokindynos/common v0.0.0-20190927185224-3d043e9d3287/go.mod h1:LWwa+FAKwMTYMlmxqB+BFH2VyKth9j2Lkk0l1mLd6XU=
 github.com/hashicorp/golang-lru v0.5.0/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hashicorp/golang-lru v0.5.1 h1:0hERBMJE1eitiLkihrMvRVBYAkpHzc/J3QdDN+dAcgU=
 github.com/hashicorp/golang-lru v0.5.1/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=

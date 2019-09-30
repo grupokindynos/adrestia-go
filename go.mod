@@ -8,7 +8,7 @@ require (
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/gin-gonic/gin v1.4.0
 	github.com/golang/protobuf v1.3.2 // indirect
-	github.com/grupokindynos/common v0.0.0-20190923184255-a3e9d535f915
+	github.com/grupokindynos/common v0.0.0-20190927185224-3d043e9d3287
 	github.com/heroku/x v0.0.9
 	github.com/joho/godotenv v1.3.0
 	github.com/json-iterator/go v1.1.7 // indirect

@@ -1,13 +1,16 @@
 package exchanges
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/grupokindynos/adrestia-go/api/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	"github.com/grupokindynos/adrestia-go/models/bitshares"
 	"github.com/grupokindynos/adrestia-go/models/transaction"
+	coinfactory "github.com/grupokindynos/common/coin-factory"
 	"github.com/grupokindynos/common/coin-factory/coins"
+	"github.com/grupokindynos/common/obol"
 	"io"
 	"io/ioutil"
 	"log"
@@ -31,7 +34,6 @@ func NewCryptobridge() *Cryptobridge {
 	c.AccountName = data.AccountName
 	c.BaseUrl = data.BaseUrl
 	c.BitSharesUrl = data.BitSharesUrl
-	fmt.Println(c)
 	return c
 }
 
@@ -74,28 +76,38 @@ func (c Cryptobridge) OneCoinToBtc(coin coins.Coin) float64 {
 }
 
 func (c Cryptobridge) GetBalances(coin coins.Coin) []balance.Balance {
+	s := fmt.Sprintf("Retrieving Balances for %s", c.Name )
+	log.Println(s)
 	var balances []balance.Balance
 	var CBResponse = new(bitshares.CBBalance)
 	url := "balance"
 	getBitSharesRequest(c.MasterPassword, c.BitSharesUrl + url, http.MethodGet, nil, &CBResponse)
 
+
 	for _,asset := range CBResponse.Data {
 		if strings.Contains(asset.Symbol, "BRIDGE.") {
 			asset.Symbol = asset.Symbol[7:]
 		}
+		rate, _ :=  obol.GetCoinRates(asset.Symbol)
 		var b = balance.Balance{
 			Ticker:     asset.Symbol,
 			Balance:    asset.Amount,
-			RateBTC:    0,
+			RateBTC:   	rate.Data,
 			DiffBTC:    0,
 			IsBalanced: false,
 		}
 		balances = append(balances, b)
 	}
+	fmt.Println(balances)
+
+	s = fmt.Sprintf( "Balances for %s retrieved. Total of %f BTC distributed in %d assets.", c.Name )
+	log.Println(s)
 	return balances
 }
 
 func (c Cryptobridge) SellAtMarketPrice(SellOrder transaction.ExchangeSell) bool {
+	s := fmt.Sprintf("Selling %f %s for %s in %s", SellOrder.Amount,SellOrder.FromCoin.Tag, SellOrder.ToCoin.Tag, c.Name )
+	log.Println(s)
 	// sellorders/BRIDGE.{sell.To.tag}/BRIDGE.{sell.From.tag}
 	url := "sellorders/BRIDGE." + strings.ToUpper(SellOrder.ToCoin.Tag) + "/BRIDGE." + strings.ToUpper(SellOrder.FromCoin.Tag)
 	var openOrders = new(bitshares.Orders)
@@ -107,7 +119,7 @@ func (c Cryptobridge) SellAtMarketPrice(SellOrder transaction.ExchangeSell) bool
 	amountToSell:= 0.0
 	index := 0
 
-	log.Println("Selling Order ", SellOrder.Amount, " ", SellOrder.FromCoin.Tag)
+	// log.Println("Selling Order ", SellOrder.Amount, " ", SellOrder.FromCoin.Tag)
 
 	for auxAmount < SellOrder.Amount {
 		currentAsk := openOrders.Data.Asks[index]
@@ -130,8 +142,26 @@ func (c Cryptobridge) SellAtMarketPrice(SellOrder transaction.ExchangeSell) bool
 
 //Withdraw allows Adrestia to send money from exchanges to a valid address
 func (c Cryptobridge) Withdraw(coin string, address string, amount float64) bool {
+	var withdrawObj = config.CBWithdraw{
+		Amount:  amount,
+		Address: address,
+	}
 
-	panic("Not Implemented")
+	data, err := json.Marshal(withdrawObj)
+	if err != nil{
+		panic("Couldn't serialize Order object.")
+	}
+
+	url := c.BitSharesUrl + "withdraw/" + coin
+
+	client := &http.Client{}
+	req, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(data))
+	req.Header.Add("key", c.MasterPassword)
+	res, _ := client.Do(req)
+
+	println(res)
+
+	panic("Missing post")
 }
 
 func (c Cryptobridge) GetSettings() config.CBAuth{

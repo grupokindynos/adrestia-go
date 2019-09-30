@@ -1,4 +1,4 @@
-package bitshares
+package exchange_models
 
 type CBBalance struct {
 	Data []CBAsset `json:"data"`
@@ -97,4 +97,9 @@ type TradeObject struct {
 		Asset  CBAsset `json:"asset"`
 		Symbol string `json:"symbol"`
 	} `json:"quote"`
+}
+
+type CBWithdraw struct {
+	Amount float64			`json:"amount"`
+	Address string			`json:"address"`
 }

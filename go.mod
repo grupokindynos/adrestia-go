@@ -4,11 +4,16 @@ go 1.13
 
 require (
 	firebase.google.com/go v3.9.0+incompatible
+	github.com/binance-exchange/go-binance v0.0.0-20180518133450-1af034307da5
 	github.com/gin-contrib/cors v1.3.0
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/gin-gonic/gin v1.4.0
+	github.com/go-kit/kit v0.6.0
+	github.com/go-logfmt/logfmt v0.4.0 // indirect
+	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang/protobuf v1.3.2 // indirect
-	github.com/grupokindynos/common v0.0.0-20190927185224-3d043e9d3287
+	github.com/gorilla/websocket v1.4.1 // indirect
+	github.com/grupokindynos/common v0.0.0-20190927220616-6ba7f90b2c75
 	github.com/heroku/x v0.0.9
 	github.com/joho/godotenv v1.3.0
 	github.com/json-iterator/go v1.1.7 // indirect

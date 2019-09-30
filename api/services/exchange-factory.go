@@ -12,7 +12,7 @@ type ExchangeFactory struct {
 
 func (e ExchangeFactory)GetExchangeByCoin(coin coins.Coin) exchanges.IExchange{
 	var coinName = strings.ToLower(coin.Tag)
-	if coinName == "polis" || coinName == "dash" {
+	if coinName == "polis" || coinName == "xsg" {
 		return exchanges.NewCryptobridge()
 	}
 	if coinName == "btc" || coinName == "dash" {

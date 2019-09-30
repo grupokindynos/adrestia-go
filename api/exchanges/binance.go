@@ -6,9 +6,15 @@ import (
 	"fmt"
 	"github.com/go-kit/kit/log"
 	"github.com/grupokindynos/adrestia-go/api/exchanges/config"
+	"github.com/grupokindynos/adrestia-go/models/balance"
+	"github.com/grupokindynos/adrestia-go/utils"
+	"github.com/grupokindynos/common/coin-factory/coins"
+	"github.com/grupokindynos/common/obol"
 	"io/ioutil"
+	l "log"
 	"os"
 	"github.com/binance-exchange/go-binance"
+	"time"
 )
 
 type Binance struct {
@@ -46,6 +52,32 @@ func NewBinance() *Binance {
 	return c
 }
 
+func (b Binance) GetBalances(coin coins.Coin) []balance.Balance {
+	fmt.Sprintf("Retrieving Balances for %s", b.Name )
+	var balances []balance.Balance
+	res, _ := b.BinanceApi.Account(binance.AccountRequest{
+		RecvWindow: 5 * time.Second,
+		Timestamp:  time.Now(),
+	})
+	for _, asset := range res.Balances {
+		rate, _ :=  obol.GetCoin2CoinRates("BTC", asset.Asset)
+		var b = balance.Balance{
+			Ticker:     asset.Asset,
+			Balance:    asset.Free,
+			RateBTC:   	rate,
+			DiffBTC:    0,
+			IsBalanced: false,
+		}
+		if b.Balance > 0.0 {
+			balances = append(balances, b)
+		}
+
+	}
+	s := utils.GetBalanceLog(balances, b.Name)
+	l.Println(s)
+	return balances
+}
+
 func GetSettings() config.BinanceAuth{
 	file, err := ioutil.ReadFile("api/exchanges/config/binance.json")
 	if err != nil {
@@ -53,7 +85,6 @@ func GetSettings() config.BinanceAuth{
 	}
 	var data config.BinanceAuth
 	err = json.Unmarshal([]byte(file), &data)
-	fmt.Println(data)
 	if err != nil {
 		panic(err)
 	}

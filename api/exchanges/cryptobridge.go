@@ -8,6 +8,7 @@ import (
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	"github.com/grupokindynos/adrestia-go/models/exchange_models"
 	"github.com/grupokindynos/adrestia-go/models/transaction"
+	"github.com/grupokindynos/adrestia-go/utils"
 	"github.com/grupokindynos/common/coin-factory/coins"
 	"github.com/grupokindynos/common/obol"
 	"io"
@@ -81,36 +82,23 @@ func (c Cryptobridge) GetBalances(coin coins.Coin) []balance.Balance {
 	var CBResponse = new(exchange_models.CBBalance)
 	url := "balance"
 	getBitSharesRequest(c.MasterPassword, c.BitSharesUrl + url, http.MethodGet, nil, &CBResponse)
-
-	assetSum := 0.0
-	assetCounter := 0
 	for _,asset := range CBResponse.Data {
 		if strings.Contains(asset.Symbol, "BRIDGE.") {
 			asset.Symbol = asset.Symbol[7:]
 		}
-		rates, _ :=  obol.GetCoinRates(asset.Symbol)
-		// fmt.Println("Rates for ", asset.Symbol, " ", rates)
-		rateMap := make(map[string]float64)
-		for _, rate := range rates {
-			rateMap[rate.Code] = rate.Rate
-		}
-		_, ok := rateMap["BTC"]
-		if ok {
-			assetSum += asset.Amount * rateMap["BTC"]
-		}
-		assetCounter++
+		rate, _ :=  obol.GetCoin2CoinRates("BTC", asset.Symbol)
+
 		var b = balance.Balance{
 			Ticker:     asset.Symbol,
 			Balance:    asset.Amount,
-			RateBTC:   	rateMap["BTC"],
+			RateBTC:   	rate,
 			DiffBTC:    0,
 			IsBalanced: false,
 		}
 		balances = append(balances, b)
 	}
 	// fmt.Println(balances)
-
-	s = fmt.Sprintf( "Balances for %s retrieved. Total of %f BTC distributed in %d assets.", c.Name, assetSum, assetCounter )
+	s = utils.GetBalanceLog(balances, c.Name)
 	log.Println(s)
 	return balances
 }

@@ -10,7 +10,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/binance-exchange/go-binance"
+	"github.com/rootpd/go-binance"
 	"github.com/go-kit/kit/log"
 	"github.com/grupokindynos/adrestia-go/api/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
@@ -24,12 +24,13 @@ type Binance struct {
 	AccountName  	string
 	BitSharesUrl 	string
 	binanceApi   	binance.Binance
+	withdrawApi		binance.Binance
 }
 
 func NewBinance() *Binance {
 	c := new(Binance)
 	c.Name = "Binance"
-	c.BaseUrl = "https://api.crypto-bridge.org/"
+	c.BaseUrl = ""
 	data := GetSettings()
 	var logger log.Logger
 	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
@@ -84,17 +85,28 @@ func (b Binance) SellAtMarketPrice(SellOrder transaction.ExchangeSell) bool {
 }
 
 func (b Binance) Withdraw(coin string, address string, amount float64) bool {
+	fmt.Printf("Retrieving Account Info for %s", b.Name)
+	res, _ := b.binanceApi.Account(binance.AccountRequest{
+		RecvWindow: 5 * time.Second,
+		Timestamp:  time.Now(),
+	})
+	fmt.Println("an Withdraw: ", res.CanWithdraw)
+
+
 	withdrawal, err := b.binanceApi.Withdraw(binance.WithdrawRequest{
 		Asset:      coin,
 		Address:    address,
 		Amount:     amount,
 		Name:       "Adrestia-go Withdrawal",
-		RecvWindow: 0,
-		Timestamp:  time.Time{},
+		RecvWindow: 5 * time.Second,
+		Timestamp:  time.Now(),
 	})
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Println(withdrawal)
+	fmt.Println(err)
 	return withdrawal.Success
 }
 

@@ -4,25 +4,26 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/grupokindynos/adrestia-go/models/transaction"
+	"io/ioutil"
+	l "log"
+	"os"
+	"time"
+
+	"github.com/binance-exchange/go-binance"
 	"github.com/go-kit/kit/log"
 	"github.com/grupokindynos/adrestia-go/api/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	"github.com/grupokindynos/adrestia-go/utils"
 	"github.com/grupokindynos/common/coin-factory/coins"
 	"github.com/grupokindynos/common/obol"
-	"io/ioutil"
-	l "log"
-	"os"
-	"github.com/binance-exchange/go-binance"
-	"time"
 )
 
 type Binance struct {
 	Exchange
-	AccountName string
-	BitSharesUrl string
-	BinanceApi binance.Binance
-
+	AccountName  	string
+	BitSharesUrl 	string
+	binanceApi   	binance.Binance
 }
 
 func NewBinance() *Binance {
@@ -48,23 +49,23 @@ func NewBinance() *Binance {
 		logger,
 		ctx,
 	)
-	c.BinanceApi = binance.NewBinance(binanceService)
+	c.binanceApi = binance.NewBinance(binanceService)
 	return c
 }
 
 func (b Binance) GetBalances(coin coins.Coin) []balance.Balance {
-	fmt.Sprintf("Retrieving Balances for %s", b.Name )
+	fmt.Printf("Retrieving Balances for %s", b.Name)
 	var balances []balance.Balance
-	res, _ := b.BinanceApi.Account(binance.AccountRequest{
+	res, _ := b.binanceApi.Account(binance.AccountRequest{
 		RecvWindow: 5 * time.Second,
 		Timestamp:  time.Now(),
 	})
 	for _, asset := range res.Balances {
-		rate, _ :=  obol.GetCoin2CoinRates("BTC", asset.Asset)
+		rate, _ := obol.GetCoin2CoinRates("BTC", asset.Asset)
 		var b = balance.Balance{
 			Ticker:     asset.Asset,
 			Balance:    asset.Free,
-			RateBTC:   	rate,
+			RateBTC:    rate,
 			DiffBTC:    0,
 			IsBalanced: false,
 		}
@@ -78,7 +79,40 @@ func (b Binance) GetBalances(coin coins.Coin) []balance.Balance {
 	return balances
 }
 
-func GetSettings() config.BinanceAuth{
+func (b Binance) SellAtMarketPrice(SellOrder transaction.ExchangeSell) bool {
+	panic("Not Implemented")
+}
+
+func (b Binance) Withdraw(coin string, address string, amount float64) bool {
+	withdrawal, err := b.binanceApi.Withdraw(binance.WithdrawRequest{
+		Asset:      coin,
+		Address:    address,
+		Amount:     amount,
+		Name:       "Adrestia-go Withdrawal",
+		RecvWindow: 0,
+		Timestamp:  time.Time{},
+	})
+	if err != nil {
+		panic(err)
+	}
+	return withdrawal.Success
+}
+
+func (b Binance) OneCoinToBtc(coin coins.Coin) float64 {
+	if coin.Tag == "BTC" {
+		return 1.0
+	}
+	res, err := b.binanceApi.Ticker24(binance.TickerRequest{Symbol:coin.Tag+"BTC"})
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(res.LastPrice, " ", res.Volume)
+
+	return 0.0
+}
+
+func GetSettings() config.BinanceAuth {
 	file, err := ioutil.ReadFile("api/exchanges/config/binance.json")
 	if err != nil {
 		panic("Could not locate settings file")

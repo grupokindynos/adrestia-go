@@ -3,6 +3,7 @@ package exchanges
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/grupokindynos/adrestia-go/api/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
@@ -15,6 +16,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -37,7 +39,7 @@ func NewCryptobridge() *Cryptobridge {
 	return c
 }
 
-func (c Cryptobridge) GetAddress(coin coins.Coin) string {
+func (c Cryptobridge) GetAddress(coin coins.Coin) (string, error) {
 	client := &http.Client{}
 	url := "v2/accounts/" + c.AccountName + "/assets/" + coin.Tag + "/addresses"
 	req, _ := http.NewRequest("GET", c.BitSharesUrl + url, nil)
@@ -48,13 +50,17 @@ func (c Cryptobridge) GetAddress(coin coins.Coin) string {
 
 
 	fmt.Println(res)
-	return "Missing Implementation"
+	return "Missing Implementation", nil
 }
 
-func (c Cryptobridge) OneCoinToBtc(coin coins.Coin) float64 {
+func (c Cryptobridge) OneCoinToBtc(coin coins.Coin) (float64, error) {
 	var rates = new(exchange_models.CBRates)
 	url := "v1/ticker"
-	getBitSharesRequest(c.MasterPassword,c.BaseUrl + url, http.MethodGet, nil, &rates)
+	err := getBitSharesRequest(c.MasterPassword,c.BaseUrl + url, http.MethodGet, nil, &rates)
+
+	if err != nil {
+		return 0.0, err
+	}
 
 	var pair = coin.Tag + "_BTC"
 	var pair2 = "BTC_" + coin.Tag
@@ -64,24 +70,29 @@ func (c Cryptobridge) OneCoinToBtc(coin coins.Coin) float64 {
 	for _, rate := range *rates {
 		if rate.ID == pair {
 			r, _ = strconv.ParseFloat(rate.Last, 64)
-			return r
+			return r, nil
 		}
 		if rate.ID == pair2 {
 			r, _ = strconv.ParseFloat(rate.Last, 64)
-			return 1/r
+			return 1/r, nil
 		}
 	}
-	log.Fatalln("Not implemented")
-	return 0.0
+	// log.Fatalln("Not implemented")
+	return 0.0, errors.New("no rates found")
 }
 
-func (c Cryptobridge) GetBalances(coin coins.Coin) []balance.Balance {
+func (c Cryptobridge) GetBalances(coin coins.Coin) ([]balance.Balance, error) {
 	s := fmt.Sprintf("Retrieving Balances for %s", c.Name )
 	log.Println(s)
 	var balances []balance.Balance
 	var CBResponse = new(exchange_models.CBBalance)
 	url := "balance"
-	getBitSharesRequest(c.MasterPassword, c.BitSharesUrl + url, http.MethodGet, nil, &CBResponse)
+	err := getBitSharesRequest(c.MasterPassword, c.BitSharesUrl + url, http.MethodGet, nil, &CBResponse)
+
+	if err != nil {
+		return balances, err
+	}
+
 	for _,asset := range CBResponse.Data {
 		if strings.Contains(asset.Symbol, "BRIDGE.") {
 			asset.Symbol = asset.Symbol[7:]
@@ -100,16 +111,20 @@ func (c Cryptobridge) GetBalances(coin coins.Coin) []balance.Balance {
 	// fmt.Println(balances)
 	s = utils.GetBalanceLog(balances, c.Name)
 	log.Println(s)
-	return balances
+	return balances, nil
 }
 
-func (c Cryptobridge) SellAtMarketPrice(SellOrder transaction.ExchangeSell) bool {
+func (c Cryptobridge) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (bool, error) {
 	s := fmt.Sprintf("Selling %f %s for %s in %s", SellOrder.Amount,SellOrder.FromCoin.Tag, SellOrder.ToCoin.Tag, c.Name )
 	log.Println(s)
 	// sellorders/BRIDGE.{sell.To.tag}/BRIDGE.{sell.From.tag}
 	url := "sellorders/BRIDGE." + strings.ToUpper(SellOrder.ToCoin.Tag) + "/BRIDGE." + strings.ToUpper(SellOrder.FromCoin.Tag)
 	var openOrders = new(exchange_models.Orders)
-	getBitSharesRequest(c.MasterPassword, c.BitSharesUrl + url, http.MethodGet, nil, &openOrders)
+	err := getBitSharesRequest(c.MasterPassword, c.BitSharesUrl + url, http.MethodGet, nil, &openOrders)
+
+	if err != nil {
+		return false, err
+	}
 
 	calculatedPrice := 0.0
 	auxAmount := 0.0
@@ -134,12 +149,12 @@ func (c Cryptobridge) SellAtMarketPrice(SellOrder transaction.ExchangeSell) bool
 	fmt.Print("Calculated Price: " , calculatedPrice)
 	fmt.Println("Amount to Sell: ", amountToSell)
 
-	// TODO Create seling order
-	return true
+	// TODO Create selling order
+	return true, nil
 }
 
 //Withdraw allows Adrestia to send money from exchanges to a valid address
-func (c Cryptobridge) Withdraw(coin string, address string, amount float64) bool {
+func (c Cryptobridge) Withdraw(coin string, address string, amount float64) (bool, error) {
 	var withdrawObj = exchange_models.CBWithdraw{
 		Amount:  amount,
 		Address: address,
@@ -163,34 +178,29 @@ func (c Cryptobridge) Withdraw(coin string, address string, amount float64) bool
 }
 
 func (c Cryptobridge) GetSettings() config.CBAuth{
-	file, err := ioutil.ReadFile("api/exchanges/config/cryptobridge.json")
-	if err != nil {
-		panic("Could not locate settings file")
-	}
 	var data config.CBAuth
-	err = json.Unmarshal([]byte(file), &data)
-	// fmt.Println(data)
-	if err != nil {
-		panic(err)
-	}
+	data.AccountName = os.Getenv("CB_ACCOUNT_NAME")
+	data.BaseUrl = os.Getenv("CB_BASE_URL")
+	data.MasterPassword = os.Getenv("CB_MASTER_PASSWORD")
+	data.BitSharesUrl = os.Getenv("CB_BITSHARES_URL")
 	return data
 }
 
 
 // Builds requests with the appropriate header and returns the content in the desired struct
-func getBitSharesRequest(key string, url string, method string, body io.Reader, outType interface{}) interface{} {
+func getBitSharesRequest(key string, url string, method string, body io.Reader, outType interface{}) error {
 	client := &http.Client{}
 	req, _ := http.NewRequest(method, url, body)
 	req.Header.Add("key", key)
 	res, _ := client.Do(req)
-	bodyResp, readErr := ioutil.ReadAll(res.Body)
-	if readErr != nil {
-		log.Fatalln("Error reading body: ", readErr)
+	bodyResp, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return err
 	}
-	jsonErr := json.Unmarshal(bodyResp, &outType)
-	if jsonErr != nil {
-		fmt.Println(res)
-		log.Fatalln("Error in unmarshall: ",jsonErr)
+	err = json.Unmarshal(bodyResp, &outType)
+	if err != nil {
+		//log.Fatalln("Error in unmarshall: ",jsonErr)
+		return err
 	}
-	return outType
+	return nil
 }

@@ -51,6 +51,7 @@ func (b HotWalletBalances) PrintBalances() {
 
 // Coins Must be addded here
 // TODO Update docs to indicate new coins must be added here
+// TODO Make dynamic
 type MinBalanceConfResponse struct {
 	BTC   Balance `json:"BTC"`
 	COLX  Balance `json:"COLX"`

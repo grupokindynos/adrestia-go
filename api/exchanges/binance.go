@@ -3,6 +3,7 @@ package exchanges
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/grupokindynos/adrestia-go/models/transaction"
 	"io/ioutil"
@@ -54,13 +55,18 @@ func NewBinance() *Binance {
 	return c
 }
 
-func (b Binance) GetBalances(coin coins.Coin) []balance.Balance {
+func (b Binance) GetBalances(coin coins.Coin) ([]balance.Balance, error) {
 	fmt.Printf("Retrieving Balances for %s", b.Name)
 	var balances []balance.Balance
-	res, _ := b.binanceApi.Account(binance.AccountRequest{
+	res, err := b.binanceApi.Account(binance.AccountRequest{
 		RecvWindow: 5 * time.Second,
 		Timestamp:  time.Now(),
 	})
+
+	if err!= nil {
+		return balances, err
+	}
+
 	for _, asset := range res.Balances {
 		rate, _ := obol.GetCoin2CoinRates("BTC", asset.Asset)
 		var b = balance.Balance{
@@ -77,14 +83,14 @@ func (b Binance) GetBalances(coin coins.Coin) []balance.Balance {
 	}
 	s := utils.GetBalanceLog(balances, b.Name)
 	l.Println(s)
-	return balances
+	return balances, nil
 }
 
-func (b Binance) SellAtMarketPrice(SellOrder transaction.ExchangeSell) bool {
+func (b Binance) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (bool, error) {
 	panic("Not Implemented")
 }
 
-func (b Binance) Withdraw(coin string, address string, amount float64) bool {
+func (b Binance) Withdraw(coin string, address string, amount float64) (bool, error) {
 	fmt.Printf("Retrieving Account Info for %s", b.Name)
 	res, _ := b.binanceApi.Account(binance.AccountRequest{
 		RecvWindow: 5 * time.Second,
@@ -101,25 +107,29 @@ func (b Binance) Withdraw(coin string, address string, amount float64) bool {
 		Timestamp:  time.Now(),
 	})
 	if err != nil {
-		panic(err)
+		return false, err
 	}
 	// TODO Binance go library has an issue signing withdrawals
 	fmt.Println(withdrawal)
 	fmt.Println(err)
-	return withdrawal.Success
+	if withdrawal.Success {
+		return withdrawal.Success, nil
+	}
+	return  false, errors.New("could not withdraw")
+
 }
 
 // TODO Missing
-func (b Binance) OneCoinToBtc(coin coins.Coin) float64 {
+func (b Binance) OneCoinToBtc(coin coins.Coin) (float64, error) {
 	if coin.Tag == "BTC" {
-		return 1.0
+		return 1.0, nil
 	}
 	res, err := b.binanceApi.Ticker24(binance.TickerRequest{Symbol:coin.Tag+"BTC"})
 	if err != nil {
-		panic(err)
+		return 0.0, err
 	}
 	fmt.Println(res.LastPrice, " ", res.Volume)
-	return 0.0
+	return 0.0, nil
 }
 
 func GetSettings() config.BinanceAuth {

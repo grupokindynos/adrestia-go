@@ -80,7 +80,7 @@ func GetWalletBalances() []balance.Balance {
 		b.Ticker = coin.Tag
 
 		rawBalances = append(rawBalances, b)
-	}	// response, err := http.Get(baseUrl + "v2/wallets/balances")
+	}
 
 	fmt.Println("Finished Retrieving Balances")
 
@@ -92,7 +92,6 @@ func GetWalletBalances() []balance.Balance {
 		currentBalance.RateBTC = ratePvdr.GetRate(currentBalance.Ticker)
 		updatedBalances = append(updatedBalances, currentBalance)
 	}
-	// fmt.Println(updatedBalances)
 	return updatedBalances
 }
 

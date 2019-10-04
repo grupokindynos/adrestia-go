@@ -7,12 +7,12 @@ import (
 )
 
 type IExchange interface {
-	GetAddress(coin coins.Coin) string
-	OneCoinToBtc(coin coins.Coin) float64
-	GetBalances(coin coins.Coin) []balance.Balance
-	SellAtMarketPrice(SellOrder transaction.ExchangeSell) bool
-	Withdraw(coin string, address string, amount float64) bool//
-	GetRateByAmount(sell transaction.ExchangeSell)
+	GetAddress(coin coins.Coin) (string, error)
+	OneCoinToBtc(coin coins.Coin) (float64, error)
+	GetBalances(coin coins.Coin) ([]balance.Balance, error)
+	SellAtMarketPrice(SellOrder transaction.ExchangeSell) (bool, error)
+	Withdraw(coin string, address string, amount float64) (bool, error)
+	GetRateByAmount(sell transaction.ExchangeSell) (float64, error)
 }
 
 type Exchange struct {

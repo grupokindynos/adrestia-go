@@ -61,24 +61,36 @@ func main() {
 func GetWalletBalances() []balance.Balance {
 	fmt.Println("\tRetrieving Wallet Balances...")
 
-	var balances balance.HotWalletBalances
-	// response, err := http.Get(baseUrl + "v2/wallets/balances")
-	res, err := ps.GetWalletBalance("polis")
-	if err != nil {
-		fmt.Println(err)
-	}
+	var rawBalances []balance.Balance
 
-	fmt.Println("Res", res)
+	availableCoins := CoinFactory.Coins
+
+	for _, coin := range availableCoins {
+		// TODO Update Tyche module when this is working
+		res, err := ps.GetWalletBalance(coin.Tag)
+
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println("Res", res)
+
+		// Create Balance Object
+		var b = balance.Balance{}
+		b.Balance = res
+		b.Ticker = coin.Tag
+
+		rawBalances = append(rawBalances, b)
+	}	// response, err := http.Get(baseUrl + "v2/wallets/balances")
 
 	fmt.Println("Finished Retrieving Balances")
 
 	var updatedBalances []balance.Balance
 	fmt.Println("\tRetrieving Wallet Rates...")
-	for _, coin := range balances.Data {
+	for _, coin := range rawBalances {
 		// fmt.Println(coin)
-		var newBalance = coin
-		newBalance.RateBTC = ratePvdr.GetRate(newBalance.Ticker)
-		updatedBalances = append(updatedBalances, newBalance)
+		var currentBalance = coin
+		currentBalance.RateBTC = ratePvdr.GetRate(currentBalance.Ticker)
+		updatedBalances = append(updatedBalances, currentBalance)
 	}
 	// fmt.Println(updatedBalances)
 	return updatedBalances

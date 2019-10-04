@@ -92,7 +92,6 @@ func (b Binance) Withdraw(coin string, address string, amount float64) bool {
 	})
 	fmt.Println("an Withdraw: ", res.CanWithdraw)
 
-
 	withdrawal, err := b.binanceApi.Withdraw(binance.WithdrawRequest{
 		Asset:      coin,
 		Address:    address,
@@ -104,12 +103,13 @@ func (b Binance) Withdraw(coin string, address string, amount float64) bool {
 	if err != nil {
 		panic(err)
 	}
-
+	// TODO Binance go library has an issue signing withdrawals
 	fmt.Println(withdrawal)
 	fmt.Println(err)
 	return withdrawal.Success
 }
 
+// TODO Missing
 func (b Binance) OneCoinToBtc(coin coins.Coin) float64 {
 	if coin.Tag == "BTC" {
 		return 1.0
@@ -118,9 +118,7 @@ func (b Binance) OneCoinToBtc(coin coins.Coin) float64 {
 	if err != nil {
 		panic(err)
 	}
-
 	fmt.Println(res.LastPrice, " ", res.Volume)
-
 	return 0.0
 }
 

@@ -1,12 +1,10 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"math"
-	"net/http"
+	"os"
 	"sort"
 
 	"github.com/grupokindynos/adrestia-go/models/transaction"
@@ -14,16 +12,23 @@ import (
 
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	"github.com/grupokindynos/adrestia-go/services"
+	plutus_service "github.com/grupokindynos/tyche/services"
 )
 
 const baseUrl string = "https://delphi.polispay.com/api/"
-const confPath string = "conf"
 
 var ratePvdr = services.RateProvider{}
 var printDebugInfo = true
+var ps = plutus_service.PlutusService{
+	// PlutusURL:    "https://localhost:8280",
+	PlutusURL:    "https://plutus-wallets.herokuapp.com",
+	AuthUsername: os.Getenv("PLUTUS_AUTH_USERNAME"),
+	AuthPassword: os.Getenv("PLUTUS_AUTH_PASSWORD"),
+}
 
 func main() {
 	fmt.Println("Program Started")
+	// coins := []string{ "POLIS", "DASH" }
 
 	// Gets balance from Hot Wallets
 	var balances = GetWalletBalances()
@@ -57,22 +62,14 @@ func GetWalletBalances() []balance.Balance {
 	fmt.Println("\tRetrieving Wallet Balances...")
 
 	var balances balance.HotWalletBalances
-	response, err := http.Get(baseUrl + "v2/wallets/balances")
+	// response, err := http.Get(baseUrl + "v2/wallets/balances")
+	res, err := ps.GetWalletBalance("polis")
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	defer response.Body.Close()
+	fmt.Println("Res", res)
 
-	if err != nil {
-		fmt.Println(err)
-	} else {
-		data, _ := ioutil.ReadAll(response.Body)
-		err := json.Unmarshal(data, &balances)
-		if err != nil {
-			fmt.Println(err)
-		}
-	}
 	fmt.Println("Finished Retrieving Balances")
 
 	var updatedBalances []balance.Balance

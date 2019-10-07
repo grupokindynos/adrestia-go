@@ -39,13 +39,16 @@ func NewCryptobridge() *Cryptobridge {
 	return c
 }
 
+func (c Cryptobridge) GetName() (string, error) {
+	return c.Name, nil
+}
+
 func (c Cryptobridge) GetAddress(coin coins.Coin) (string, error) {
 	client := &http.Client{}
 	url := "v2/accounts/" + c.AccountName + "/assets/" + coin.Tag + "/addresses"
 	req, _ := http.NewRequest("GET", c.BitSharesUrl + url, nil)
 	// ...
 	req.Header.Add("key", "asjldfajsdlkfjasldflasjdfl")
-	fmt.Println(c.BitSharesUrl + url)
 	res, _ := client.Do(req)
 
 
@@ -55,12 +58,11 @@ func (c Cryptobridge) GetAddress(coin coins.Coin) (string, error) {
 
 func (c Cryptobridge) OneCoinToBtc(coin coins.Coin) (float64, error) {
 	var rates = new(exchange_models.CBRates)
-	var err = new(error)
 	url := "v1/ticker"
-	getBitSharesRequest(c.MasterPassword,c.BaseUrl + url, http.MethodGet, nil, &rates, *err)
+	err := getBitSharesRequest(c.MasterPassword,c.BaseUrl + url, http.MethodGet, nil, &rates)
 
-	if *err != nil {
-		return 0.0, *err
+	if err != nil {
+		return 0.0, err
 	}
 
 	var pair = coin.Tag + "_BTC"
@@ -88,11 +90,10 @@ func (c Cryptobridge) GetBalances(coin coins.Coin) ([]balance.Balance, error) {
 	var balances []balance.Balance
 	var CBResponse = new(exchange_models.CBBalance)
 	url := "balance"
-	var err = new(error)
-	getBitSharesRequest(c.MasterPassword, c.BitSharesUrl + url, http.MethodGet, nil, &CBResponse, *err)
+	err := getBitSharesRequest(c.MasterPassword, c.BitSharesUrl + url, http.MethodGet, nil, &CBResponse)
 
-	if *err != nil {
-		return balances, *err
+	if err != nil {
+		return balances, err
 	}
 
 	for _,asset := range CBResponse.Data {
@@ -110,7 +111,6 @@ func (c Cryptobridge) GetBalances(coin coins.Coin) ([]balance.Balance, error) {
 		}
 		balances = append(balances, b)
 	}
-	// fmt.Println(balances)
 	s = utils.GetBalanceLog(balances, c.Name)
 	log.Println(s)
 	return balances, nil
@@ -122,11 +122,11 @@ func (c Cryptobridge) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (boo
 	// sellorders/BRIDGE.{sell.To.tag}/BRIDGE.{sell.From.tag}
 	url := "sellorders/BRIDGE." + strings.ToUpper(SellOrder.ToCoin.Tag) + "/BRIDGE." + strings.ToUpper(SellOrder.FromCoin.Tag)
 	var openOrders = new(exchange_models.Orders)
-	var err = new(error)
-	getBitSharesRequest(c.MasterPassword, c.BitSharesUrl + url, http.MethodGet, nil, &openOrders, *err)
 
-	if *err != nil {
-		return false, *err
+	err := getBitSharesRequest(c.MasterPassword, c.BitSharesUrl + url, http.MethodGet, nil, &openOrders)
+
+	if err != nil {
+		return false, err
 	}
 
 	calculatedPrice := 0.0
@@ -191,21 +191,24 @@ func (c Cryptobridge) GetSettings() config.CBAuth{
 
 
 // Builds requests with the appropriate header and returns the content in the desired struct
-func getBitSharesRequest(key string, url string, method string, body io.Reader, outType interface{}, err error) {
+func getBitSharesRequest(key string, url string, method string, body io.Reader, outType interface{}) error {
 	client := &http.Client{}
-	req, _ := http.NewRequest(method, url, body)
+	req, err := http.NewRequest(method, url, body)
+	if err != nil {
+		fmt.Println(err)
+	}
 	req.Header.Add("key", key)
 	res, _ := client.Do(req)
-
 	bodyResp, e := ioutil.ReadAll(res.Body)
 	if e != nil {
 		err = e
-		return
+		return e
 	}
 	e = json.Unmarshal(bodyResp, &outType)
 	if e != nil {
 		//log.Fatalln("Error in unmarshall: ",jsonErr)
 		err = e
-		return
+		return e
 	}
+	return nil
 }

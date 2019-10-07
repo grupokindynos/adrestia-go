@@ -7,6 +7,7 @@ import (
 )
 
 type IExchange interface {
+	GetName() (string, error)
 	GetAddress(coin coins.Coin) (string, error)
 	OneCoinToBtc(coin coins.Coin) (float64, error)
 	GetBalances(coin coins.Coin) ([]balance.Balance, error)

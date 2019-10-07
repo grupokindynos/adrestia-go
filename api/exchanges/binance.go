@@ -55,8 +55,13 @@ func NewBinance() *Binance {
 	return c
 }
 
+func (b Binance) GetName() (string, error) {
+	return b.Name, nil
+}
+
 func (b Binance) GetBalances(coin coins.Coin) ([]balance.Balance, error) {
-	fmt.Printf("Retrieving Balances for %s", b.Name)
+	s := fmt.Sprintf("Retrieving Balances for %s", b.Name)
+	l.Println(s)
 	var balances []balance.Balance
 	res, err := b.binanceApi.Account(binance.AccountRequest{
 		RecvWindow: 5 * time.Second,
@@ -81,7 +86,7 @@ func (b Binance) GetBalances(coin coins.Coin) ([]balance.Balance, error) {
 		}
 
 	}
-	s := utils.GetBalanceLog(balances, b.Name)
+	s = utils.GetBalanceLog(balances, b.Name)
 	l.Println(s)
 	return balances, nil
 }

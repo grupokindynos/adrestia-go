@@ -19,6 +19,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"moul.io/http2curl"
 )
 
 type Cryptobridge struct {
@@ -91,7 +92,7 @@ func (c Cryptobridge) GetBalances(coin coins.Coin) ([]balance.Balance, error) {
 	var CBResponse = new(exchange_models.CBBalance)
 	url := "balance"
 	err := getBitSharesRequest(c.MasterPassword, c.BitSharesUrl + url, http.MethodGet, nil, &CBResponse)
-
+	fmt.Println(c.BitSharesUrl + url)
 	if err != nil {
 		return balances, err
 	}
@@ -164,20 +165,25 @@ func (c Cryptobridge) Withdraw(coin string, address string, amount float64) (boo
 	}
 
 	data, err := json.Marshal(withdrawObj)
+	fmt.Println("Data: ", data)
 	if err != nil{
 		panic("Couldn't serialize Order object.")
 	}
 
 	url := c.BitSharesUrl + "withdraw/" + coin
 
-	client := &http.Client{}
+	//client := &http.Client{}
 	req, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(data))
 	req.Header.Add("key", c.MasterPassword)
-	res, _ := client.Do(req)
 
-	println(res)
+	command, _ := http2curl.GetCurlCommand(req)
+	fmt.Println(command)
+	// res, _ := client.Do(req)
 
-	panic("Missing post")
+
+
+	// println("Res: ", res)
+	return true, nil
 }
 
 func (c Cryptobridge) GetSettings() config.CBAuth{

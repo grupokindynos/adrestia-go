@@ -154,6 +154,7 @@ func (c Cryptobridge) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (boo
 	fmt.Println("Amount to Sell: ", amountToSell)
 
 	// TODO Create selling order
+
 	return true, nil
 }
 
@@ -180,7 +181,7 @@ func (c Cryptobridge) Withdraw(coin string, address string, amount float64) (boo
 	fmt.Println(command)
 	// res, _ := client.Do(req)
 
-
+	// TODO Fix CB KYC to enable withdrawals
 
 	// println("Res: ", res)
 	return true, nil

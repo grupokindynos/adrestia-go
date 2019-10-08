@@ -92,7 +92,33 @@ func (b Binance) GetBalances(coin coins.Coin) ([]balance.Balance, error) {
 }
 
 func (b Binance) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (bool, error) {
-	panic("Not Implemented")
+	// Gets price from Obol considering the amount to sell
+	rate, err := obol.GetCoin2CoinRatesWithAmmount(SellOrder.FromCoin.Tag, SellOrder.ToCoin.Tag, fmt.Sprintf("%f", SellOrder.Amount))
+	if err != nil{
+		return false, err
+	}
+
+	// Order creation an Post
+	symbol := SellOrder.FromCoin.Tag + SellOrder.ToCoin.Tag
+	fmt.Println(symbol)
+
+	// TODO Test Order Post for Binance
+	/*newOrder, err := b.binanceApi.NewOrder(binance.NewOrderRequest{
+		Symbol:      symbol,
+		Quantity:    SellOrder.Amount,
+		Price:       1/rate,
+		Side:        binance.SideSell,
+		TimeInForce: binance.IOC,
+		Type:        binance.TypeLimit,
+		Timestamp:   time.Now(),
+	})
+	if err != nil {
+		panic(err)
+		// TODO Save failed order to Hestia DB
+	}
+	fmt.Println(newOrder)*/
+
+	return true, nil
 }
 
 func (b Binance) Withdraw(coin string, address string, amount float64) (bool, error) {

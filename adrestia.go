@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"github.com/joho/godotenv"
 	"log"
 	"math"
 	"os"
 	"sort"
+	"strings"
 
 	"github.com/grupokindynos/adrestia-go/models/transaction"
 	CoinFactory "github.com/grupokindynos/common/coin-factory"
@@ -19,11 +21,19 @@ const baseUrl string = "https://delphi.polispay.com/api/"
 
 var ratePvdr = services.RateProvider{}
 var printDebugInfo = true
-var ps = plutus_service.PlutusService{
-	// PlutusURL:    "https://localhost:8280",
-	PlutusURL:    "https://plutus-wallets.herokuapp.com",
-	AuthUsername: os.Getenv("PLUTUS_AUTH_USERNAME"),
-	AuthPassword: os.Getenv("PLUTUS_AUTH_PASSWORD"),
+var ps plutus_service.PlutusService
+
+func init() {
+	if err := godotenv.Load(); err != nil {
+		log.Print("No .env file found")
+	}
+
+	ps = plutus_service.PlutusService{
+		// PlutusURL:    "https://localhost:8280",
+		PlutusURL:    "https://plutus-wallets.herokuapp.com",
+		AuthUsername: os.Getenv("PLUTUS_AUTH_USERNAME"),
+		AuthPassword: os.Getenv("PLUTUS_AUTH_PASSWORD"),
+	}
 }
 
 func main() {
@@ -67,7 +77,7 @@ func GetWalletBalances() []balance.Balance {
 
 	for _, coin := range availableCoins {
 		// TODO Update Tyche module when this is working
-		res, err := ps.GetWalletBalance(coin.Tag)
+		res, err := ps.GetWalletBalance(strings.ToLower(coin.Tag))
 
 		if err != nil {
 			fmt.Println(err)
@@ -81,7 +91,7 @@ func GetWalletBalances() []balance.Balance {
 
 		rawBalances = append(rawBalances, b)
 	}
-
+	//fmt.Println("Raw Balances: ", rawBalances)
 	fmt.Println("Finished Retrieving Balances")
 
 	var updatedBalances []balance.Balance

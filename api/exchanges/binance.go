@@ -59,6 +59,11 @@ func (b Binance) GetName() (string, error) {
 	return b.Name, nil
 }
 
+func (b Binance) GetAddress(coin coins.Coin) (string, error) {
+	// TODO Map for coins and addresses
+	return "", nil
+}
+
 func (b Binance) GetBalances(coin coins.Coin) ([]balance.Balance, error) {
 	s := fmt.Sprintf("Retrieving Balances for %s", b.Name)
 	l.Println(s)
@@ -101,6 +106,7 @@ func (b Binance) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (bool, er
 	// Order creation an Post
 	symbol := SellOrder.FromCoin.Tag + SellOrder.ToCoin.Tag
 	fmt.Println(symbol)
+	fmt.Println(rate)
 
 	// TODO Test Order Post for Binance
 	/*newOrder, err := b.binanceApi.NewOrder(binance.NewOrderRequest{
@@ -108,7 +114,7 @@ func (b Binance) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (bool, er
 		Quantity:    SellOrder.Amount,
 		Price:       1/rate,
 		Side:        binance.SideSell,
-		TimeInForce: binance.IOC,
+		TimeInForce: binance.IOC, // Immediate OR Cancel - orders fills all or part of an order immediately and cancels the remaining part of the order.
 		Type:        binance.TypeLimit,
 		Timestamp:   time.Now(),
 	})
@@ -155,12 +161,13 @@ func (b Binance) OneCoinToBtc(coin coins.Coin) (float64, error) {
 	if coin.Tag == "BTC" {
 		return 1.0, nil
 	}
-	res, err := b.binanceApi.Ticker24(binance.TickerRequest{Symbol:coin.Tag+"BTC"})
+	// TODO Missing update on method, not strictly needed though
+	rate, err := obol.GetCoin2CoinRatesWithAmmount(coin.Tag, "btc", fmt.Sprintf("%f", 1.0))
 	if err != nil {
 		return 0.0, err
 	}
-	fmt.Println(res.LastPrice, " ", res.Volume)
-	return 0.0, nil
+	fmt.Println(rate, " ", res.Volume)
+	return rate, nil
 }
 
 func GetSettings() config.BinanceAuth {

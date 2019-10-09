@@ -45,7 +45,7 @@ func main() {
 	if printDebugInfo {
 		fmt.Println("\t\tAvailable Coins")
 		for i, _ := range balances {
-			fmt.Println("\t\t", balances[i].Balance, balances[i].Ticker)
+			log.Println(fmt.Sprintf("Wallet has %.8f %s", balances[i].Balance, balances[i].Ticker))
 		}
 	}
 	// Firebase Wallet Configuration
@@ -82,7 +82,6 @@ func GetWalletBalances() []balance.Balance {
 		if err != nil {
 			fmt.Println(err)
 		}
-		fmt.Println("Res", res)
 
 		// Create Balance Object
 		var b = balance.Balance{}
@@ -114,7 +113,7 @@ func GetFBConfiguration() map[string]balance.Balance {
 	if err != nil {
 		log.Fatal("Configuration not found")
 	}
-	// fmt.Println(conf)
+	fmt.Println("Retrieved config: ", conf)
 
 	var firebaseConfBalances = conf.ToMap()
 

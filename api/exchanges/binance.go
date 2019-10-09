@@ -65,7 +65,7 @@ func (b Binance) GetAddress(coin coins.Coin) (string, error) {
 }
 
 func (b Binance) GetBalances() ([]balance.Balance, error) {
-	s := fmt.Sprintf("[GetBalances] Retrieving Balances for %s at %s", b.Name)
+	s := fmt.Sprintf("[GetBalances] Retrieving Balances for coins at %s", b.Name)
 	l.Println(s)
 	var balances []balance.Balance
 	res, err := b.binanceApi.Account(binance.AccountRequest{
@@ -109,6 +109,7 @@ func (b Binance) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (bool, er
 	fmt.Println(symbol)
 	fmt.Println(rate)
 
+	// TODO Log for order info
 	// TODO Test Order Post for Binance
 	/*newOrder, err := b.binanceApi.NewOrder(binance.NewOrderRequest{
 		Symbol:      symbol,
@@ -145,6 +146,7 @@ func (b Binance) Withdraw(coin string, address string, amount float64) (bool, er
 		RecvWindow: 5 * time.Second,
 		Timestamp:  time.Now(),
 	})
+
 	if err != nil {
 		l.Println(fmt.Sprintf("[Withdraw] Failed to withdraw %s", err))
 		return false, err
@@ -168,6 +170,7 @@ func (b Binance) OneCoinToBtc(coin coins.Coin) (float64, error) {
 	if err != nil {
 		return 0.0, err
 	}
+	l.Println(fmt.Sprintf("[OneCoinToBtc] Calculated rate for %s as %.8f BTC per Coin", coin.Name, rate))
 	return rate, nil
 }
 

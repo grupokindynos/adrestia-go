@@ -85,7 +85,7 @@ func (c Cryptobridge) OneCoinToBtc(coin coins.Coin) (float64, error) {
 	return 0.0, errors.New("no rates found")
 }
 
-func (c Cryptobridge) GetBalances(coin coins.Coin) ([]balance.Balance, error) {
+func (c Cryptobridge) GetBalances() ([]balance.Balance, error) {
 	s := fmt.Sprintf("Retrieving Balances for %s", c.Name )
 	log.Println(s)
 	var balances []balance.Balance

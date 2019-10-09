@@ -3,7 +3,6 @@ package exchanges
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/grupokindynos/adrestia-go/models/transaction"
 	"io/ioutil"
@@ -11,13 +10,13 @@ import (
 	"os"
 	"time"
 
-	"github.com/rootpd/go-binance"
 	"github.com/go-kit/kit/log"
 	"github.com/grupokindynos/adrestia-go/api/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	"github.com/grupokindynos/adrestia-go/utils"
 	"github.com/grupokindynos/common/coin-factory/coins"
 	"github.com/grupokindynos/common/obol"
+	"github.com/rootpd/go-binance"
 )
 
 type Binance struct {
@@ -43,7 +42,7 @@ func NewBinance() *Binance {
 	ctx, _ := context.WithCancel(context.Background())
 	// use second return value for cancelling request when shutting down the app
 
-	fmt.Println("Binance Service Building...")
+	l.Println("Binance Service Building...")
 	binanceService := binance.NewAPIService(
 		"https://www.binance.com",
 		data.PublicApi,
@@ -61,11 +60,12 @@ func (b Binance) GetName() (string, error) {
 
 func (b Binance) GetAddress(coin coins.Coin) (string, error) {
 	// TODO Map for coins and addresses
+
 	return "", nil
 }
 
-func (b Binance) GetBalances(coin coins.Coin) ([]balance.Balance, error) {
-	s := fmt.Sprintf("Retrieving Balances for %s", b.Name)
+func (b Binance) GetBalances() ([]balance.Balance, error) {
+	s := fmt.Sprintf("[GetBalances] Retrieving Balances for %s at %s", b.Name)
 	l.Println(s)
 	var balances []balance.Balance
 	res, err := b.binanceApi.Account(binance.AccountRequest{
@@ -97,6 +97,7 @@ func (b Binance) GetBalances(coin coins.Coin) ([]balance.Balance, error) {
 }
 
 func (b Binance) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (bool, error) {
+	l.Println(fmt.Sprintf("[SellAtMarketPrice] Selling %.8f %s for %s on %s",SellOrder.Amount , SellOrder.FromCoin.Name, SellOrder.ToCoin.Name, b.Name))
 	// Gets price from Obol considering the amount to sell
 	rate, err := obol.GetCoin2CoinRatesWithAmmount(SellOrder.FromCoin.Tag, SellOrder.ToCoin.Tag, fmt.Sprintf("%f", SellOrder.Amount))
 	if err != nil{
@@ -128,13 +129,14 @@ func (b Binance) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (bool, er
 }
 
 func (b Binance) Withdraw(coin string, address string, amount float64) (bool, error) {
-	fmt.Printf("Retrieving Account Info for %s", b.Name)
+	l.Println(fmt.Sprintf("[Withdraw] Retrieving Account Info for %s", b.Name))
 	res, _ := b.binanceApi.Account(binance.AccountRequest{
 		RecvWindow: 5 * time.Second,
 		Timestamp:  time.Now(),
 	})
 	fmt.Println("an Withdraw: ", res.CanWithdraw)
 
+	l.Println(fmt.Sprintf("[Withdraw] Performing withdraw request on %s for %s", b.Name, coin))
 	withdrawal, err := b.binanceApi.Withdraw(binance.WithdrawRequest{
 		Asset:      coin,
 		Address:    address,
@@ -144,33 +146,33 @@ func (b Binance) Withdraw(coin string, address string, amount float64) (bool, er
 		Timestamp:  time.Now(),
 	})
 	if err != nil {
+		l.Println(fmt.Sprintf("[Withdraw] Failed to withdraw %s", err))
 		return false, err
 	}
 	// TODO Binance go library has an issue signing withdrawals
-	fmt.Println(withdrawal)
-	fmt.Println(err)
-	if withdrawal.Success {
-		return withdrawal.Success, nil
-	}
-	return  false, errors.New("could not withdraw")
+	// fmt.Println(withdrawal)
+	// fmt.Println(err)
+
+	return withdrawal.Success, nil
 
 }
 
 // TODO Missing
 func (b Binance) OneCoinToBtc(coin coins.Coin) (float64, error) {
+	l.Println(fmt.Sprintf("[OneCoinToBtc] Calculating for %s using %s", coin.Name, b.Name))
 	if coin.Tag == "BTC" {
 		return 1.0, nil
 	}
 	// TODO Missing update on method, not strictly needed though
-	rate, err := obol.GetCoin2CoinRatesWithAmmount(coin.Tag, "btc", fmt.Sprintf("%f", 1.0))
+	rate, err := obol.GetCoin2CoinRatesWithAmmount("btc", coin.Tag, fmt.Sprintf("%f", 1.0))
 	if err != nil {
 		return 0.0, err
 	}
-	fmt.Println(rate, " ", res.Volume)
 	return rate, nil
 }
 
 func GetSettings() config.BinanceAuth {
+	l.Println(fmt.Sprintf("[GetSettings] Retrieving settings for Binance"))
 	file, err := ioutil.ReadFile("api/exchanges/config/binance.json")
 	if err != nil {
 		panic("Could not locate settings file")

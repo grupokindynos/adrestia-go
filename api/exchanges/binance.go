@@ -2,12 +2,12 @@ package exchanges
 
 import (
 	"context"
-	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/grupokindynos/adrestia-go/models/transaction"
-	"io/ioutil"
 	l "log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/go-kit/kit/log"
@@ -59,9 +59,17 @@ func (b Binance) GetName() (string, error) {
 }
 
 func (b Binance) GetAddress(coin coins.Coin) (string, error) {
-	// TODO Map for coins and addresses
+	var addresses = make(map[string]string)
 
-	return "", nil
+	addresses["DASH"] = "XuVmLDmUHZCjaSjm8KfXkGVhRG8fVC3Jis"
+	addresses["XZC"] = "aJUE5rLmGvSu9ThnWzUu4TpYgKPPgfbCAy"
+	addresses["LTC"] = "LPZom4L6oTJ3JkRDJz6EYkdg9Bga9VrFFL"
+	addresses["GRS"] = "FjC2vAtjhdPeWfjsKGxoxrfxEJw5KWNNmR"
+
+	if val, ok := addresses[strings.ToUpper(coin.Tag)]; ok {
+		return val, nil
+	}
+	return "", errors.New("address not found for coin")
 }
 
 func (b Binance) GetBalances() ([]balance.Balance, error) {
@@ -131,11 +139,10 @@ func (b Binance) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (bool, er
 
 func (b Binance) Withdraw(coin string, address string, amount float64) (bool, error) {
 	l.Println(fmt.Sprintf("[Withdraw] Retrieving Account Info for %s", b.Name))
-	res, _ := b.binanceApi.Account(binance.AccountRequest{
+	/*res, _ := b.binanceApi.Account(binance.AccountRequest{
 		RecvWindow: 5 * time.Second,
 		Timestamp:  time.Now(),
-	})
-	fmt.Println("an Withdraw: ", res.CanWithdraw)
+	})*/
 
 	l.Println(fmt.Sprintf("[Withdraw] Performing withdraw request on %s for %s", b.Name, coin))
 	withdrawal, err := b.binanceApi.Withdraw(binance.WithdrawRequest{
@@ -176,14 +183,10 @@ func (b Binance) OneCoinToBtc(coin coins.Coin) (float64, error) {
 
 func GetSettings() config.BinanceAuth {
 	l.Println(fmt.Sprintf("[GetSettings] Retrieving settings for Binance"))
-	file, err := ioutil.ReadFile("api/exchanges/config/binance.json")
-	if err != nil {
-		panic("Could not locate settings file")
-	}
 	var data config.BinanceAuth
-	err = json.Unmarshal([]byte(file), &data)
-	if err != nil {
-		panic(err)
-	}
+	data.PublicApi = os.Getenv("BINANCE_PUB_API")
+	data.PrivateApi = os.Getenv("BINANCE_PRIV_API")
+	data.PublicWithdrawKey = os.Getenv("BINANCE_PUB_WITHDRAW")
+	data.PrivateWithdrawKey = os.Getenv("BINANCE_PRIV_WITHDRAW")
 	return data
 }

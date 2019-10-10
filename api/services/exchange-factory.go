@@ -12,10 +12,10 @@ type ExchangeFactory struct {
 
 func (e ExchangeFactory)GetExchangeByCoin(coin coins.Coin) exchanges.IExchange {
 	var coinName = strings.ToLower(coin.Tag)
-	if coinName == "polis" || coinName == "xsg" {
+	if coinName == "polis" || coinName == "xsg" || coinName == "colx"{
 		return exchanges.NewCryptobridge()
 	}
-	if coinName == "btc" || coinName == "dash" {
+	if coinName == "btc" || coinName == "dash" || coinName == "ltc" || coinName == "xsg" || coinName == "grs" || coinName == "xzc"{
 		return exchanges.NewBinance()
 	}
 	return *new(exchanges.Exchange)

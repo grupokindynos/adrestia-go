@@ -16,6 +16,7 @@ func TestAddresses(t *testing.T) {
 	for _, coin := range coins {
 		log.Println(fmt.Sprintf("Getting Adress for %s", coin.Name))
 		var ex = exchangeFactory.GetExchangeByCoin(*coin)
+		log.Println(fmt.Sprintf("Getting uses for %s", coin.Name))
 		assert.NotNil(t, ex)
 
 		address, err := ex.GetAddress(*coin)

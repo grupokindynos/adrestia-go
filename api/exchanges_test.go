@@ -77,8 +77,7 @@ func TestBalances(t *testing.T) {
 			s = fmt.Sprintf("exchange %s not implemented", exName)
 			color.Warn.Tips(s)
 		} else {
-			balances , _ := ex.GetBalances()
-			fmt.Println("balances: ", balances)
+			balances, _ := ex.GetBalances()
 			assert.NotNil(t, balances)
 		}
 

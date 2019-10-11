@@ -206,6 +206,7 @@ func getBitSharesRequest(key string, url string, method string, body io.Reader, 
 	}
 	req.Header.Add("key", key)
 	res, _ := client.Do(req)
+	fmt.Println(req)
 	bodyResp, e := ioutil.ReadAll(res.Body)
 	if e != nil {
 		err = e

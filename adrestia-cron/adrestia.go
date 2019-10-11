@@ -17,8 +17,6 @@ import (
 	plutus_service "github.com/grupokindynos/tyche/services"
 )
 
-const baseUrl string = "https://delphi.polispay.com/api/"
-
 var ratePvdr = services.RateProvider{}
 var printDebugInfo = true
 var ps plutus_service.PlutusService
@@ -178,7 +176,7 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 		coinData, _ := CoinFactory.GetCoin(wallet.Ticker)
 
 		fmt.Printf("The exchange for %s is %s\n", wallet.Ticker, coinData.Tag) // TODO Replace with exchange factory method
-		// TODO Optimize sendind TXs for the same coin (instead of making 5 dash transactions, make one)
+		// TODO Optimize sending TXs for the same coin (instead of making 5 dash transactions, make one)
 		if wallet.DiffBTC < balanced[bIndex].DiffBTC {
 			var newTx = transaction.PTx{
 				ToCoin:   wallet.Ticker,

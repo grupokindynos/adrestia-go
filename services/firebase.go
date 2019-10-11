@@ -17,7 +17,7 @@ type Firebase struct {
 
 func InitFirebase() *Firebase {
 	// service account credentials
-	opt := option.WithCredentialsFile("./fb_conf.json")
+	opt := option.WithCredentialsFile("./adrestia-cron/fb_conf.json")
 	ctx := context.Background()
 
 	config := &firebase.Config{

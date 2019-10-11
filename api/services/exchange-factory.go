@@ -16,11 +16,14 @@ func (e ExchangeFactory)GetExchangeByCoin(coin coins.Coin) (exchanges.IExchange,
 	if coinName == "polis" || coinName == "xsg" || coinName == "colx"{
 		return exchanges.NewCryptobridge(), nil
 	}
-	if coinName == "btc" || coinName == "dash" || coinName == "ltc" || coinName == "xsg" || coinName == "grs" || coinName == "xzc"{
+	if coinName == "dash" || coinName == "ltc" || coinName == "grs" || coinName == "xzc"{
 		return exchanges.NewBinance(), nil
 	}
 	/*if coinName == "mnp" || coinName == "onion" || coinName == "colx"{
 		return exchanges.NewCrex()
+	}*/
+	/*if coinName == "btc" {
+		return exchanges.NewBitso()
 	}*/
 	return *new(exchanges.Exchange), errors.New("exchange not found")
 }

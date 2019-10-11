@@ -10,6 +10,8 @@ import (
 	"testing"
 )
 
+// For all implemented coins, tests that an exchange is provided
+// and that an address can be retrieved from them
 func TestAddresses(t *testing.T) {
 	var coins = coinfactory.Coins
 	var exchangeFactory = new(services.ExchangeFactory)
@@ -21,15 +23,32 @@ func TestAddresses(t *testing.T) {
 		if err != nil {
 			fmt.Println("Exchange not implemented for ", coin.Name)
 			break
+		} else {
+			exName, _ := ex.GetName()
+			assert.Equal(t, strings.ToLower(exName), strings.ToLower(coin.Rates.Exchange))
+			if exName == "binance" || exName == "cryptobridge" { // Implemented Exchanges
+				address, err := ex.GetAddress(*coin)
+				assert.Nil(t, err)
+				assert.NotEqual(t, "", address)
+			}
 		}
-		exName, _ := ex.GetName()
-		assert.Equal(t, strings.ToLower(exName), strings.ToLower(coin.Rates.Exchange))
-		if exName == "binance" || exName == "cryptobridge" { // Implemented Exchanges
-			address, err := ex.GetAddress(*coin)
-			assert.Nil(t, err)
-			assert.NotEqual(t, "", address)
+	}
+}
+
+func TestRate(t *testing.T) {
+	var coins = coinfactory.Coins
+	var exchangeFactory = new(services.ExchangeFactory)
+
+	for _, coin := range coins {
+		log.Println(fmt.Sprintf("Getting Rates for %s", coin.Name))
+		ex, err := exchangeFactory.GetExchangeByCoin(*coin)
+		// assert.NotNil(t, ex) // TODO Uncomment when all exchanges are implemented
+		if err != nil {
+			fmt.Println("Exchange not implemented for ", coin.Name)
+			break
+		} else {
+			rate, _ := ex.OneCoinToBtc(*coin)
+			assert.Greater(t, rate, 0.0)
 		}
-
-
 	}
 }

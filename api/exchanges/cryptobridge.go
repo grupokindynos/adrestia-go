@@ -20,6 +20,7 @@ import (
 	"github.com/grupokindynos/adrestia-go/utils"
 	"github.com/grupokindynos/common/coin-factory/coins"
 	"github.com/grupokindynos/common/obol"
+	"github.com/joho/godotenv"
 	"moul.io/http2curl"
 )
 
@@ -62,8 +63,6 @@ func (c Cryptobridge) GetAddress(coin coins.Coin) (string, error) {
 func (c Cryptobridge) OneCoinToBtc(coin coins.Coin) (float64, error) {
 	var rates = new(exchange_models.CBRates)
 	url := "v1/ticker"
-
-	fmt.Println("DATA: ", c.MasterPassword, c.BaseUrl+url, http.MethodGet, nil, &rates)
 	err := getBitSharesRequest(c.MasterPassword, c.BaseUrl+url, http.MethodGet, nil, &rates)
 
 	if err != nil {
@@ -192,6 +191,9 @@ func (c Cryptobridge) Withdraw(coin string, address string, amount float64) (boo
 }
 
 func (c Cryptobridge) GetSettings() config.CBAuth {
+	if err := godotenv.Load(); err != nil {
+		log.Println(err)
+	}
 	var data config.CBAuth
 	data.AccountName = os.Getenv("CB_ACCOUNT_NAME")
 	data.BaseUrl = os.Getenv("CB_BASE_URL")
@@ -209,7 +211,7 @@ func getBitSharesRequest(key string, url string, method string, body io.Reader, 
 	}
 	req.Header.Add("key", key)
 	res, _ := client.Do(req)
-	fmt.Println(req)
+
 	bodyResp, e := ioutil.ReadAll(res.Body)
 	if e != nil {
 		err = e

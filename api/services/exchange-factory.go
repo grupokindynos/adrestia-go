@@ -6,10 +6,17 @@ import (
 
 	"github.com/grupokindynos/adrestia-go/api/exchanges"
 	"github.com/grupokindynos/common/coin-factory/coins"
+	"github.com/joho/godotenv"
 )
 
 type ExchangeFactory struct {
 	Exchanges map[string]*exchanges.IExchange
+}
+
+func init() {
+	if err := godotenv.Load(); err != nil {
+		panic("you need .env at the root of api/")
+	}
 }
 
 var ex = map[string]exchanges.IExchange{

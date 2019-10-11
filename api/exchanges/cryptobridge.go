@@ -95,7 +95,6 @@ func (c Cryptobridge) GetBalances() ([]balance.Balance, error) {
 	var CBResponse = new(exchange_models.CBBalance)
 	url := "balance"
 	err := getBitSharesRequest(c.MasterPassword, c.BitSharesUrl+url, http.MethodGet, nil, &CBResponse)
-	fmt.Println(c.BitSharesUrl + url)
 	if err != nil {
 		return balances, err
 	}

@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/grupokindynos/adrestia-go/models/transaction"
 	l "log"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/grupokindynos/adrestia-go/models/transaction"
 
 	"github.com/go-kit/kit/log"
 	"github.com/grupokindynos/adrestia-go/api/exchanges/config"
@@ -21,10 +22,10 @@ import (
 
 type Binance struct {
 	Exchange
-	AccountName  	string
-	BitSharesUrl 	string
-	binanceApi   	binance.Binance
-	withdrawApi		binance.Binance
+	AccountName  string
+	BitSharesUrl string
+	binanceApi   binance.Binance
+	withdrawApi  binance.Binance
 }
 
 var BinanceInstance = NewBinance()
@@ -83,7 +84,7 @@ func (b Binance) GetBalances() ([]balance.Balance, error) {
 		Timestamp:  time.Now(),
 	})
 
-	if err!= nil {
+	if err != nil {
 		return balances, err
 	}
 
@@ -107,10 +108,10 @@ func (b Binance) GetBalances() ([]balance.Balance, error) {
 }
 
 func (b Binance) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (bool, error) {
-	l.Println(fmt.Sprintf("[SellAtMarketPrice] Selling %.8f %s for %s on %s",SellOrder.Amount , SellOrder.FromCoin.Name, SellOrder.ToCoin.Name, b.Name))
+	l.Println(fmt.Sprintf("[SellAtMarketPrice] Selling %.8f %s for %s on %s", SellOrder.Amount, SellOrder.FromCoin.Name, SellOrder.ToCoin.Name, b.Name))
 	// Gets price from Obol considering the amount to sell
 	rate, err := obol.GetCoin2CoinRatesWithAmmount(SellOrder.FromCoin.Tag, SellOrder.ToCoin.Tag, fmt.Sprintf("%f", SellOrder.Amount))
-	if err != nil{
+	if err != nil {
 		return false, err
 	}
 

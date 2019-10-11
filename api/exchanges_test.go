@@ -2,18 +2,28 @@ package main
 
 import (
 	"fmt"
-	"github.com/grupokindynos/adrestia-go/api/services"
-	coinfactory "github.com/grupokindynos/common/coin-factory"
-	"github.com/stretchr/testify/assert"
 	"log"
 	"strings"
 	"testing"
+
+	"github.com/gookit/color"
+	"github.com/grupokindynos/adrestia-go/api/services"
+	coinfactory "github.com/grupokindynos/common/coin-factory"
+	"github.com/joho/godotenv"
+	"github.com/stretchr/testify/assert"
 )
+
+func init() {
+	if err := godotenv.Load(); err != nil {
+		log.Println(err)
+	}
+}
 
 // For all implemented coins, tests that an exchange is provided
 // and that an address can be retrieved from them
 func TestAddresses(t *testing.T) {
 	var coins = coinfactory.Coins
+	log.Println("Coins to test: ", coins)
 	var exchangeFactory = new(services.ExchangeFactory)
 
 	for _, coin := range coins {
@@ -21,8 +31,8 @@ func TestAddresses(t *testing.T) {
 		ex, err := exchangeFactory.GetExchangeByCoin(*coin)
 		// assert.NotNil(t, ex) // TODO Uncomment when all exchanges are implemented
 		if err != nil {
-			fmt.Println("Exchange not implemented for ", coin.Name)
-			break
+			s := fmt.Sprintf("exchange not implemented for %s", coin.Name)
+			color.Warn.Tips(s)
 		} else {
 			exName, _ := ex.GetName()
 			assert.Equal(t, strings.ToLower(exName), strings.ToLower(coin.Rates.Exchange))
@@ -46,8 +56,8 @@ func TestRateToBtc(t *testing.T) {
 		// assert.NotNil(t, ex) // TODO Uncomment when all exchanges are implemented
 
 		if err != nil {
-			fmt.Println("Exchange not implemented for ", coin.Name)
-			break
+			s := fmt.Sprintf("exchange not implemented for %s", coin.Name)
+			color.Warn.Tips(s)
 		} else {
 			rate, _ := ex.OneCoinToBtc(*coin)
 			assert.Greater(t, rate, 0.0)

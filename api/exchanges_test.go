@@ -19,13 +19,15 @@ func TestAddresses(t *testing.T) {
 		ex, err := exchangeFactory.GetExchangeByCoin(*coin)
 		// assert.NotNil(t, ex) // TODO Uncomment when all exchanges are implemented
 		if err != nil {
-			exName, _ := ex.GetName()
-			assert.Equal(t, strings.ToLower(exName), strings.ToLower(coin.Rates.Exchange))
-			if exName == "binance" || exName == "cryptobridge" { // Implemented Exchanges
-				address, err := ex.GetAddress(*coin)
-				assert.Nil(t, err)
-				assert.NotEqual(t, "", address)
-			}
+			fmt.Println("Exchange not implemented for ", coin.Name)
+			break
+		}
+		exName, _ := ex.GetName()
+		assert.Equal(t, strings.ToLower(exName), strings.ToLower(coin.Rates.Exchange))
+		if exName == "binance" || exName == "cryptobridge" { // Implemented Exchanges
+			address, err := ex.GetAddress(*coin)
+			assert.Nil(t, err)
+			assert.NotEqual(t, "", address)
 		}
 
 

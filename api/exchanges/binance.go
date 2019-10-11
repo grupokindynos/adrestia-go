@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/joho/godotenv"
 	l "log"
 	"os"
 	"strings"
@@ -185,6 +186,9 @@ func (b Binance) OneCoinToBtc(coin coins.Coin) (float64, error) {
 }
 
 func GetSettings() config.BinanceAuth {
+	if err := godotenv.Load(); err != nil {
+		l.Println(err)
+	}
 	l.Println(fmt.Sprintf("[GetSettings] Retrieving settings for Binance"))
 	var data config.BinanceAuth
 	data.PublicApi = os.Getenv("BINANCE_PUB_API")

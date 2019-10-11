@@ -66,5 +66,21 @@ func TestRateToBtc(t *testing.T) {
 }
 
 func TestBalances(t *testing.T) {
-	fmt.Println("Hello")
+	exchangesToTest := [...]string{"binance", "cryptobridge", "bitso"}
+	var exFactory = new(services.ExchangeFactory)
+
+	for _, exName := range exchangesToTest {
+		s := fmt.Sprintf("Retrieving Balances for %s", exName)
+		color.Info.Tips(s)
+		ex, err := exFactory.GetExchangeByName(exName)
+		if err != nil {
+			s = fmt.Sprintf("exchange %s not implemented", exName)
+			color.Warn.Tips(s)
+		} else {
+			balances , _ := ex.GetBalances()
+			fmt.Println("balances: ", balances)
+			assert.NotNil(t, balances)
+		}
+
+	}
 }

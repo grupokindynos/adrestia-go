@@ -45,3 +45,25 @@ func (e *ExchangeFactory) GetExchangeByCoin(coin coins.Coin) (exchanges.IExchang
 
 	return *new(exchanges.Exchange), errors.New("exchange not found")
 }
+
+func (e *ExchangeFactory) GetExchangeByName(name string) (exchanges.IExchange, error) {
+	var exName = strings.ToLower(name)
+
+	if exName == "cryptobridge" {
+		return ex["cryptobridge"], nil
+	}
+	if exName == "binance" {
+		return ex["binance"], nil
+	}
+	/*if coinName == "xsg" {
+		return exchanges.NewStex()
+	}*/
+	/*if coinName == "mnp" || coinName == "onion" || coinName == "colx"{
+		return exchanges.NewCrex()
+	}*/
+	/*if coinName == "btc" {
+		return exchanges.NewBitso()
+	}*/
+
+	return *new(exchanges.Exchange), errors.New("exchange not found by name")
+}

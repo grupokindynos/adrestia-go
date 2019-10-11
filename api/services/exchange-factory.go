@@ -31,6 +31,6 @@ func (e *ExchangeFactory)GetExchangeByCoin(coin coins.Coin) (exchanges.IExchange
 	/*if coinName == "btc" {
 		return exchanges.NewBitso()
 	}*/
-	
+
 	return *new(exchanges.Exchange), errors.New("exchange not found")
 }

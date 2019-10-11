@@ -29,6 +29,8 @@ type Cryptobridge struct {
 	MasterPassword string
 }
 
+var CBInstance = NewCryptobridge()
+
 func NewCryptobridge() *Cryptobridge {
 	c := new(Cryptobridge)
 	c.Name = "Cryptobridge"

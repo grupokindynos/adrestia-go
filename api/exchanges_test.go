@@ -35,7 +35,8 @@ func TestAddresses(t *testing.T) {
 	}
 }
 
-func TestRate(t *testing.T) {
+// Makes sure OneConversion to BTC is implemented for every coin
+func TestRateToBtc(t *testing.T) {
 	var coins = coinfactory.Coins
 	var exchangeFactory = new(services.ExchangeFactory)
 
@@ -43,6 +44,7 @@ func TestRate(t *testing.T) {
 		log.Println(fmt.Sprintf("Getting Rates for %s", coin.Name))
 		ex, err := exchangeFactory.GetExchangeByCoin(*coin)
 		// assert.NotNil(t, ex) // TODO Uncomment when all exchanges are implemented
+
 		if err != nil {
 			fmt.Println("Exchange not implemented for ", coin.Name)
 			break
@@ -51,4 +53,8 @@ func TestRate(t *testing.T) {
 			assert.Greater(t, rate, 0.0)
 		}
 	}
+}
+
+func TestBalances(t *testing.T) {
+	fmt.Println("Hello")
 }

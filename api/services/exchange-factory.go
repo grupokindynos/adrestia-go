@@ -8,16 +8,21 @@ import (
 )
 
 type ExchangeFactory struct {
-	Exchanges []exchanges.IExchange
+	Exchanges map[string]*exchanges.IExchange
+}
+
+var Exchanges = map[string]exchanges.IExchange{
+	"cryptobridge" : exchanges.CBInstance,
+	"binance" : exchanges.BinanceInstance,
 }
 
 func (e ExchangeFactory)GetExchangeByCoin(coin coins.Coin) (exchanges.IExchange, error) {
 	var coinName = strings.ToLower(coin.Tag)
 	if coinName == "polis" || coinName == "xsg" || coinName == "colx"{
-		return exchanges.NewCryptobridge(), nil
+		return Exchanges["cryptobridge"], nil
 	}
 	if coinName == "dash" || coinName == "ltc" || coinName == "grs" || coinName == "xzc"{
-		return exchanges.NewBinance(), nil
+		return Exchanges["binance"], nil
 	}
 	/*if coinName == "mnp" || coinName == "onion" || coinName == "colx"{
 		return exchanges.NewCrex()

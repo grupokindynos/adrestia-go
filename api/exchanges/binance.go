@@ -27,6 +27,8 @@ type Binance struct {
 	withdrawApi		binance.Binance
 }
 
+var BinanceInstance = NewBinance()
+
 func NewBinance() *Binance {
 	c := new(Binance)
 	c.Name = "Binance"

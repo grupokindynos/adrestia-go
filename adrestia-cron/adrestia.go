@@ -14,23 +14,16 @@ import (
 
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	"github.com/grupokindynos/adrestia-go/services"
-	plutus_service "github.com/grupokindynos/tyche/services"
+	"github.com/grupokindynos/common/plutus"
 )
 
 var ratePvdr = services.RateProvider{}
 var printDebugInfo = true
-var ps plutus_service.PlutusService
+const plutusUrl = "https://plutus-wallets.herokuapp.com"
 
 func init() {
 	if err := godotenv.Load(); err != nil {
 		log.Print("No .env file found")
-	}
-
-	ps = plutus_service.PlutusService{
-		// PlutusURL:    "https://localhost:8280",
-		PlutusURL:    "https://plutus-wallets.herokuapp.com",
-		AuthUsername: os.Getenv("PLUTUS_AUTH_USERNAME"),
-		AuthPassword: os.Getenv("PLUTUS_AUTH_PASSWORD"),
 	}
 }
 
@@ -74,16 +67,13 @@ func GetWalletBalances() []balance.Balance {
 	availableCoins := CoinFactory.Coins
 
 	for _, coin := range availableCoins {
-		// TODO Update Tyche module when this is working
-		res, err := ps.GetWalletBalance(strings.ToLower(coin.Tag))
-
+		res, err := plutus.GetWalletBalance(os.Getenv("PLUTUS_URL"), strings.ToLower(coin.Tag), os.Getenv("ADRESTIA_PUBLIC_KEY"), os.Getenv("SERVICE_ID"), os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("Plutus Service Error: ", err)
 		}
-
 		// Create Balance Object
 		var b = balance.Balance{}
-		b.Balance = res
+		b.Balance = res.Confirmed
 		b.Ticker = coin.Tag
 
 		rawBalances = append(rawBalances, b)
@@ -160,10 +150,8 @@ func DetermineBalanceability(balanced []balance.Balance, unbalanced []balance.Ba
 	for _, wallet := range unbalanced {
 		deficit += wallet.DiffBTC
 	}
-
 	fmt.Println("Superavit: ", superavit)
 	fmt.Println("Deficit: ", deficit)
-
 	return superavit > math.Abs(deficit), superavit - math.Abs(deficit)
 }
 

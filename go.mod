@@ -11,7 +11,7 @@ require (
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/gookit/color v1.2.0
 	github.com/gorilla/websocket v1.4.1 // indirect
-	github.com/grupokindynos/common v0.0.0-20191003035643-b05e9e1d4d85
+	github.com/grupokindynos/common v0.0.0-20191012002720-25d9c96b3217
 	github.com/grupokindynos/tyche v0.0.0-20191003002158-e93577c54652
 	github.com/heroku/x v0.0.9
 	github.com/joho/godotenv v1.3.0

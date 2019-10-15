@@ -61,6 +61,7 @@ func main() {
 }
 
 func GetWalletBalances() []balance.Balance {
+	flagAllRates := false
 	fmt.Println("\tRetrieving Wallet Balances...")
 
 	var rawBalances []balance.Balance
@@ -100,8 +101,9 @@ func GetWalletBalances() []balance.Balance {
 	for _, coin := range rawBalances {
 		// fmt.Println(coin)
 		var currentBalance = coin
-		rate, err := obol.GetCoin2CoinRates(currentBalance.Ticker, "btc")
+		rate, err := obol.GetCoin2CoinRates("btc", currentBalance.Ticker)
 		if err != nil{
+			flagAllRates = true
 			color.Error.Tips(fmt.Sprintf("Rate failed for %s. Error: %s", coin.Ticker, err))
 		} else {
 			color.Info.Tips(fmt.Sprintf("Rate retrieved for %s.", coin.Ticker))
@@ -109,6 +111,9 @@ func GetWalletBalances() []balance.Balance {
 			updatedBalances = append(updatedBalances, currentBalance)
 		}
 
+	}
+	if flagAllRates {
+		color.Error.Tips("Not all rates could be retrieved. Balancing the rest of them.")
 	}
 	return updatedBalances
 }
@@ -130,9 +135,8 @@ func GetFBConfiguration() map[string]balance.Balance {
 
 }
 
+// Sorts Balances given their diff, so that topped wallets are used to fill the missing ones
 func SortBalances(inputBalances []balance.Balance, conf map[string]balance.Balance) ([]balance.Balance, []balance.Balance) {
-	// Sorts Balances
-
 	var balancedWallets []balance.Balance
 	var unbalancedWallets []balance.Balance
 
@@ -183,7 +187,7 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 		// fmt.Println(i, " ", wallet)
 		coinData, _ := CoinFactory.GetCoin(wallet.Ticker)
 
-		color.Info.Tips(fmt.Sprintf("The exchange for %s is %s\n", wallet.Ticker, coinData.Rates.Exchange))
+		color.Info.Tips(fmt.Sprintf("The exchange for %s is %s", wallet.Ticker, coinData.Rates.Exchange))
 		// TODO Optimize sending TXs for the same coin (instead of making 5 dash transactions, make one)
 		if wallet.DiffBTC < balanced[bIndex].DiffBTC {
 			var newTx = transaction.PTx{

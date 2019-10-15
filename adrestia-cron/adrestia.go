@@ -1,20 +1,20 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/joho/godotenv"
+	"io/ioutil"
 	"log"
 	"math"
 	"os"
 	"sort"
-	"strings"
 
 	"github.com/grupokindynos/adrestia-go/models/transaction"
 	CoinFactory "github.com/grupokindynos/common/coin-factory"
 
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	"github.com/grupokindynos/adrestia-go/services"
-	"github.com/grupokindynos/common/plutus"
 )
 
 var ratePvdr = services.RateProvider{}
@@ -64,19 +64,32 @@ func GetWalletBalances() []balance.Balance {
 
 	var rawBalances []balance.Balance
 
-	availableCoins := CoinFactory.Coins
-
+	// TODO Fix data retrieval from Plutus
+	// availableCoins := CoinFactory.Coins
+	/*fmt.Println("1. ", os.Getenv("PLUTUS_URL"))
+	fmt.Println("2. ", os.Getenv("PLUTUS_AUTH_USERNAME"))
+	fmt.Println("3. ", os.Getenv("PLUTUS_AUTH_PASSWORD"))
+	fmt.Println("4. ", os.Getenv("PLUTUS_PUBLIC_KEY"))
+	fmt.Println("5. ", os.Getenv("TYCHE_PUBLIC_KEY"))
+	fmt.Println("6. ", os.Getenv("MASTER_PASSWORD"))
 	for _, coin := range availableCoins {
-		res, err := plutus.GetWalletBalance(os.Getenv("PLUTUS_URL"), strings.ToLower(coin.Tag), os.Getenv("ADRESTIA_PUBLIC_KEY"), os.Getenv("SERVICE_ID"), os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
+		res, err := plutus.GetWalletAddress(os.Getenv("PLUTUS_URL"), "BTC", os.Getenv("TYCHE_PRIV_KEY"), "tyche", os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
+		//res, err := plutus.GetWalletBalance(os.Getenv("PLUTUS_URL"), strings.ToLower(coin.Tag), os.Getenv("TYCHE_PUBLIC_KEY"), "tyche", os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
+		fmt.Println("debug: ", res, coin.Tag)
 		if err != nil {
 			fmt.Println("Plutus Service Error: ", err)
 		}
 		// Create Balance Object
-		var b = balance.Balance{}
+		/*ar b = balance.Balance{}
 		b.Balance = res.Confirmed
 		b.Ticker = coin.Tag
 
 		rawBalances = append(rawBalances, b)
+
+	}*/
+	rawBalances, err := loadTestingData()
+	if err != nil {
+		fmt.Println(err)
 	}
 	//fmt.Println("Raw Balances: ", rawBalances)
 	fmt.Println("Finished Retrieving Balances")
@@ -89,6 +102,7 @@ func GetWalletBalances() []balance.Balance {
 		currentBalance.RateBTC = ratePvdr.GetRate(currentBalance.Ticker)
 		updatedBalances = append(updatedBalances, currentBalance)
 	}
+	fmt.Println(updatedBalances)
 	return updatedBalances
 }
 
@@ -175,4 +189,25 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 		}
 	}
 	return pendingTransactions
+}
+
+
+func loadTestingData() ([]balance.Balance, error){
+	jsonFile, err := os.Open("test_data/test.json")
+	// if we os.Open returns an error then handle it
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer jsonFile.Close()
+
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+
+	var b []balance.Balance
+	err = json.Unmarshal(byteValue, &b)
+
+	if err != nil {
+		return b, err
+	}
+
+	return b, nil
 }

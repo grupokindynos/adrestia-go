@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gookit/color"
 	"github.com/joho/godotenv"
 	"io/ioutil"
 	"log"
@@ -12,12 +13,12 @@ import (
 
 	"github.com/grupokindynos/adrestia-go/models/transaction"
 	CoinFactory "github.com/grupokindynos/common/coin-factory"
+	obol "github.com/grupokindynos/common/obol"
 
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	"github.com/grupokindynos/adrestia-go/services"
 )
 
-var ratePvdr = services.RateProvider{}
 var printDebugInfo = true
 const plutusUrl = "https://plutus-wallets.herokuapp.com"
 
@@ -28,15 +29,15 @@ func init() {
 }
 
 func main() {
-	fmt.Println("Program Started")
+	color.Info.Tips("Program Started")
 	// coins := []string{ "POLIS", "DASH" }
 
 	// Gets balance from Hot Wallets
 	var balances = GetWalletBalances()
 	if printDebugInfo {
-		fmt.Println("\t\tAvailable Coins")
+		color.Info.Tips("\t\tAvailable Coins")
 		for i, _ := range balances {
-			log.Println(fmt.Sprintf("Wallet has %.8f %s", balances[i].Balance, balances[i].Ticker))
+			color.Info.Tips(fmt.Sprintf("Wallet has %.8f %s", balances[i].Balance, balances[i].Ticker))
 		}
 	}
 	// Firebase Wallet Configuration
@@ -99,10 +100,16 @@ func GetWalletBalances() []balance.Balance {
 	for _, coin := range rawBalances {
 		// fmt.Println(coin)
 		var currentBalance = coin
-		currentBalance.RateBTC = ratePvdr.GetRate(currentBalance.Ticker)
-		updatedBalances = append(updatedBalances, currentBalance)
+		rate, err := obol.GetCoin2CoinRates(currentBalance.Ticker, "btc")
+		if err != nil{
+			color.Error.Tips(fmt.Sprintf("Rate failed for %s. Error: %s", coin.Ticker, err))
+		} else {
+			color.Info.Tips(fmt.Sprintf("Rate retrieved for %s.", coin.Ticker))
+			currentBalance.RateBTC = rate
+			updatedBalances = append(updatedBalances, currentBalance)
+		}
+
 	}
-	fmt.Println(updatedBalances)
 	return updatedBalances
 }
 
@@ -115,7 +122,7 @@ func GetFBConfiguration() map[string]balance.Balance {
 	if err != nil {
 		log.Fatal("Configuration not found")
 	}
-	fmt.Println("Retrieved config: ", conf)
+	// fmt.Println("Retrieved config: ", conf)
 
 	var firebaseConfBalances = conf.ToMap()
 
@@ -136,7 +143,6 @@ func SortBalances(inputBalances []balance.Balance, conf map[string]balance.Balan
 		} else {
 			unbalancedWallets = append(unbalancedWallets, obj)
 		}
-		fmt.Println(obj)
 	}
 
 	sort.Sort(balance.ByDiffInverse(balancedWallets))
@@ -177,7 +183,7 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 		// fmt.Println(i, " ", wallet)
 		coinData, _ := CoinFactory.GetCoin(wallet.Ticker)
 
-		fmt.Printf("The exchange for %s is %s\n", wallet.Ticker, coinData.Tag) // TODO Replace with exchange factory method
+		color.Info.Tips(fmt.Sprintf("The exchange for %s is %s\n", wallet.Ticker, coinData.Rates.Exchange))
 		// TODO Optimize sending TXs for the same coin (instead of making 5 dash transactions, make one)
 		if wallet.DiffBTC < balanced[bIndex].DiffBTC {
 			var newTx = transaction.PTx{

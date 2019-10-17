@@ -192,7 +192,7 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 		filledAmount := 0.0 // Amount that stores current fulfillment of a Balancing Transaction.
 		initialDiff := wallet.DiffBTC
 
-		var newTx transaction.PTx
+		var newTx transaction.PTx // TODO add fields for out addresses
 
 		coinData, _ := CoinFactory.GetCoin(wallet.Ticker)
 		for filledAmount < initialDiff {

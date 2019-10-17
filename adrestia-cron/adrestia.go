@@ -37,7 +37,7 @@ func main() {
 	if printDebugInfo {
 		color.Info.Tips("\t\tAvailable Coins")
 		for i, _ := range balances {
-			color.Info.Tips(fmt.Sprintf("Wallet has %.8f %s", balances[i].Balance, balances[i].Ticker))
+			color.Info.Tips(fmt.Sprintf("Wallet has %.8f %s \t(%.8f BTC)", balances[i].Balance, balances[i].Ticker, balances[i].BalanceBTC))
 		}
 	}
 	// Firebase Wallet Configuration
@@ -96,24 +96,25 @@ func GetWalletBalances() []balance.Balance {
 	//fmt.Println("Raw Balances: ", rawBalances)
 	fmt.Println("Finished Retrieving Balances")
 
+	var errRates []string
+
 	var updatedBalances []balance.Balance
-	fmt.Println("\tRetrieving Wallet Rates...")
+	log.Println("\tRetrieving Wallet Rates...")
 	for _, coin := range rawBalances {
 		// fmt.Println(coin)
 		var currentBalance = coin
 		rate, err := obol.GetCoin2CoinRates("btc", currentBalance.Ticker)
 		if err != nil{
 			flagAllRates = true
-			color.Error.Tips(fmt.Sprintf("Rate failed for %s. Error: %s", coin.Ticker, err))
+			errRates = append(errRates, coin.Ticker)
 		} else {
-			color.Info.Tips(fmt.Sprintf("Rate retrieved for %s.", coin.Ticker))
-			currentBalance.RateBTC = rate
+			currentBalance.SetRate(rate)
 			updatedBalances = append(updatedBalances, currentBalance)
 		}
 
 	}
 	if flagAllRates {
-		color.Error.Tips("Not all rates could be retrieved. Balancing the rest of them.")
+		color.Error.Tips("Not all rates could be retrieved. Balancing the rest of them. Missing rates for %s", errRates)
 	}
 	return updatedBalances
 }
@@ -167,37 +168,58 @@ func SortBalances(inputBalances []balance.Balance, conf map[string]balance.Balan
 func DetermineBalanceability(balanced []balance.Balance, unbalanced []balance.Balance) (bool, float64) {
 	superavit := 0.0 // Excedent in balanced wallets
 	deficit := 0.0   // Missing amount in unbalanced wallets
+	totalBtc := 0.0 // total amount in wallets
 
 	for _, wallet := range balanced {
 		superavit += wallet.DiffBTC
+		totalBtc += wallet.Balance * wallet.RateBTC
 	}
 	for _, wallet := range unbalanced {
 		deficit += wallet.DiffBTC
+		totalBtc += wallet.Balance * wallet.RateBTC
 	}
 	fmt.Println("Superavit: ", superavit)
 	fmt.Println("Deficit: ", deficit)
+	color.Info.Tips(fmt.Sprintf("Total in Wallets: %.8f", totalBtc))
 	return superavit > math.Abs(deficit), superavit - math.Abs(deficit)
 }
 
 // Actual balancing action
 func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []transaction.PTx {
 	var pendingTransactions []transaction.PTx
-	bIndex := 0
+	i := 0 // Balanced wallet index
 	for _, wallet := range unbalanced {
-		// fmt.Println(i, " ", wallet)
-		coinData, _ := CoinFactory.GetCoin(wallet.Ticker)
+		filledAmount := 0.0 // Amount that stores current fulfillment of a Balancing Transaction.
+		initialDiff := wallet.DiffBTC
 
-		color.Info.Tips(fmt.Sprintf("The exchange for %s is %s", wallet.Ticker, coinData.Rates.Exchange))
-		// TODO Optimize sending TXs for the same coin (instead of making 5 dash transactions, make one)
-		if wallet.DiffBTC < balanced[bIndex].DiffBTC {
-			var newTx = transaction.PTx{
-				ToCoin:   wallet.Ticker,
-				FromCoin: balanced[bIndex].Ticker,
-				Amount:   math.Abs(wallet.DiffBTC),
+		var newTx transaction.PTx
+
+		coinData, _ := CoinFactory.GetCoin(wallet.Ticker)
+		for filledAmount < initialDiff {
+			if balanced[i].BalanceBTC < math.Abs(initialDiff) - filledAmount {
+				newTx = transaction.PTx{
+					ToCoin:   wallet.Ticker,
+					FromCoin: balanced[i].Ticker,
+					Amount:   balanced[i].DiffBTC,
+				}
+				filledAmount += balanced[i].DiffBTC
+				balanced[i].DiffBTC = 0.0
+				i++
+			}else {
+				filledAmount += math.Abs(initialDiff) - filledAmount
+				balanced[i].DiffBTC -= math.Abs(initialDiff) - filledAmount
+				newTx = transaction.PTx{
+					ToCoin:   wallet.Ticker,
+					FromCoin: balanced[i].Ticker,
+					Amount:   math.Abs(initialDiff) - filledAmount,
+				}
 			}
 			pendingTransactions = append(pendingTransactions, newTx)
+			// TODO Optimize sending TXs for the same coin (instead of making 5 dash transactions, make one)
+			color.Info.Tips(fmt.Sprintf("The exchange for %s is %s", wallet.Ticker, coinData.Rates.Exchange))
 		}
 	}
+	fmt.Println(pendingTransactions)
 	return pendingTransactions
 }
 

@@ -11,11 +11,12 @@ type HotWalletBalances struct {
 }
 
 type Balance struct {
-	Ticker     string  `json:"ticker"`
-	Balance    float64 `json:"balance"`
-	RateBTC    float64 `json:"rateBTC"`
-	DiffBTC    float64 `json:"diffBTC"`
-	IsBalanced bool    `json:"isBalanced"`
+	Ticker     	string  	`json:"ticker"`
+	Balance    	float64 	`json:"balance"`
+	BalanceBTC  float64 	`json:"balanceBTC"`
+	RateBTC    	float64 	`json:"rateBTC"`
+	DiffBTC    	float64 	`json:"diffBTC"`
+	IsBalanced 	bool    	`json:"isBalanced"`
 }
 
 func (b *Balance) GetDiff(target float64) {
@@ -28,6 +29,11 @@ func (b *Balance) GetDiff(target float64) {
 	} else {
 		b.IsBalanced = false
 	}
+}
+
+func (b *Balance) SetRate(rate float64){
+	b.RateBTC = rate
+	b.BalanceBTC = b.Balance * rate
 }
 
 // Sort Struct

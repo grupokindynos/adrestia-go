@@ -119,6 +119,7 @@ func GetWalletBalances() []balance.Balance {
 }
 
 // Retrieves minimum set balance configuration from Firebase conf
+// TODO Connect this with Hestia instead of Firebase and Test Data
 func GetFBConfiguration(file string, load bool) map[string]balance.Balance {
 	if load {
 		jsonFile, err := os.Open(file)
@@ -177,7 +178,7 @@ func SortBalances(inputBalances []balance.Balance, conf map[string]balance.Balan
 }
 
 func DetermineBalanceability(balanced []balance.Balance, unbalanced []balance.Balance) (bool, float64) {
-	superavit := 0.0 // Excedent in balanced wallets
+	superavit := 0.0 // Exceeding amount in balanced wallets
 	deficit := 0.0   // Missing amount in unbalanced wallets
 	totalBtc := 0.0 // total amount in wallets
 

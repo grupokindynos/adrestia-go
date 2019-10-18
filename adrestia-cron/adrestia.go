@@ -41,7 +41,7 @@ func main() {
 		}
 	}
 	// Firebase Wallet Configuration
-	var conf = GetFBConfiguration()
+	var conf = GetFBConfiguration("test_data/testConf.json", true)
 	// fmt.Println(conf)
 	var balanced, unbalanced = SortBalances(balances, conf)
 
@@ -120,20 +120,44 @@ func GetWalletBalances() []balance.Balance {
 }
 
 // Retrieves minimum set balance configuration from Firebase conf
-func GetFBConfiguration() map[string]balance.Balance {
+func GetFBConfiguration(file string, load bool) map[string]balance.Balance {
+	if load {
+		jsonFile, err := os.Open(file)
+		// if we os.Open returns an error then handle it
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println("Successfully Opened conf.json")
+		// defer the closing of our jsonFile so that we can parse it later on
+		defer jsonFile.Close()
+		byteValue, _ := ioutil.ReadAll(jsonFile)
 
-	fireBase := services.InitFirebase()
-	var conf balance.MinBalanceConfResponse
-	conf, err := fireBase.GetConf()
-	if err != nil {
-		log.Fatal("Configuration not found")
+		// we initialize our Users array
+		var conf map[string]balance.Balance
+
+		// we unmarshal our byteArray which contains our
+		// jsonFile's content into 'users' which we defined above
+		err = json.Unmarshal(byteValue, &conf)
+
+		if err != nil {
+			log.Println(err)
+		}
+
+		return conf
+
+	} else {
+		fireBase := services.InitFirebase()
+		var conf balance.MinBalanceConfResponse
+		conf, err := fireBase.GetConf()
+		if err != nil {
+			log.Fatal("Configuration not found")
+		}
+		// fmt.Println("Retrieved config: ", conf)
+
+		var firebaseConfBalances = conf.ToMap()
+
+		return firebaseConfBalances
 	}
-	// fmt.Println("Retrieved config: ", conf)
-
-	var firebaseConfBalances = conf.ToMap()
-
-	return firebaseConfBalances
-
 }
 
 // Sorts Balances given their diff, so that topped wallets are used to fill the missing ones
@@ -142,6 +166,7 @@ func SortBalances(inputBalances []balance.Balance, conf map[string]balance.Balan
 	var unbalancedWallets []balance.Balance
 
 	for _, obj := range inputBalances {
+		log.Println(fmt.Sprintf("SortBalances:: %.8f", conf[obj.Ticker].Balance))
 		obj.GetDiff(conf[obj.Ticker].Balance)
 		if obj.IsBalanced {
 			balancedWallets = append(balancedWallets, obj)

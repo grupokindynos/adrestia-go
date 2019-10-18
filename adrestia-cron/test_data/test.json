@@ -1,84 +1,84 @@
 [
  {
   "ticker": "XZC",
-  "balance": 2.5,
+  "balance": 0,
   "rateBTC": 0,
   "diffBTC": 0,
   "isBalanced": false
  },
  {
   "ticker": "LTC",
-  "balance": 3.5,
+  "balance": 0,
   "rateBTC": 0,
   "diffBTC": 0,
   "isBalanced": false
  },
  {
   "ticker": "GRS",
-  "balance": 1500,
+  "balance": 0,
   "rateBTC": 0,
   "diffBTC": 0,
   "isBalanced": false
  },
  {
   "ticker": "TELOS",
-  "balance": 2,
+  "balance": 0,
   "rateBTC": 0,
   "diffBTC": 0,
   "isBalanced": false
  },
  {
   "ticker": "POLIS",
-  "balance": 2000,
+  "balance": 3882,
   "rateBTC": 0,
   "diffBTC": 0,
   "isBalanced": false
  },
  {
   "ticker": "DGB",
-  "balance": 100,
+  "balance": 0,
   "rateBTC": 0,
   "diffBTC": 0,
   "isBalanced": false
  },
  {
   "ticker": "BTC",
-  "balance": 0.4,
+  "balance": 0.28,
   "rateBTC": 0,
   "diffBTC": 0,
   "isBalanced": false
  },
  {
   "ticker": "DASH",
-  "balance": 4.01,
+  "balance": 26.79233723,
   "rateBTC": 0,
   "diffBTC": 0,
   "isBalanced": false
  },
  {
   "ticker": "COLX",
-  "balance": 1500,
+  "balance": 0,
   "rateBTC": 0,
   "diffBTC": 0,
   "isBalanced": false
  },
  {
   "ticker": "ONION",
-  "balance": 2,
+  "balance": 0,
   "rateBTC": 0,
   "diffBTC": 0,
   "isBalanced": false
  },
  {
   "ticker": "MNP",
-  "balance": 12,
+  "balance": 0,
   "rateBTC": 0,
   "diffBTC": 0,
   "isBalanced": false
  },
  {
   "ticker": "XSG",
-  "balance": 40,
+  "balance": 0,
   "rateBTC": 0,
   "diffBTC": 0,
   "isBalanced": false

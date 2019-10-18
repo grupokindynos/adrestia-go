@@ -20,8 +20,8 @@ type Balance struct {
 }
 
 func (b *Balance) GetDiff(target float64) {
-	b.DiffBTC = (target - b.Balance) * b.RateBTC
-	// fmt.Printf("%s has diff %.8f\n", b.Ticker, b.DiffBTC)
+	b.DiffBTC = (b.Balance - target) * b.RateBTC
+	fmt.Printf("%s has diff %.8f\n", b.Ticker, b.DiffBTC)
 	// TODO Update this section to account for Tx/Miner Fees
 	// Make it >= a range
 	if b.DiffBTC >= 0.0 {

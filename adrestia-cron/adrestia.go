@@ -122,28 +122,18 @@ func GetWalletBalances() []balance.Balance {
 func GetFBConfiguration(file string, load bool) map[string]balance.Balance {
 	if load {
 		jsonFile, err := os.Open(file)
-		// if we os.Open returns an error then handle it
 		if err != nil {
 			fmt.Println(err)
 		}
 		fmt.Println("Successfully Opened conf.json")
-		// defer the closing of our jsonFile so that we can parse it later on
 		defer jsonFile.Close()
 		byteValue, _ := ioutil.ReadAll(jsonFile)
-
-		// we initialize our Users array
 		var conf map[string]balance.Balance
-
-		// we unmarshal our byteArray which contains our
-		// jsonFile's content into 'users' which we defined above
 		err = json.Unmarshal(byteValue, &conf)
-
 		if err != nil {
 			log.Println(err)
 		}
-
 		return conf
-
 	} else {
 		fireBase := services.InitFirebase()
 		var conf balance.MinBalanceConfResponse
@@ -151,10 +141,7 @@ func GetFBConfiguration(file string, load bool) map[string]balance.Balance {
 		if err != nil {
 			log.Fatal("Configuration not found")
 		}
-		// fmt.Println("Retrieved config: ", conf)
-
 		var firebaseConfBalances = conf.ToMap()
-
 		return firebaseConfBalances
 	}
 }

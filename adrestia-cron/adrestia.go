@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gookit/color"
+	services2 "github.com/grupokindynos/adrestia-go/api/services"
+	coinfactory "github.com/grupokindynos/common/coin-factory"
 	"github.com/joho/godotenv"
 	"io/ioutil"
 	"log"
@@ -205,7 +207,6 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 		filledAmount := 0.0 // Amount that stores current fulfillment of a Balancing Transaction.
 		initialDiff := math.Abs(wallet.DiffBTC)
 		// TODO add fields for out addresses
-		// coinData, _ := CoinFactory.GetCoin(wallet.Ticker)
 		for filledAmount < initialDiff {
 			color.Info.Tips(fmt.Sprintf("BalanceHW::\tUsing %s to balanace %s", balanced[i].Ticker, wallet.Ticker))
 			if balanced[i].DiffBTC < initialDiff - filledAmount {
@@ -237,9 +238,31 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 		}
 	}
 	fmt.Println(pendingTransactions)
+	exchangeSet := make(map[string]bool)
+	ef := services2.ExchangeFactory{}
+
 	for i, tx := range pendingTransactions {
 		color.Info.Tips(fmt.Sprintf("Performing tx %d: From %s to %s amounting for %.8f %s (%.8f BTC)", i+1, tx.FromCoin, tx.ToCoin, tx.Amount / tx.Rate, tx.FromCoin, tx.Amount))
+		coin, err := coinfactory.GetCoin(tx.ToCoin)
+		if err != nil{
+			log.Println(err)
+		}
+		ex, err := ef.GetExchangeByCoin(*coin)
+		exName, err := ex.GetName()
+		if err != nil{
+			log.Println(err)
+		}
+		_, ok := exchangeSet[exName]
+		if !ok {
+			exchangeSet[exName] = true
+		}
+
+
+
+
 	}
+
+	// Optimization for txes to exchanges
 	return pendingTransactions
 }
 

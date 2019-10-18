@@ -29,7 +29,7 @@
  },
  {
   "ticker": "POLIS",
-  "balance": 3882,
+  "balance": 3960,
   "rateBTC": 0,
   "diffBTC": 0,
   "isBalanced": false
@@ -50,7 +50,7 @@
  },
  {
   "ticker": "DASH",
-  "balance": 26.79233723,
+  "balance": 26.68132794,
   "rateBTC": 0,
   "diffBTC": 0,
   "isBalanced": false

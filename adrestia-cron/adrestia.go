@@ -12,7 +12,6 @@ import (
 	"sort"
 
 	"github.com/grupokindynos/adrestia-go/models/transaction"
-	CoinFactory "github.com/grupokindynos/common/coin-factory"
 	obol "github.com/grupokindynos/common/obol"
 
 	"github.com/grupokindynos/adrestia-go/models/balance"
@@ -196,7 +195,7 @@ func DetermineBalanceability(balanced []balance.Balance, unbalanced []balance.Ba
 	totalBtc := 0.0 // total amount in wallets
 
 	for _, wallet := range balanced {
-		superavit += wallet.DiffBTC
+		superavit += math.Abs(wallet.DiffBTC)
 		totalBtc += wallet.Balance * wallet.RateBTC
 	}
 	for _, wallet := range unbalanced {
@@ -214,37 +213,45 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 	var pendingTransactions []transaction.PTx
 	i := 0 // Balanced wallet index
 	for _, wallet := range unbalanced {
+		log.Println("BalanceHW:: Balancing ", wallet.Ticker)
 		filledAmount := 0.0 // Amount that stores current fulfillment of a Balancing Transaction.
-		initialDiff := wallet.DiffBTC
-
-		var newTx transaction.PTx // TODO add fields for out addresses
-
-		coinData, _ := CoinFactory.GetCoin(wallet.Ticker)
+		initialDiff := math.Abs(wallet.DiffBTC)
+		// TODO add fields for out addresses
+		// coinData, _ := CoinFactory.GetCoin(wallet.Ticker)
 		for filledAmount < initialDiff {
-			if balanced[i].BalanceBTC < math.Abs(initialDiff) - filledAmount {
-				newTx = transaction.PTx{
-					ToCoin:   wallet.Ticker,
+			color.Info.Tips(fmt.Sprintf("BalanceHW::\tUsing %s to balanace %s", balanced[i].Ticker, wallet.Ticker))
+			if balanced[i].DiffBTC < initialDiff - filledAmount {
+				var newTx =  transaction.PTx{
+					ToCoin:  wallet.Ticker,
 					FromCoin: balanced[i].Ticker,
-					Amount:   balanced[i].DiffBTC,
+					Amount: balanced[i].DiffBTC,
+					Rate: balanced[i].RateBTC,
 				}
 				filledAmount += balanced[i].DiffBTC
 				balanced[i].DiffBTC = 0.0
 				i++
+				fmt.Println(newTx)
+				pendingTransactions = append(pendingTransactions, newTx)
 			}else {
-				filledAmount += math.Abs(initialDiff) - filledAmount
-				balanced[i].DiffBTC -= math.Abs(initialDiff) - filledAmount
-				newTx = transaction.PTx{
-					ToCoin:   wallet.Ticker,
+				filledAmount += initialDiff - filledAmount
+				balanced[i].DiffBTC -= initialDiff - filledAmount
+				var newTx =  transaction.PTx{
+					ToCoin: wallet.Ticker,
 					FromCoin: balanced[i].Ticker,
-					Amount:   math.Abs(initialDiff) - filledAmount,
+					Amount: initialDiff - filledAmount,
+					Rate: balanced[i].RateBTC,
 				}
+
+				pendingTransactions = append(pendingTransactions, newTx)
 			}
-			pendingTransactions = append(pendingTransactions, newTx)
 			// TODO Optimize sending TXs for the same coin (instead of making 5 dash transactions, make one)
-			color.Info.Tips(fmt.Sprintf("The exchange for %s is %s", wallet.Ticker, coinData.Rates.Exchange))
+			//color.Info.Tips(fmt.Sprintf("The exchange for %s is %s", wallet.Ticker, coinData.Rates.Exchange))
 		}
 	}
 	fmt.Println(pendingTransactions)
+	for i, tx := range pendingTransactions {
+		color.Info.Tips(fmt.Sprintf("Performing tx %d: From %s to %s amounting for %.8f %s (%.8f BTC)", i+1, tx.FromCoin, tx.ToCoin, tx.Amount / tx.Rate, tx.FromCoin, tx.Amount))
+	}
 	return pendingTransactions
 }
 

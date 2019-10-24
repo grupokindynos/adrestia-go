@@ -71,8 +71,7 @@ func main() {
 			continue
 		}
 		add, err :=ex.GetAddress(*coinInfo)
-		color.Info.Tips("The address for %s is %s", coinInfo.Name, add)
-		color.Info.Tips("Sending %.8f %s to its exchange", tx.Amount, tx.FromCoin)
+		color.Info.Tips("Sending %.8f %s to its exchange at %s", tx.Amount, tx.FromCoin, add)
 	}
 
 

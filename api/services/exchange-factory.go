@@ -65,5 +65,5 @@ func (e *ExchangeFactory) GetExchangeByName(name string) (exchanges.IExchange, e
 		return exchanges.NewBitso()
 	}*/
 
-	return *new(exchanges.Exchange), errors.New("exchange not found by name")
+	return *new(exchanges.Exchange), errors.New("exchange " + exName + " not found by name")
 }

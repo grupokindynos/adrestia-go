@@ -30,6 +30,7 @@ func init() {
 }
 
 func main() {
+	// TODO Disable and Enable Shift
 	color.Info.Tips("Program Started")
 	// coins := []string{ "POLIS", "DASH" }
 
@@ -43,8 +44,32 @@ func main() {
 	}
 	// Firebase Wallet Configuration
 	var conf = GetFBConfiguration("test_data/testConf.json", true)
+
+	var sendToExchanges []transaction.PTx
+	// Evaluate wallets with exceeding amount
+	for _, w := range balances {
+		if conf[w.Ticker].Balance < w.Balance {
+			tx := new(transaction.PTx)
+			tx.FromCoin = w.Ticker
+			tx.ToCoin = w.Ticker
+			tx.Amount = conf[w.Ticker].Balance - w.Balance
+			tx.Rate = 1.0
+			sendToExchanges = append(sendToExchanges, *tx)
+		}
+	}
+
+	// Send remaining amount to exchanges using plutus
+	for _, tx := range sendToExchanges{
+		color.Info.Tips("Sending %.8f %s to its exchange", tx.Amount, tx.FromCoin)
+	}
+
+
+
+
+
+
 	// fmt.Println(conf)
-	var balanced, unbalanced = SortBalances(balances, conf)
+	/* var balanced, unbalanced = SortBalances(balances, conf)
 
 	isBalanceable, diff := DetermineBalanceability(balanced, unbalanced)
 	if isBalanceable {
@@ -56,9 +81,9 @@ func main() {
 		/*
 			TODO Handle buy and sell requests on Adrestia as well as proper retrial
 			on condition fulfillments
-		*/
-	}
 
+	}
+	*/
 }
 
 func GetWalletBalances() []balance.Balance {
@@ -104,7 +129,7 @@ func GetWalletBalances() []balance.Balance {
 	for _, coin := range rawBalances {
 		// fmt.Println(coin)
 		var currentBalance = coin
-		rate, err := obol.GetCoin2CoinRates("btc", currentBalance.Ticker)
+		rate, err := obol.GetCoin2CoinRates("https://obol-rates.herokuapp.com/", "btc", currentBalance.Ticker)
 		if err != nil{
 			flagAllRates = true
 			errRates = append(errRates, coin.Ticker)

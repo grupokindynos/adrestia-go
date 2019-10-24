@@ -90,7 +90,7 @@ func (b Binance) GetBalances() ([]balance.Balance, error) {
 	}
 
 	for _, asset := range res.Balances {
-		rate, _ := obol.GetCoin2CoinRates("BTC", asset.Asset)
+		rate, _ := obol.GetCoin2CoinRates("https://obol-rates.herokuapp.com/", "BTC", asset.Asset)
 		var b = balance.Balance{
 			Ticker:     asset.Asset,
 			Balance:    asset.Free,
@@ -111,7 +111,7 @@ func (b Binance) GetBalances() ([]balance.Balance, error) {
 func (b Binance) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (bool, error) {
 	l.Println(fmt.Sprintf("[SellAtMarketPrice] Selling %.8f %s for %s on %s", SellOrder.Amount, SellOrder.FromCoin.Name, SellOrder.ToCoin.Name, b.Name))
 	// Gets price from Obol considering the amount to sell
-	rate, err := obol.GetCoin2CoinRatesWithAmmount(SellOrder.FromCoin.Tag, SellOrder.ToCoin.Tag, fmt.Sprintf("%f", SellOrder.Amount))
+	rate, err := obol.GetCoin2CoinRatesWithAmmount("https://obol-rates.herokuapp.com/", SellOrder.FromCoin.Tag, SellOrder.ToCoin.Tag, fmt.Sprintf("%f", SellOrder.Amount))
 	if err != nil {
 		return false, err
 	}
@@ -177,7 +177,7 @@ func (b Binance) OneCoinToBtc(coin coins.Coin) (float64, error) {
 		return 1.0, nil
 	}
 	// TODO Missing update on method, not strictly needed though
-	rate, err := obol.GetCoin2CoinRatesWithAmmount("btc", coin.Tag, fmt.Sprintf("%f", 1.0))
+	rate, err := obol.GetCoin2CoinRatesWithAmmount("https://obol-rates.herokuapp.com/", "btc", coin.Tag, fmt.Sprintf("%f", 1.0))
 	if err != nil {
 		return 0.0, err
 	}

@@ -103,7 +103,7 @@ func (c Cryptobridge) GetBalances() ([]balance.Balance, error) {
 		if strings.Contains(asset.Symbol, "BRIDGE.") {
 			asset.Symbol = asset.Symbol[7:]
 		}
-		rate, _ := obol.GetCoin2CoinRates("BTC", asset.Symbol)
+		rate, _ := obol.GetCoin2CoinRates("https://obol-rates.herokuapp.com/", "BTC", asset.Symbol)
 
 		var b = balance.Balance{
 			Ticker:     asset.Symbol,

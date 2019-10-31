@@ -6,15 +6,17 @@ import (
 	"github.com/gookit/color"
 	services2 "github.com/grupokindynos/adrestia-go/api/services"
 	coinfactory "github.com/grupokindynos/common/coin-factory"
+	"github.com/grupokindynos/common/plutus"
 	"github.com/joho/godotenv"
 	"io/ioutil"
 	"log"
 	"math"
 	"os"
 	"sort"
+	"strings"
 
 	"github.com/grupokindynos/adrestia-go/models/transaction"
-	obol "github.com/grupokindynos/common/obol"
+	"github.com/grupokindynos/common/obol"
 
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	"github.com/grupokindynos/adrestia-go/services"
@@ -32,7 +34,6 @@ func init() {
 func main() {
 	// TODO Disable and Enable Shift
 	color.Info.Tips("Program Started")
-	// coins := []string{ "POLIS", "DASH" }
 
 	// Gets balance from Hot Wallets
 	var balances = GetWalletBalances()
@@ -104,31 +105,26 @@ func GetWalletBalances() []balance.Balance {
 	var rawBalances []balance.Balance
 
 	// TODO Fix data retrieval from Plutus
-	// availableCoins := CoinFactory.Coins
-	/*fmt.Println("1. ", os.Getenv("PLUTUS_URL"))
+	availableCoins := coinfactory.Coins
+	fmt.Println("1. ", os.Getenv("PLUTUS_URL"))
+	fmt.Println("1. ", os.Getenv("ADRESTIA_PUBLIC_KEY"))
 	fmt.Println("2. ", os.Getenv("PLUTUS_AUTH_USERNAME"))
 	fmt.Println("3. ", os.Getenv("PLUTUS_AUTH_PASSWORD"))
 	fmt.Println("4. ", os.Getenv("PLUTUS_PUBLIC_KEY"))
-	fmt.Println("5. ", os.Getenv("TYCHE_PUBLIC_KEY"))
 	fmt.Println("6. ", os.Getenv("MASTER_PASSWORD"))
 	for _, coin := range availableCoins {
-		res, err := plutus.GetWalletAddress(os.Getenv("PLUTUS_URL"), "BTC", os.Getenv("TYCHE_PRIV_KEY"), "tyche", os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
-		//res, err := plutus.GetWalletBalance(os.Getenv("PLUTUS_URL"), strings.ToLower(coin.Tag), os.Getenv("TYCHE_PUBLIC_KEY"), "tyche", os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
+		res, err := plutus.GetWalletBalance(os.Getenv("PLUTUS_URL"), strings.ToLower(coin.Tag), os.Getenv("ADRESTIA_PRIV_KEY"), "adrestia", os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
 		fmt.Println("debug: ", res, coin.Tag)
 		if err != nil {
 			fmt.Println("Plutus Service Error: ", err)
 		}
 		// Create Balance Object
-		/*ar b = balance.Balance{}
+		b := balance.Balance{}
 		b.Balance = res.Confirmed
 		b.Ticker = coin.Tag
 
 		rawBalances = append(rawBalances, b)
 
-	}*/
-	rawBalances, err := loadTestingData()
-	if err != nil {
-		fmt.Println(err)
 	}
 	//fmt.Println("Raw Balances: ", rawBalances)
 	fmt.Println("Finished Retrieving Balances")
@@ -319,6 +315,5 @@ func loadTestingData() ([]balance.Balance, error){
 	if err != nil {
 		return b, err
 	}
-
 	return b, nil
 }

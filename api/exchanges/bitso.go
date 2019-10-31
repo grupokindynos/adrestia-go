@@ -12,10 +12,10 @@ type Bitso struct {
 }
 
 func NewBitso() *Bitso {
-	c := new(Bitso)
-	c.Name = "Bitso"
-	c.BaseUrl = "https://api.crypto-bridge.org/"
-	return c
+	b := new(Bitso)
+	b.Name = "Bitso"
+	b.BaseUrl = "https://api.crypto-bridge.org/"
+	return b
 }
 
 func (b Bitso) GetSettings() {

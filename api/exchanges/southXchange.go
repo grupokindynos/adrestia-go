@@ -2,17 +2,14 @@ package exchanges
 
 import (
 	"fmt"
-	"github.com/aws/aws-sdk-go/service/apigateway"
 	south "github.com/bitbandi/go-southxchange"
 	"github.com/grupokindynos/adrestia-go/api/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	"github.com/grupokindynos/adrestia-go/utils"
 	"github.com/grupokindynos/common/obol"
 	"github.com/joho/godotenv"
-	"github.com/rootpd/go-binance"
 	"log"
 	"os"
-	"time"
 )
 
 type SouthXchange struct {
@@ -45,11 +42,11 @@ func (s SouthXchange) GetSettings() config.SouthXchangeAuth {
 	return data
 }
 
-func (so SouthXchange) GetBalances() ([]balance.Balance, error) {
-	s := fmt.Sprintf("[GetBalances] Retrieving Balances for coins at %s", b.Name)
-	log.Println(s)
+func (s SouthXchange) GetBalances() ([]balance.Balance, error) {
+	str := fmt.Sprintf("[GetBalances] Retrieving Balances for coins at %s", s.Name)
+	log.Println(str)
 	var balances []balance.Balance
-	res, err := so.southClient.GetBalances()
+	res, err := s.southClient.GetBalances()
 
 	if err != nil {
 		return balances, err
@@ -69,7 +66,7 @@ func (so SouthXchange) GetBalances() ([]balance.Balance, error) {
 		}
 
 	}
-	s = utils.GetBalanceLog(balances, so.Name)
-	log.Println(s)
+	str = utils.GetBalanceLog(balances, s.Name)
+	log.Println(str)
 	return balances, nil
 }

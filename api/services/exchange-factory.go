@@ -24,6 +24,7 @@ var ex = map[string]exchanges.IExchange{
 	"cryptobridge": exchanges.CBInstance,
 	"binance":      exchanges.BinanceInstance,
 	"bitso":		exchanges.BitsoInstance,
+	"southxchange":	exchanges.SouthInstance,
 }
 
 func (e *ExchangeFactory) GetExchangeByCoin(coin coins.Coin) (exchanges.IExchange, error) {

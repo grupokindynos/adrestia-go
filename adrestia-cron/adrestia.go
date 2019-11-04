@@ -73,13 +73,11 @@ func main() {
 			color.Error.Tips("%s", err)
 			continue
 		}
-		fmt.Println("Got coin info")
 		ex, err := ef.GetExchangeByName(coinInfo.Rates.Exchange)
 		if err != nil {
 			color.Error.Tips("%s", err)
 			continue
 		}
-		fmt.Println("Got exchange")
 		add, err :=ex.GetAddress(*coinInfo)
 		if err != nil {
 			color.Error.Tips("%s", err)

@@ -41,7 +41,9 @@ func NewSouthXchange() *SouthXchange {
 	s.southClient = *south.New(s.apiKey, s.apiSecret, "user-agent")
 	return s
 }
-
+func (s SouthXchange) GetName() (string, error) {
+	return "southxchange", nil
+}
 func (s SouthXchange) GetSettings() config.SouthXchangeAuth {
 	if err := godotenv.Load(); err != nil {
 		log.Println(err)
@@ -49,7 +51,7 @@ func (s SouthXchange) GetSettings() config.SouthXchangeAuth {
 	log.Println(fmt.Sprintf("[GetSettings] Retrieving settings for Binance"))
 	var data config.SouthXchangeAuth
 	data.ApiKey = os.Getenv("SOUTH_API_KEY")
-	data.ApiSecret = os.Getenv("BINANCE_PRIV_WITHDRAW")
+	data.ApiSecret = os.Getenv("SOUTH_API_SECRET")
 	return data
 }
 

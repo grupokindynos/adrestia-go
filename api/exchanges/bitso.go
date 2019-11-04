@@ -23,6 +23,10 @@ func NewBitso() *BitsoI {
 	return b
 }
 
+func (b BitsoI) GetName() (string, error){
+	return "bitso", nil
+}
+
 func (b BitsoI) GetAddress(coin coins.Coin) (string, error) {
 	if strings.ToLower(coin.Tag) == "btc" {
 		return "btc address", nil

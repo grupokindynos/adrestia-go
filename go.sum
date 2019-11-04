@@ -6,6 +6,12 @@ firebase.google.com/go v3.9.0+incompatible h1:wc6nmbU9gvtR22QYdRmwD/BJ61ZvpCV43C
 firebase.google.com/go v3.9.0+incompatible/go.mod h1:xlah6XbEyW6tbfSklcfe5FHJIwjt8toICdV5Wh9ptHs=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/OpenPeeDeeP/depguard v1.0.0/go.mod h1:7/4sitnI9YlQgTLLk734QlzXT8DuHVnAyztLplQjk+o=
+github.com/PrettyBoyHelios/go-southxchange v0.0.0-20191102220054-f7a3b3c9c3fd h1:IR66r31OVWbnDXobdoORvIlWbmsyci4ya4lHDhl2Qmg=
+github.com/PrettyBoyHelios/go-southxchange v0.0.0-20191102220054-f7a3b3c9c3fd/go.mod h1:dyuCSEr3OPV/aVWDEx+r6WsB7Mz6rT6j44S2tizgVsE=
+github.com/PrettyBoyHelios/go-southxchange v0.0.0-20191104184828-a90099a0388b h1:WfzdfbTxNdoNIReBJL+ICHOSdcmcZfRAyQynsoxywak=
+github.com/PrettyBoyHelios/go-southxchange v0.0.0-20191104184828-a90099a0388b/go.mod h1:dyuCSEr3OPV/aVWDEx+r6WsB7Mz6rT6j44S2tizgVsE=
+github.com/PrettyBoyHelios/go-southxchange v0.0.0-20191104191427-1b654d299567 h1:BfxJV7DUBcJ0XhPbSrmfcQQvwmke1vydMJhH0A7hcIU=
+github.com/PrettyBoyHelios/go-southxchange v0.0.0-20191104191427-1b654d299567/go.mod h1:dyuCSEr3OPV/aVWDEx+r6WsB7Mz6rT6j44S2tizgVsE=
 github.com/StackExchange/wmi v0.0.0-20170410192909-ea383cf3ba6e/go.mod h1:3eOhrUMpNV+6aFIbp5/iudMxNCF27Vw2OZgy4xEx0Fg=
 github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6/go.mod h1:3eOhrUMpNV+6aFIbp5/iudMxNCF27Vw2OZgy4xEx0Fg=
 github.com/VividCortex/gohistogram v1.0.0/go.mod h1:Pf5mBqqDxYaXu3hDrrU+w6nw50o/4+TcAqDqk/vUH7g=
@@ -15,6 +21,8 @@ github.com/aws/aws-sdk-go v1.13.10/go.mod h1:ZRmQr0FajVIyZ4ZzBYKG5P3ZqPz9IHG41Zo
 github.com/axiomhq/hyperloglog v0.0.0-20180317131949-fe9507de0228/go.mod h1:IOXAcuKIFq/mDyuQ4wyJuJ79XLMsmLM+5RdQ+vWrL7o=
 github.com/bitbandi/go-southxchange v0.0.0-20181217215543-a6f330234b56 h1:x7sqKxFAMdEQHACI15gWJaGOI1czDKqF/N6KbrWJXd8=
 github.com/bitbandi/go-southxchange v0.0.0-20181217215543-a6f330234b56/go.mod h1:7tgVmX3YiFrp+WbUfV7pDIs46H/gobfB1DQ3fxyF02Y=
+github.com/bitbandi/go-southxchange v0.0.0-20191102220054-f7a3b3c9c3fd h1:oAEcwKPKC0yr9fJ4QlMyfDpG3n58wU6nTM5BH/2oQT8=
+github.com/bitbandi/go-southxchange v0.0.0-20191102220054-f7a3b3c9c3fd/go.mod h1:7tgVmX3YiFrp+WbUfV7pDIs46H/gobfB1DQ3fxyF02Y=
 github.com/bwmarrin/discordgo v0.19.0/go.mod h1:O9S4p+ofTFwB02em7jkpkV8M3R0/PUVOwN61zSZ0r4Q=
 github.com/bwmarrin/discordgo v0.20.1/go.mod h1:O9S4p+ofTFwB02em7jkpkV8M3R0/PUVOwN61zSZ0r4Q=
 github.com/cenkalti/backoff v2.1.1+incompatible/go.mod h1:90ReRw6GdpyfrHakVjL/QHaoyV4aDUVVkXQJJJ3NXXM=
@@ -131,6 +139,8 @@ github.com/grupokindynos/common v0.0.0-20191029180856-dc7c86939ee8 h1:wTHNtk3hK+
 github.com/grupokindynos/common v0.0.0-20191029180856-dc7c86939ee8/go.mod h1:GUdrFqqFWFaecQtHAuQQdS0elR2mqHJAClBW98GIFzI=
 github.com/grupokindynos/common v0.0.0-20191101191213-51cc88366c04 h1:sb1gbcqOP58maHsJS0zYF1mbzyyGDZHYXUzuqX76quU=
 github.com/grupokindynos/common v0.0.0-20191101191213-51cc88366c04/go.mod h1:GUdrFqqFWFaecQtHAuQQdS0elR2mqHJAClBW98GIFzI=
+github.com/grupokindynos/common v0.0.0-20191104195327-6c1dfd4f5aad h1:KwaBBG4n1CJ12N8FWp8B68May4wW0FK9828dGyNQGOc=
+github.com/grupokindynos/common v0.0.0-20191104195327-6c1dfd4f5aad/go.mod h1:GUdrFqqFWFaecQtHAuQQdS0elR2mqHJAClBW98GIFzI=
 github.com/grupokindynos/gobitso v0.0.0-20191030183629-c86efdb0dae4 h1:LkFnE/BMfpbqIUyxjzfy8vBHJMmcu/JnCrL288YsW9o=
 github.com/grupokindynos/gobitso v0.0.0-20191030183629-c86efdb0dae4/go.mod h1:nLa5ih5P0w84yyXmgxQwj5ToOMV4kzxMC3eYDgbI4/M=
 github.com/hashicorp/golang-lru v0.5.0/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
@@ -338,6 +348,7 @@ golang.org/x/sys v0.0.0-20191008105621-543471e840be/go.mod h1:h1NjWce9XRLGQEsW7w
 golang.org/x/sys v0.0.0-20191024073052-e66fe6eb8e0c h1:usSYQsGq37L8RjJc5eznJ/AbwBxn3QFFEVkWNPAejLs=
 golang.org/x/sys v0.0.0-20191024073052-e66fe6eb8e0c/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20191029155521-f43be2a4598c/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20191104094858-e8c54fb511f6/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/text v0.0.0-20170915090833-1cbadb444a80/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.1-0.20180807135948-17ff2d5776d2/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
@@ -367,6 +378,7 @@ golang.org/x/tools v0.0.0-20190521203540-521d6ed310dd/go.mod h1:RgjU9mgBXZiqYHBn
 golang.org/x/tools v0.0.0-20190909030654-5b82db07426d/go.mod h1:b+2E5dAYhXwXZwtnZ6UAqBI28+e2cm9otk0dWdXHAEo=
 golang.org/x/tools v0.0.0-20191031160344-02d0efc0fb61/go.mod h1:b+2E5dAYhXwXZwtnZ6UAqBI28+e2cm9otk0dWdXHAEo=
 golang.org/x/tools v0.0.0-20191101175824-a860bcda08c7/go.mod h1:b+2E5dAYhXwXZwtnZ6UAqBI28+e2cm9otk0dWdXHAEo=
+golang.org/x/tools v0.0.0-20191104182621-d415e1c6f957/go.mod h1:b+2E5dAYhXwXZwtnZ6UAqBI28+e2cm9otk0dWdXHAEo=
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 gonum.org/v1/gonum v0.0.0-20190502212712-4a2eb0188cbc/go.mod h1:2ltnJ7xHfj0zHS40VVPYEAAMTa3ZGguvHGBSJeRWqE0=
@@ -417,6 +429,8 @@ gopkg.in/yaml.v2 v2.2.2 h1:ZCJp+EgiOT7lHqUV2J862kp8Qj64Jo6az82+3Td9dZw=
 gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
 gopkg.in/yaml.v2 v2.2.4 h1:/eiJrUcujPVeJ3xlSWaiNi3uSVmDGBK1pDHUHAnao1I=
 gopkg.in/yaml.v2 v2.2.4/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
+gopkg.in/yaml.v2 v2.2.5 h1:ymVxjfMaHvXD8RqPRmzHHsB3VvucivSkIAvJFDI5O3c=
+gopkg.in/yaml.v2 v2.2.5/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
 honnef.co/go/tools v0.0.0-20180728063816-88497007e858/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
 honnef.co/go/tools v0.0.0-20190102054323-c2f93a96b099/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
 honnef.co/go/tools v0.0.0-20190106161140-3f1c8253044a/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=

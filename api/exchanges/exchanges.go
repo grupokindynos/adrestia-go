@@ -12,7 +12,7 @@ type IExchange interface {
 	OneCoinToBtc(coin coins.Coin) (float64, error)
 	GetBalances() ([]balance.Balance, error)
 	SellAtMarketPrice(SellOrder transaction.ExchangeSell) (bool, error)
-	Withdraw(coin string, address string, amount float64) (bool, error)
+	Withdraw(coin coins.Coin, address string, amount float64) (bool, error)
 	GetRateByAmount(sell transaction.ExchangeSell) (float64, error)
 }
 

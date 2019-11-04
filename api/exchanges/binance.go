@@ -141,8 +141,8 @@ func (b Binance) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (bool, er
 	return true, nil
 }
 
-func (b Binance) Withdraw(coin string, address string, amount float64) (bool, error) {
-	l.Println(fmt.Sprintf("[Withdraw] Retrieving Account Info for %s", b.Name))
+func (b Binance) Withdraw(coin coins.Coin, address string, amount float64) (bool, error) {
+	// l.Println(fmt.Sprintf("[Withdraw] Retrieving Account Info for %s", b.Name))
 	/*res, _ := b.binanceApi.Account(binance.AccountRequest{
 		RecvWindow: 5 * time.Second,
 		Timestamp:  time.Now(),
@@ -150,7 +150,7 @@ func (b Binance) Withdraw(coin string, address string, amount float64) (bool, er
 
 	l.Println(fmt.Sprintf("[Withdraw] Performing withdraw request on %s for %s", b.Name, coin))
 	withdrawal, err := b.binanceApi.Withdraw(binance.WithdrawRequest{
-		Asset:      coin,
+		Asset:      strings.ToLower(coin.Tag),
 		Address:    address,
 		Amount:     amount,
 		Name:       "Adrestia-go Withdrawal",

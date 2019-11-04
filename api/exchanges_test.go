@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/grupokindynos/common/coin-factory/coins"
 	"log"
 	"strings"
 	"testing"
@@ -17,6 +18,19 @@ func init() {
 	if err := godotenv.Load(); err != nil {
 		log.Println(err)
 	}
+}
+
+
+// Test Withdrawal for SouthExchange from BitBandi's repo
+func TestWithdrawSouth(t *testing.T) {
+	fmt.Println("Test South Withdrawal")
+	var exchangeFactory = new(services.ExchangeFactory)
+	ex, err := exchangeFactory.GetExchangeByCoin(coins.Polis)
+	if err != nil {
+		fmt.Println(err)
+	}
+	val, err := ex.Withdraw(coins.Polis, "PHGPU2ncaduZ7FmEyFD9wZALiY4X1w8LhS", 1.0)
+	fmt.Println(val)
 }
 
 // For all implemented coins, tests that an exchange is provided
@@ -35,12 +49,13 @@ func TestAddresses(t *testing.T) {
 			color.Warn.Tips(s)
 		} else {
 			exName, _ := ex.GetName()
+			fmt.Println(coin.Name, " at ", exName)
 			assert.Equal(t, strings.ToLower(exName), strings.ToLower(coin.Rates.Exchange))
-			if exName == "binance" || exName == "cryptobridge" { // Implemented Exchanges
-				address, err := ex.GetAddress(*coin)
-				assert.Nil(t, err)
-				assert.NotEqual(t, "", address)
-			}
+			address, err := ex.GetAddress(*coin)
+			fmt.Println(coin.Name, ": ", address)
+			assert.Nil(t, err)
+			assert.NotEqual(t, "", address)
+
 		}
 	}
 }
@@ -51,16 +66,14 @@ func TestRateToBtc(t *testing.T) {
 	var exchangeFactory = new(services.ExchangeFactory)
 
 	for _, coin := range coins {
-		log.Println(fmt.Sprintf("Getting Rates for %s", coin.Name))
 		ex, err := exchangeFactory.GetExchangeByCoin(*coin)
 		// assert.NotNil(t, ex) // TODO Uncomment when all exchanges are implemented
-
 		if err != nil {
 			s := fmt.Sprintf("exchange not implemented for %s", coin.Name)
 			color.Warn.Tips(s)
 		} else {
 			rate, _ := ex.OneCoinToBtc(*coin)
-			assert.Greater(t, rate, 0.0)
+			assert.GreaterOrEqual(t, rate, 0.0)
 		}
 	}
 }

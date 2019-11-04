@@ -161,7 +161,7 @@ func (c Cryptobridge) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (boo
 }
 
 //Withdraw allows Adrestia to send money from exchanges to a valid address
-func (c Cryptobridge) Withdraw(coin string, address string, amount float64) (bool, error) {
+func (c Cryptobridge) Withdraw(coin coins.Coin, address string, amount float64) (bool, error) {
 	var withdrawObj = exchange_models.CBWithdraw{
 		Amount:  amount,
 		Address: address,
@@ -173,7 +173,7 @@ func (c Cryptobridge) Withdraw(coin string, address string, amount float64) (boo
 		panic("Couldn't serialize Order object.")
 	}
 
-	url := c.BitSharesUrl + "withdraw/" + coin
+	url := c.BitSharesUrl + "withdraw/" + strings.ToLower(coin.Tag)
 
 	//client := &http.Client{}
 	req, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(data))

@@ -1,15 +1,26 @@
 package exchanges
 
 import (
+	"crypto/hmac"
+	"crypto/sha512"
+	"encoding/hex"
+	"encoding/json"
+	"errors"
 	"fmt"
 	south "github.com/bitbandi/go-southxchange"
 	"github.com/grupokindynos/adrestia-go/api/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	"github.com/grupokindynos/adrestia-go/utils"
+	"github.com/grupokindynos/common/coin-factory/coins"
 	"github.com/grupokindynos/common/obol"
 	"github.com/joho/godotenv"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
+	"strconv"
+	"strings"
+	"time"
 )
 
 type SouthXchange struct {
@@ -69,4 +80,53 @@ func (s SouthXchange) GetBalances() ([]balance.Balance, error) {
 	str = utils.GetBalanceLog(balances, s.Name)
 	log.Println(str)
 	return balances, nil
+}
+
+func (s *SouthXchange) GetAddress(coin coins.Coin) (string, error) {
+	var client = http.Client{}
+	payload := make(map[string]string)
+	payload["key"] = s.apiKey
+	payload["nonce"] = strconv.FormatInt(time.Now().UnixNano(), 10)
+	formData, err := json.Marshal(payload)
+	if err != nil {
+		return "", err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, "https://www.southxchange.com/api/generatenewaddress", strings.NewReader(string(formData)))
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Add("Content-Type", "application/json;charset=utf-8")
+	//req.Header.Add("Accept", "application/json") // cloudflare protected api doesnt accept this, i got captcha page
+	req.Header.Add("Accept", "*/*")
+
+	// Auth
+	if len(s.apiKey) == 0 || len(s.apiSecret) == 0 {
+		err = errors.New("you need to set API Key and API secret to call this method")
+		return "", err
+	}
+	mac := hmac.New(sha512.New, []byte(s.apiSecret))
+	_, err = mac.Write(formData)
+	if err != nil {
+		return "", err
+	}
+	sig := hex.EncodeToString(mac.Sum(nil))
+	req.Header.Add("Hash", sig)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+
+	defer resp.Body.Close()
+	response, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return string(response), err
+	}
+	if resp.StatusCode != 200 && resp.StatusCode != 401 {
+		err = errors.New(resp.Status + ": "+strings.Trim(string(response), "\""))
+	}
+	return string(response), err
+
 }

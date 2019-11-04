@@ -2,6 +2,7 @@ package balance
 
 import (
 	"fmt"
+	"github.com/grupokindynos/common/hestia"
 )
 
 type HotWalletBalances struct {
@@ -83,4 +84,9 @@ func (br MinBalanceConfResponse) ToMap() map[string]Balance {
 	balanceMap["POLIS"] = br.POLIS
 	balanceMap["XZC"] = br.XZC
 	return balanceMap
+}
+
+type WalletInfoWrapper struct {
+	HotWalletBalance Balance
+	FirebaseConf 	hestia.Coin
 }

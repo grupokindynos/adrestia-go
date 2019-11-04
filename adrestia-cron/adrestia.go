@@ -6,6 +6,7 @@ import (
 	"github.com/gookit/color"
 	services2 "github.com/grupokindynos/adrestia-go/api/services"
 	coinfactory "github.com/grupokindynos/common/coin-factory"
+	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/plutus"
 	"github.com/joho/godotenv"
 	"io/ioutil"
@@ -22,8 +23,7 @@ import (
 	"github.com/grupokindynos/adrestia-go/services"
 )
 
-var printDebugInfo = true
-const plutusUrl = "https://plutus-wallets.herokuapp.com"
+const fiatThreshold = 10.00 // USD
 
 func init() {
 	if err := godotenv.Load(); err != nil {
@@ -32,7 +32,7 @@ func init() {
 }
 
 func main() {
-	// TODO Disable and Enable Shift
+	// TODO Disable and Enable Shift at star nd ending of the process
 	color.Info.Tips("Program Started")
 
 	// Gets balance from Hot Wallets
@@ -41,44 +41,52 @@ func main() {
 	// var conf = GetFBConfiguration("test_data/testConf.json", false)
 	var confHestia, err = services.GetCoinConfiguration()
 	if err != nil {
-		fmt.Println(err)
+		log.Fatalln(err)
 	}
-	fmt.Println("Hestia YEAH YEAH", confHestia)
+
+	availableWallets, errors := NormalizeWallets(balances, confHestia)
+
+	fmt.Println(availableWallets)
+	fmt.Println(errors)
 
 	var sendToExchanges []transaction.PTx
 	// Evaluate wallets with exceeding amount
 	for i, w := range balances {
+		fmt.Println("Retrieving for ", i, " ", w)
 		if confHestia[i].Balances.HotWallet < w.Balance {
 			tx := new(transaction.PTx)
 			tx.FromCoin = w.Ticker
 			tx.ToCoin = w.Ticker
 			tx.Amount = confHestia[i].Balances.HotWallet - w.Balance
 			tx.Rate = 1.0
+
 			sendToExchanges = append(sendToExchanges, *tx)
 		}
 	}
 	ef := new(services2.ExchangeFactory)
 	// Send remaining amount to exchanges using plutus
 	for _, tx := range sendToExchanges{
+		fmt.Println("------------ TX-----------")
+		fmt.Println(tx)
 		coinInfo, err := coinfactory.GetCoin(tx.FromCoin)
 		if err != nil {
 			color.Error.Tips("%s", err)
 			continue
 		}
+		fmt.Println("Got coin info")
 		ex, err := ef.GetExchangeByName(coinInfo.Rates.Exchange)
 		if err != nil {
 			color.Error.Tips("%s", err)
 			continue
 		}
+		fmt.Println("Got exchange")
 		add, err :=ex.GetAddress(*coinInfo)
+		if err != nil {
+			color.Error.Tips("%s", err)
+			continue
+		}
 		color.Info.Tips("Sending %.8f %s to its exchange at %s", tx.Amount, tx.FromCoin, add)
 	}
-
-
-
-
-
-
 	// fmt.Println(conf)
 	/* var balanced, unbalanced = SortBalances(balances, conf)
 
@@ -99,7 +107,7 @@ func main() {
 
 func GetWalletBalances() []balance.Balance {
 	flagAllRates := false
-	fmt.Println("\tRetrieving Wallet Balances...")
+	log.Println("Retrieving Wallet Balances...")
 	var rawBalances []balance.Balance
 	availableCoins := coinfactory.Coins
 	for _, coin := range availableCoins {
@@ -114,16 +122,14 @@ func GetWalletBalances() []balance.Balance {
 		b.Balance = res.Confirmed
 		b.Ticker = coin.Tag
 		rawBalances = append(rawBalances, b)
-
 	}
-	fmt.Println("Finished Retrieving Balances")
+	log.Println("Finished Retrieving Balances")
 
 	var errRates []string
 
 	var updatedBalances []balance.Balance
-	log.Println("\tRetrieving Wallet Rates...")
+	log.Println("Retrieving Wallet Rates...")
 	for _, coin := range rawBalances {
-		// fmt.Println(coin)
 		var currentBalance = coin
 		rate, err := obol.GetCoin2CoinRates("https://obol-rates.herokuapp.com/", "btc", currentBalance.Ticker)
 		if err != nil{
@@ -133,7 +139,6 @@ func GetWalletBalances() []balance.Balance {
 			currentBalance.SetRate(rate)
 			updatedBalances = append(updatedBalances, currentBalance)
 		}
-
 	}
 	if flagAllRates {
 		color.Error.Tips("Not all rates could be retrieved. Balancing the rest of them. Missing rates for %s", errRates)
@@ -277,10 +282,6 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 		if !ok {
 			exchangeSet[exName] = true
 		}
-
-
-
-
 	}
 
 	// Optimization for txes to exchanges
@@ -305,4 +306,30 @@ func loadTestingData() ([]balance.Balance, error){
 		return b, err
 	}
 	return b, nil
+}
+
+func NormalizeWallets(balances []balance.Balance, hestiaConf []hestia.Coin) (map[string]balance.WalletInfoWrapper, []string){
+	var mapBalances = make(map[string]balance.Balance)
+	var mapConf =  make(map[string]hestia.Coin)
+	var missingCoins []string
+	var availableCoins = make(map[string]balance.WalletInfoWrapper)
+
+	for _, b := range balances {
+		mapBalances[b.Ticker] = b
+	}
+	for _, c := range hestiaConf {
+		mapConf[c.Ticker] = c
+	}
+	for _, elem := range mapBalances {
+		_, ok := mapConf[elem.Ticker]
+		if !ok {
+			missingCoins = append(missingCoins, elem.Ticker)
+		} else {
+			availableCoins[elem.Ticker] = balance.WalletInfoWrapper{
+				HotWalletBalance: mapBalances[elem.Ticker],
+				FirebaseConf:     mapConf[elem.Ticker],
+			}
+		}
+	}
+	return availableCoins, missingCoins
 }

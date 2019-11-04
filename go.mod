@@ -18,7 +18,7 @@ require (
 	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/gookit/color v1.2.0
 	github.com/gorilla/websocket v1.4.1 // indirect
-	github.com/grupokindynos/common v0.0.0-20191029180856-dc7c86939ee8
+	github.com/grupokindynos/common v0.0.0-20191101191213-51cc88366c04
 	github.com/grupokindynos/gobitso v0.0.0-20191030183629-c86efdb0dae4
 	github.com/heroku/x v0.0.9
 	github.com/joho/godotenv v1.3.0
@@ -33,11 +33,11 @@ require (
 	github.com/ugorji/go v1.1.7 // indirect
 	github.com/yangxikun/gin-limit-by-key v0.0.0-20190512072151-520697354d5f
 	golang.org/x/crypto v0.0.0-20191029031824-8986dd9e96cf // indirect
-	golang.org/x/net v0.0.0-20191028085509-fe3aa8a45271 // indirect
+	golang.org/x/net v0.0.0-20191101175033-0deb6923b6d9 // indirect
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e // indirect
 	golang.org/x/sys v0.0.0-20191029155521-f43be2a4598c // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
-	golang.org/x/tools v0.0.0-20191031160344-02d0efc0fb61 // indirect
+	golang.org/x/tools v0.0.0-20191101175824-a860bcda08c7 // indirect
 	golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898 // indirect
 	google.golang.org/api v0.10.0
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect

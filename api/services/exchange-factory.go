@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	coinfactory "github.com/grupokindynos/common/coin-factory"
 	"strings"
 
 	"github.com/grupokindynos/adrestia-go/api/exchanges"
@@ -22,48 +23,25 @@ func init() {
 var ex = map[string]exchanges.IExchange{
 	"cryptobridge": exchanges.CBInstance,
 	"binance":      exchanges.BinanceInstance,
+	"bitso":		exchanges.BitsoInstance,
 }
 
 func (e *ExchangeFactory) GetExchangeByCoin(coin coins.Coin) (exchanges.IExchange, error) {
-	var coinName = strings.ToLower(coin.Tag)
+	// TODO Make this compatible with coinfactory
+	coinInfo, _ := coinfactory.GetCoin(coin.Tag)
 
-	if coinName == "polis" || coinName == "colx" {
-		return ex["cryptobridge"], nil
+	exchange, ok := ex[coinInfo.Rates.Exchange]
+	if !ok {
+		return nil, errors.New("exchange not found for " + coin.Tag)
 	}
-	if coinName == "dash" || coinName == "ltc" || coinName == "grs" || coinName == "xzc" {
-		return ex["binance"], nil
-	}
-	/*if coinName == "xsg" {
-		return exchanges.NewStex()
-	}*/
-	/*if coinName == "mnp" || coinName == "onion" || coinName == "colx"{
-		return exchanges.NewCrex()
-	}*/
-	/*if coinName == "btc" {
-		return exchanges.NewBitso()
-	}*/
-
-	return *new(exchanges.Exchange), errors.New("exchange not found")
+	return exchange, nil
 }
 
 func (e *ExchangeFactory) GetExchangeByName(name string) (exchanges.IExchange, error) {
 	var exName = strings.ToLower(name)
-
-	if exName == "cryptobridge" {
-		return ex["cryptobridge"], nil
+	exchange, ok := ex[exName]
+	if !ok {
+		return nil, errors.New("exchange" + name + " not found")
 	}
-	if exName == "binance" {
-		return ex["binance"], nil
-	}
-	/*if coinName == "xsg" {
-		return exchanges.NewStex()
-	}*/
-	/*if coinName == "mnp" || coinName == "onion" || coinName == "colx"{
-		return exchanges.NewCrex()
-	}*/
-	/*if coinName == "btc" {
-		return exchanges.NewBitso()
-	}*/
-
-	return *new(exchanges.Exchange), errors.New("exchange " + exName + " not found by name")
+	return exchange, nil
 }

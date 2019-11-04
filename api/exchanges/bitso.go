@@ -2,26 +2,38 @@ package exchanges
 
 import (
 	"github.com/grupokindynos/adrestia-go/api/exchanges/config"
+	"github.com/grupokindynos/common/coin-factory/coins"
+	bitso "github.com/grupokindynos/gobitso"
 	"os"
+	"strings"
 )
 
-type Bitso struct {
+var BitsoInstance = NewBitso()
+
+type BitsoI struct {
 	Exchange
-	AccountName string
-	BitSharesUrl string
+	bitsoService bitso.Bitso
 }
 
-func NewBitso() *Bitso {
-	b := new(Bitso)
-	b.Name = "Bitso"
-	b.BaseUrl = "https://api.crypto-bridge.org/"
+func NewBitso() *BitsoI {
+	b := new(BitsoI)
+	data := b.GetSettings()
+	b.bitsoService = *bitso.NewBitso(data.Url)
+	b.bitsoService.SetAuth(data.ApiKey, data.ApiSecret)
 	return b
 }
 
-func (b Bitso) GetSettings() {
-	var data config.CBAuth
-	data.AccountName = os.Getenv("CB_ACCOUNT_NAME")
-	data.BaseUrl = os.Getenv("CB_BASE_URL")
-	data.MasterPassword = os.Getenv("CB_MASTER_PASSWORD")
-	data.BitSharesUrl = os.Getenv("CB_BITSHARES_URL")
+func (b BitsoI) GetAddress(coin coins.Coin) (string, error) {
+	if strings.ToLower(coin.Tag) == "btc" {
+		return "btc address", nil
+	}
+	return "Missing Implementation", nil
+}
+
+func (b BitsoI) GetSettings() config.BitsoAuth{
+	var data config.BitsoAuth
+	data.ApiKey = os.Getenv("BITSO_API_KEY")
+	data.ApiSecret = os.Getenv("BITSO_API_SECRET")
+	data.Url = os.Getenv("BITSO_URL")
+	return data
 }

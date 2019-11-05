@@ -40,6 +40,7 @@ func main() {
 	// Firebase Wallet Configuration
 	// var conf = GetFBConfiguration("test_data/testConf.json", false)
 	var confHestia, err = services.GetCoinConfiguration()
+
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -51,13 +52,13 @@ func main() {
 
 	var sendToExchanges []transaction.PTx
 	// Evaluate wallets with exceeding amount
-	for i, w := range balances {
+	for i, w := range availableWallets {
 		fmt.Println("Retrieving for ", i, " ", w)
-		if confHestia[i].Balances.HotWallet < w.Balance {
+		if w.FirebaseConf.Balances.HotWallet < w.HotWalletBalance.Balance {
 			tx := new(transaction.PTx)
-			tx.FromCoin = w.Ticker
-			tx.ToCoin = w.Ticker
-			tx.Amount = confHestia[i].Balances.HotWallet - w.Balance
+			tx.FromCoin = w.HotWalletBalance.Ticker
+			tx.ToCoin = w.HotWalletBalance.Ticker
+			tx.Amount = w.FirebaseConf.Balances.HotWallet - w.HotWalletBalance.Balance
 			tx.Rate = 1.0
 
 			sendToExchanges = append(sendToExchanges, *tx)
@@ -110,11 +111,16 @@ func GetWalletBalances() []balance.Balance {
 	availableCoins := coinfactory.Coins
 	for _, coin := range availableCoins {
 		res, err := plutus.GetWalletBalance(os.Getenv("PLUTUS_URL"), strings.ToLower(coin.Tag), os.Getenv("ADRESTIA_PRIV_KEY"), "adrestia", os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
-
 		if err != nil {
 			fmt.Println("Plutus Service Error: ", err)
 		}
-		fmt.Println(fmt.Sprintf("%.8f %s of a total of %.8f\t%.2f%%", res.Confirmed, coin.Tag, res.Confirmed + res.Unconfirmed, 100*res.Confirmed/(res.Confirmed + res.Unconfirmed)))
+		var t = res.Confirmed + res.Unconfirmed
+		if t == 0.0 {
+			fmt.Println(fmt.Sprintf("%.8f %s of a total of %.8f\t%.2f%%", res.Confirmed, coin.Tag, res.Confirmed + res.Unconfirmed, 0.0))
+		} else {
+			fmt.Println(fmt.Sprintf("%.8f %s of a total of %.8f\t%.2f%%", res.Confirmed, coin.Tag, res.Confirmed + res.Unconfirmed, 100*res.Confirmed/(res.Confirmed + res.Unconfirmed)))
+		}
+
 		// Create Balance Object
 		b := balance.Balance{}
 		b.Balance = res.Confirmed

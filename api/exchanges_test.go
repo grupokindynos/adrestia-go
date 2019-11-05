@@ -36,11 +36,16 @@ func TestWithdrawSouth(t *testing.T) {
 // For all implemented coins, tests that an exchange is provided
 // and that an address can be retrieved from them
 func TestAddresses(t *testing.T) {
-	var coins = coinfactory.Coins
-	log.Println("Coins to test: ", coins)
+	// TODO Make for all coins
+	var coinsToCheck = make(map[string]*coins.Coin)
+	coinsToCheck["POLIS"] = &coins.Polis
+	coinsToCheck["BTC"] = &coins.Bitcoin
+	coinsToCheck["DASH"] = &coins.Dash
+
+	log.Println("Coins to test: ", coinsToCheck)
 	var exchangeFactory = new(services.ExchangeFactory)
 
-	for _, coin := range coins {
+	for _, coin := range coinsToCheck {
 		log.Println(fmt.Sprintf("Getting Address for %s", coin.Name))
 		ex, err := exchangeFactory.GetExchangeByCoin(*coin)
 		// assert.NotNil(t, ex) // TODO Uncomment when all exchanges are implemented

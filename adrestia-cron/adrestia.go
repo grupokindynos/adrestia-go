@@ -116,9 +116,9 @@ func GetWalletBalances() []balance.Balance {
 		}
 		var t = res.Confirmed + res.Unconfirmed
 		if t == 0.0 {
-			fmt.Println(fmt.Sprintf("%.8f %s of a total of %.8f\t%.2f%%", res.Confirmed, coin.Tag, res.Confirmed + res.Unconfirmed, 0.0))
+			fmt.Println(fmt.Sprintf("%.8f %s\t of a total of %.8f\t%.2f%%", res.Confirmed, coin.Tag, res.Confirmed + res.Unconfirmed, 0.0))
 		} else {
-			fmt.Println(fmt.Sprintf("%.8f %s of a total of %.8f\t%.2f%%", res.Confirmed, coin.Tag, res.Confirmed + res.Unconfirmed, 100*res.Confirmed/(res.Confirmed + res.Unconfirmed)))
+			fmt.Println(fmt.Sprintf("%.8f %s\t of a total of %.8f\t%.2f%%", res.Confirmed, coin.Tag, res.Confirmed + res.Unconfirmed, 100*res.Confirmed/(res.Confirmed + res.Unconfirmed)))
 		}
 
 		// Create Balance Object

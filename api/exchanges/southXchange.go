@@ -93,6 +93,9 @@ func (s SouthXchange) GetBalances() ([]balance.Balance, error) {
 
 func (s *SouthXchange) GetAddress(coin coins.Coin) (string, error) {
 	address, err := s.southClient.GetDepositAddress(strings.ToLower(coin.Name))
-
-	return string(address), err
+	str := string(address)
+	str = strings.Replace(str, "\\", "", -1)
+	str = strings.Replace(str, "\"", "", -1)
+	str = strings.Replace(str, "/", "", -1)
+	return str, err
 }

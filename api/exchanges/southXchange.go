@@ -45,6 +45,17 @@ func (s SouthXchange) Withdraw(coin coins.Coin, address string, amount float64) 
 	return true, err
 }
 
+func (s SouthXchange) OneCoinToBtc(coin coins.Coin) (float64, error) {
+	if coin.Tag == "BTC" {
+		return 1.0, nil
+	}
+	rate, err := obol.GetCoin2CoinRatesWithAmmount("https://obol-rates.herokuapp.com/", "btc", coin.Tag, fmt.Sprintf("%f", 1.0))
+	if err != nil {
+		return 0.0, err
+	}
+	return rate, nil
+}
+
 func (s SouthXchange) GetSettings() config.SouthXchangeAuth {
 	var data config.SouthXchangeAuth
 	data.ApiKey = os.Getenv("SOUTH_API_KEY")
@@ -61,7 +72,6 @@ func (s SouthXchange) GetBalances() ([]balance.Balance, error) {
 	if err != nil {
 		return balances, err
 	}
-
 	for _, asset := range res {
 		rate, _ := obol.GetCoin2CoinRates("https://obol-rates.herokuapp.com/", "BTC", asset.Currency)
 		var b = balance.Balance{

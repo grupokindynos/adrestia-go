@@ -1,10 +1,14 @@
 package exchanges
 
 import (
+	"fmt"
 	"github.com/grupokindynos/adrestia-go/api/exchanges/config"
+	"github.com/grupokindynos/adrestia-go/models/balance"
 	"github.com/grupokindynos/common/coin-factory/coins"
+	"github.com/grupokindynos/common/obol"
 	bitso "github.com/grupokindynos/gobitso"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -32,6 +36,45 @@ func (b BitsoI) GetAddress(coin coins.Coin) (string, error) {
 		return "btc address", nil
 	}
 	return "Missing Implementation", nil
+}
+
+func (b BitsoI) OneCoinToBtc(coin coins.Coin) (float64, error) {
+	if coin.Tag == "BTC" {
+		return 1.0, nil
+	}
+	rate, err := obol.GetCoin2CoinRatesWithAmmount("https://obol-rates.herokuapp.com/", "btc", coin.Tag, fmt.Sprintf("%f", 1.0))
+	if err != nil {
+		return 0.0, err
+	}
+	return rate, nil
+}
+
+func (b BitsoI) GetBalances() ([]balance.Balance, error) {
+	bal, err := b.bitsoService.Balances()
+	if err!=nil {
+		return nil, err
+	}
+	var balances []balance.Balance
+
+	for _, asset := range bal.Payload.Balances {
+		rate, _ := obol.GetCoin2CoinRates("https://obol-rates.herokuapp.com/", "BTC", asset.Currency)
+		totalAmount, err := strconv.ParseFloat(asset.Total, 64)
+		if err != nil {
+			return nil, err
+		}
+		var b = balance.Balance{
+			Ticker:     asset.Currency,
+			Balance:    totalAmount,
+			RateBTC:    rate,
+			DiffBTC:    0,
+			IsBalanced: false,
+		}
+		if b.Balance > 0.0 {
+			balances = append(balances, b)
+		}
+
+	}
+	return balances, nil
 }
 
 func (b BitsoI) GetSettings() config.BitsoAuth{

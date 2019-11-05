@@ -9,15 +9,21 @@ import (
 
 	"github.com/gookit/color"
 	"github.com/grupokindynos/adrestia-go/api/services"
-	coinfactory "github.com/grupokindynos/common/coin-factory"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 )
+
+
+// TODO Make for all coins
+var coinsToCheck = make(map[string]*coins.Coin)
 
 func init() {
 	if err := godotenv.Load(); err != nil {
 		log.Println(err)
 	}
+	coinsToCheck["POLIS"] = &coins.Polis
+	coinsToCheck["BTC"] = &coins.Bitcoin
+	coinsToCheck["DASH"] = &coins.Dash
 }
 
 
@@ -36,11 +42,7 @@ func TestWithdrawSouth(t *testing.T) {
 // For all implemented coins, tests that an exchange is provided
 // and that an address can be retrieved from them
 func TestAddresses(t *testing.T) {
-	// TODO Make for all coins
-	var coinsToCheck = make(map[string]*coins.Coin)
-	coinsToCheck["POLIS"] = &coins.Polis
-	coinsToCheck["BTC"] = &coins.Bitcoin
-	coinsToCheck["DASH"] = &coins.Dash
+
 
 	log.Println("Coins to test: ", coinsToCheck)
 	var exchangeFactory = new(services.ExchangeFactory)
@@ -67,10 +69,9 @@ func TestAddresses(t *testing.T) {
 
 // Makes sure OneConversion to BTC is implemented for every coin
 func TestRateToBtc(t *testing.T) {
-	var coins = coinfactory.Coins
 	var exchangeFactory = new(services.ExchangeFactory)
 
-	for _, coin := range coins {
+	for _, coin := range coinsToCheck {
 		ex, err := exchangeFactory.GetExchangeByCoin(*coin)
 		// assert.NotNil(t, ex) // TODO Uncomment when all exchanges are implemented
 		if err != nil {
@@ -84,7 +85,7 @@ func TestRateToBtc(t *testing.T) {
 }
 
 func TestBalances(t *testing.T) {
-	exchangesToTest := [...]string{"binance", "cryptobridge", "bitso"}
+	exchangesToTest := [...]string{"binance", "southxchange", "bitso"}
 	var exFactory = new(services.ExchangeFactory)
 
 	for _, exName := range exchangesToTest {
@@ -95,7 +96,10 @@ func TestBalances(t *testing.T) {
 			s = fmt.Sprintf("exchange %s not implemented", exName)
 			color.Warn.Tips(s)
 		} else {
-			balances, _ := ex.GetBalances()
+			balances, err := ex.GetBalances()
+			if err != nil {
+				fmt.Println(err)
+			}
 			assert.NotNil(t, balances)
 		}
 

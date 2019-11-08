@@ -58,21 +58,22 @@ func (b BitsoI) GetBalances() ([]balance.Balance, error) {
 
 	for _, asset := range bal.Payload.Balances {
 		rate, _ := obol.GetCoin2CoinRates("https://obol-rates.herokuapp.com/", "BTC", asset.Currency)
-		totalAmount, err := strconv.ParseFloat(asset.Total, 64)
+		confirmedAmount, err := strconv.ParseFloat(asset.Available, 64)
+		unconfirmedAmount, err := strconv.ParseFloat(asset.Available, 64)
 		if err != nil {
 			return nil, err
 		}
 		var b = balance.Balance{
 			Ticker:     asset.Currency,
-			Balance:    totalAmount,
-			RateBTC:    rate,
-			DiffBTC:    0,
-			IsBalanced: false,
+			ConfirmedBalance:    	confirmedAmount,
+			UnconfirmedBalance: 	unconfirmedAmount,
+			RateBTC:    			rate,
+			DiffBTC:    			0,
+			IsBalanced: 			false,
 		}
-		if b.Balance > 0.0 {
+		if b.GetTotalBalance() > 0.0 {
 			balances = append(balances, b)
 		}
-
 	}
 	return balances, nil
 }

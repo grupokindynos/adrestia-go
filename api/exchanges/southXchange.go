@@ -75,13 +75,14 @@ func (s SouthXchange) GetBalances() ([]balance.Balance, error) {
 	for _, asset := range res {
 		rate, _ := obol.GetCoin2CoinRates("https://obol-rates.herokuapp.com/", "BTC", asset.Currency)
 		var b = balance.Balance{
-			Ticker:     asset.Currency,
-			Balance:    asset.Available,
-			RateBTC:    rate,
-			DiffBTC:    0,
-			IsBalanced: false,
+			Ticker:     		asset.Currency,
+			ConfirmedBalance:	asset.Available,
+			UnconfirmedBalance: asset.Unconfirmed,
+			RateBTC:    		rate,
+			DiffBTC:    		0.0,
+			IsBalanced: 		false,
 		}
-		if b.Balance > 0.0 {
+		if b.GetTotalBalance() > 0.0 {
 			balances = append(balances, b)
 		}
 

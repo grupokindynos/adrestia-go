@@ -106,11 +106,12 @@ func (c Cryptobridge) GetBalances() ([]balance.Balance, error) {
 		rate, _ := obol.GetCoin2CoinRates("https://obol-rates.herokuapp.com/", "BTC", asset.Symbol)
 
 		var b = balance.Balance{
-			Ticker:     asset.Symbol,
-			Balance:    asset.Amount,
-			RateBTC:    rate,
-			DiffBTC:    0,
-			IsBalanced: false,
+			Ticker:     		asset.Symbol,
+			ConfirmedBalance:   asset.Amount,
+			UnconfirmedBalance:	0.0,
+			RateBTC:    		rate,
+			DiffBTC:    		0,
+			IsBalanced: 		false,
 		}
 		balances = append(balances, b)
 	}

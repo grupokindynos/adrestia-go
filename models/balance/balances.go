@@ -25,13 +25,13 @@ func (b *Balance) GetConfirmedProportion() float64 {
 	if b.ConfirmedBalance + b.UnconfirmedBalance == 0 {
 		return 0.0
 	}
-	return b.ConfirmedBalance / (b.ConfirmedBalance + b.UnconfirmedBalance)
+	return b.ConfirmedBalance * 100.0 / (b.ConfirmedBalance + b.UnconfirmedBalance)
 }
 
 func (b *Balance) GetBalanceInBtc(totalBalance bool) float64 {
 	/*
 		Returns the balance in BTC
-		if totalBalance is set to TRUE returns the cooncersion using the amount the exchange is expecting so it is not recommended
+		if totalBalance is set to TRUE returns the conversion using the amount the exchange is expecting so it is not recommended
 		otherwise it returns only the CONFIRMED balance at the exchange.
 	*/
 	if b.RateBTC == 0.0 {

@@ -92,13 +92,14 @@ func (b Binance) GetBalances() ([]balance.Balance, error) {
 	for _, asset := range res.Balances {
 		rate, _ := obol.GetCoin2CoinRates("https://obol-rates.herokuapp.com/", "BTC", asset.Asset)
 		var b = balance.Balance{
-			Ticker:     asset.Asset,
-			Balance:    asset.Free,
-			RateBTC:    rate,
-			DiffBTC:    0,
-			IsBalanced: false,
+			Ticker:     		asset.Asset,
+			ConfirmedBalance:   asset.Free,
+			UnconfirmedBalance: asset.Locked,
+			RateBTC:    		rate,
+			DiffBTC:    		0,
+			IsBalanced: 		false,
 		}
-		if b.Balance > 0.0 {
+		if b.GetTotalBalance() > 0.0 {
 			balances = append(balances, b)
 		}
 

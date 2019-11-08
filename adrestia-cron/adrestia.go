@@ -257,14 +257,17 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 			log.Println(err)
 		}
 		ex, err := ef.GetExchangeByCoin(*coin)
-		exName, err := ex.GetName()
-		if err != nil{
-			log.Println(err)
+		if err == nil {
+			exName, err := ex.GetName()
+			if err != nil{
+				log.Println(err)
+			}
+			_, ok := exchangeSet[exName]
+			if !ok {
+				exchangeSet[exName] = true
+			}
 		}
-		_, ok := exchangeSet[exName]
-		if !ok {
-			exchangeSet[exName] = true
-		}
+
 	}
 
 	// Optimization for txes to exchanges

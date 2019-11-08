@@ -6,12 +6,14 @@ import (
 )
 
 func GetBalanceLog(balances []balance.Balance, ex string) string{
-	assetSum := 0.0
+	currentAssetSum := 0.0
+	expectingAssetSum := 0.0
 	assetCounter := 0
 	for _, asset := range balances {
-		assetSum+= asset.Balance * asset.RateBTC
+		currentAssetSum += asset.GetBalanceInBtc(false)
+		expectingAssetSum += asset.GetBalanceInBtc(true)
 		assetCounter++
 	}
-	s := fmt.Sprintf( "Balances for %s retrieved. Total of %f BTC distributed in %d assets.", ex, assetSum, assetCounter )
+	s := fmt.Sprintf( "Balances for %s retrieved. Total of %.8f BTC distributed in %d assets.\nConfirmedAssets: %.8f", ex, expectingAssetSum, assetCounter, currentAssetSum)
 	return s
 }

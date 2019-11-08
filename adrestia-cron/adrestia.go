@@ -35,32 +35,33 @@ func main() {
 	// TODO Disable and Enable Shift at star nd ending of the process
 	color.Info.Tips("Program Started")
 
-	// Gets balance from Hot Wallets
-	var balances = GetWalletBalances()
-	// Firebase Wallet Configuration
-	// var conf = GetFBConfiguration("test_data/testConf.json", false)
-	var confHestia, err = services.GetCoinConfiguration()
 
+	var balances = GetWalletBalances()						// Gets balance from Hot Wallets
+	var confHestia, err = services.GetCoinConfiguration()	// Firebase Wallet Configuratio
 	if err != nil {
 		log.Fatalln(err)
 	}
+	availableWallets, _ := NormalizeWallets(balances, confHestia) // Verifies wallets in firebase are the same as in plutus and creates a map
 
-	availableWallets, errors := NormalizeWallets(balances, confHestia)
+	fmt.Println("Balancing this Wallets: ", availableWallets)
 
-	fmt.Println(availableWallets)
-	fmt.Println(errors)
+	// TODO Sort
+	balanced, unbalanced := SortBalances(availableWallets)
+	status, amount := DetermineBalanceability(balanced, unbalanced)
+	log.Println(fmt.Sprintf("Wallets Balanceability Status: %t\nAmount (+/-): %.8f", status,amount))
+
+	panic("Force Stop")
 
 	var sendToExchanges []transaction.PTx
 	// Evaluate wallets with exceeding amount
 	for i, w := range availableWallets {
 		fmt.Println("Retrieving for ", i, " ", w)
-		if w.FirebaseConf.Balances.HotWallet < w.HotWalletBalance.Balance {
+		if w.FirebaseConf.Balances.HotWallet < w.HotWalletBalance.GetTotalBalance() {
 			tx := new(transaction.PTx)
 			tx.FromCoin = w.HotWalletBalance.Ticker
 			tx.ToCoin = w.HotWalletBalance.Ticker
-			tx.Amount = w.FirebaseConf.Balances.HotWallet - w.HotWalletBalance.Balance
+			tx.Amount = w.FirebaseConf.Balances.HotWallet - w.HotWalletBalance.GetTotalBalance()
 			tx.Rate = 1.0
-
 			sendToExchanges = append(sendToExchanges, *tx)
 		}
 	}
@@ -100,8 +101,7 @@ func main() {
 			TODO Handle buy and sell requests on Adrestia as well as proper retrial
 			on condition fulfillments
 
-	}
-	*/
+	}*/
 }
 
 func GetWalletBalances() []balance.Balance {
@@ -114,18 +114,13 @@ func GetWalletBalances() []balance.Balance {
 		if err != nil {
 			fmt.Println("Plutus Service Error: ", err)
 		}
-		var t = res.Confirmed + res.Unconfirmed
-		if t == 0.0 {
-			fmt.Println(fmt.Sprintf("%.8f %s\t of a total of %.8f\t%.2f%%", res.Confirmed, coin.Tag, res.Confirmed + res.Unconfirmed, 0.0))
-		} else {
-			fmt.Println(fmt.Sprintf("%.8f %s\t of a total of %.8f\t%.2f%%", res.Confirmed, coin.Tag, res.Confirmed + res.Unconfirmed, 100*res.Confirmed/(res.Confirmed + res.Unconfirmed)))
-		}
-
 		// Create Balance Object
 		b := balance.Balance{}
-		b.Balance = res.Confirmed
+		b.ConfirmedBalance = res.Confirmed
+		b.UnconfirmedBalance = res.Unconfirmed
 		b.Ticker = coin.Tag
 		rawBalances = append(rawBalances, b)
+		fmt.Println(fmt.Sprintf("%.8f %s\t of a total of %.8f\t%.2f%%", b.ConfirmedBalance, b.Ticker, b.ConfirmedBalance + b.UnconfirmedBalance, b.GetConfirmedProportion()))
 	}
 	log.Println("Finished Retrieving Balances")
 
@@ -150,62 +145,46 @@ func GetWalletBalances() []balance.Balance {
 	return updatedBalances
 }
 
-// Retrieves minimum set balance configuration from Firebase conf
-// TODO Connect this with Hestia instead of Firebase and Test Data
-func GetFBConfiguration(file string, load bool) map[string]balance.Balance {
-	if load {
-		jsonFile, err := os.Open(file)
-		if err != nil {
-			fmt.Println(err)
-		}
-		fmt.Println("Successfully Opened conf.json")
-		defer jsonFile.Close()
-		byteValue, _ := ioutil.ReadAll(jsonFile)
-		var conf map[string]balance.Balance
-		err = json.Unmarshal(byteValue, &conf)
-		if err != nil {
-			log.Println(err)
-		}
-		return conf
-	} else {
-		fireBase := services.InitFirebase()
-		var conf balance.MinBalanceConfResponse
-		conf, err := fireBase.GetConf()
-		if err != nil {
-			log.Fatal("Configuration not found")
-		}
-		var firebaseConfBalances = conf.ToMap()
-		return firebaseConfBalances
+// Retrieves minimum set balance configuration from test data
+func GetFBConfiguration(file string) map[string]balance.Balance {
+	jsonFile, err := os.Open(file)
+	if err != nil {
+		fmt.Println(err)
 	}
+	fmt.Println("Successfully Opened conf.json")
+	defer jsonFile.Close()
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+	var conf map[string]balance.Balance
+	err = json.Unmarshal(byteValue, &conf)
+	if err != nil {
+		log.Println(err)
+	}
+	return conf
 }
 
 // Sorts Balances given their diff, so that topped wallets are used to fill the missing ones
-func SortBalances(inputBalances []balance.Balance, conf map[string]balance.Balance) ([]balance.Balance, []balance.Balance) {
+func SortBalances(data map[string]balance.WalletInfoWrapper) ([]balance.Balance, []balance.Balance) {
 	var balancedWallets []balance.Balance
 	var unbalancedWallets []balance.Balance
 
-	for _, obj := range inputBalances {
-		log.Println(fmt.Sprintf("SortBalances:: %.8f", conf[obj.Ticker].Balance))
-		obj.GetDiff(conf[obj.Ticker].Balance)
-		if obj.IsBalanced {
-			balancedWallets = append(balancedWallets, obj)
+	for _, obj := range data {
+		x:= obj.HotWalletBalance // Curreny Wallet Info Wrapper
+		x.GetDiff()
+		if x.IsBalanced {
+			balancedWallets = append(balancedWallets, x)
 		} else {
-			unbalancedWallets = append(unbalancedWallets, obj)
+			unbalancedWallets = append(unbalancedWallets, x)
 		}
 	}
 
 	sort.Sort(balance.ByDiffInverse(balancedWallets))
 	sort.Sort(balance.ByDiff(unbalancedWallets))
-
-	fmt.Println("Info Sorting")
-	fmt.Println()
 	for _, wallet := range unbalancedWallets {
 		fmt.Printf("%s has a deficit of %.8f BTC\n", wallet.Ticker, wallet.DiffBTC)
 	}
 	for _, wallet := range balancedWallets {
 		fmt.Printf("%s has a superavit of %.8f BTC\n", wallet.Ticker, wallet.DiffBTC)
 	}
-
 	return balancedWallets, unbalancedWallets
 }
 
@@ -216,15 +195,15 @@ func DetermineBalanceability(balanced []balance.Balance, unbalanced []balance.Ba
 
 	for _, wallet := range balanced {
 		superavit += math.Abs(wallet.DiffBTC)
-		totalBtc += wallet.Balance * wallet.RateBTC
+		totalBtc += wallet.ConfirmedBalance * wallet.RateBTC // Uses ConfirmedBalance as it is used to balance in a particular adrestia.go run
 	}
 	for _, wallet := range unbalanced {
 		deficit += wallet.DiffBTC
-		totalBtc += wallet.Balance * wallet.RateBTC
+		totalBtc += wallet.GetTotalBalance() * wallet.RateBTC // Uses TotalBalance as it should account for pending Txes expected by coin
 	}
+	color.Info.Tips(fmt.Sprintf("Total in Wallets: %.8f", totalBtc))
 	fmt.Println("Superavit: ", superavit)
 	fmt.Println("Deficit: ", deficit)
-	color.Info.Tips(fmt.Sprintf("Total in Wallets: %.8f", totalBtc))
 	return superavit > math.Abs(deficit), superavit - math.Abs(deficit)
 }
 
@@ -329,11 +308,13 @@ func NormalizeWallets(balances []balance.Balance, hestiaConf []hestia.Coin) (map
 		if !ok {
 			missingCoins = append(missingCoins, elem.Ticker)
 		} else {
+			elem.Target = mapConf[elem.Ticker].Balances.HotWallet // Final attribute for Balance class, represents the target amount in the base currency that should be present
 			availableCoins[elem.Ticker] = balance.WalletInfoWrapper{
 				HotWalletBalance: mapBalances[elem.Ticker],
 				FirebaseConf:     mapConf[elem.Ticker],
 			}
 		}
 	}
+	log.Println("Not balancing the following coins: ", missingCoins);
 	return availableCoins, missingCoins
 }

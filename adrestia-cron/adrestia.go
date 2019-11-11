@@ -273,7 +273,6 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 	return pendingTransactions
 }
 
-
 func loadTestingData() ([]balance.Balance, error){
 	jsonFile, err := os.Open("test_data/test.json")
 	// if we os.Open returns an error then handle it
@@ -311,7 +310,6 @@ func NormalizeWallets(balances []balance.Balance, hestiaConf []hestia.Coin) (map
 		mapConf[c.Ticker] = c
 	}
 
-	// Go maps require the iterating element to not be modifies during iteration as changes
 	for _, elem := range mapBalances {
 		_, ok := mapConf[elem.Ticker]
 		if !ok {

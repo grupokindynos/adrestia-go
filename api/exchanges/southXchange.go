@@ -49,11 +49,11 @@ func (s SouthXchange) OneCoinToBtc(coin coins.Coin) (float64, error) {
 	if coin.Tag == "BTC" {
 		return 1.0, nil
 	}
-	rate, err := obol.GetCoin2CoinRatesWithAmmount("https://obol-rates.herokuapp.com/", "btc", coin.Tag, fmt.Sprintf("%f", 1.0))
+	rate, err := obol.GetCoin2CoinRatesWithAmount("https://obol-rates.herokuapp.com/", "btc", coin.Tag, fmt.Sprintf("%f", 1.0))
 	if err != nil {
 		return 0.0, err
 	}
-	return rate, nil
+	return rate.AveragePrice, nil
 }
 
 func (s SouthXchange) GetSettings() config.SouthXchangeAuth {

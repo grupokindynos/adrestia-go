@@ -3,6 +3,7 @@ package services
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/tokens/mrt"
 	"github.com/grupokindynos/common/tokens/mvt"
@@ -47,5 +48,6 @@ func GetCoinConfiguration() ([]hestia.Coin, error) {
 	if err != nil {
 		return []hestia.Coin{}, err
 	}
+	fmt.Println("Hestia Conf: ", response)
 	return response, nil
 }

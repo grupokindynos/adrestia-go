@@ -41,9 +41,10 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	availableWallets, _ := NormalizeWallets(balances, confHestia) // Verifies wallets in firebase are the same as in plutus and creates a map
+	availableWallets, error_wallets := NormalizeWallets(balances, confHestia) // Verifies wallets in firebase are the same as in plutus and creates a map
 
-	fmt.Println("Balancing this Wallets: ", availableWallets)
+	fmt.Println("Balancing these Wallets: ", availableWallets)
+	fmt.Println("Errors on these Wallets: ", error_wallets)
 
 	// TODO Sort
 	balanced, unbalanced := SortBalances(availableWallets)
@@ -112,7 +113,7 @@ func GetWalletBalances() []balance.Balance {
 	for _, coin := range availableCoins {
 		res, err := plutus.GetWalletBalance(os.Getenv("PLUTUS_URL"), strings.ToLower(coin.Tag), os.Getenv("ADRESTIA_PRIV_KEY"), "adrestia", os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
 		if err != nil {
-			fmt.Println("Plutus Service Error: ", err)
+			fmt.Println(fmt.Sprintf("Plutus Service Error for %s: %v", coin.Tag, err))
 		}
 		// Create Balance Object
 		b := balance.Balance{}
@@ -267,9 +268,7 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 				exchangeSet[exName] = true
 			}
 		}
-
 	}
-
 	// Optimization for txes to exchanges
 	return pendingTransactions
 }
@@ -295,6 +294,11 @@ func loadTestingData() ([]balance.Balance, error){
 }
 
 func NormalizeWallets(balances []balance.Balance, hestiaConf []hestia.Coin) (map[string]balance.WalletInfoWrapper, []string){
+	/*
+		This function normalizes the wallets that were detected in Plutus and those with configuration in Hestia.
+		Returns a map of the coins' ticker as key containing a wrapper with both the actual balance of the wallet and
+		its firebase configuration.
+	*/
 	var mapBalances = make(map[string]balance.Balance)
 	var mapConf =  make(map[string]hestia.Coin)
 	var missingCoins []string
@@ -306,18 +310,27 @@ func NormalizeWallets(balances []balance.Balance, hestiaConf []hestia.Coin) (map
 	for _, c := range hestiaConf {
 		mapConf[c.Ticker] = c
 	}
+
+	// Go maps require the iterating element to not be modifies during iteration as changes
 	for _, elem := range mapBalances {
 		_, ok := mapConf[elem.Ticker]
 		if !ok {
 			missingCoins = append(missingCoins, elem.Ticker)
 		} else {
-			elem.Target = mapConf[elem.Ticker].Balances.HotWallet // Final attribute for Balance class, represents the target amount in the base currency that should be present
-			availableCoins[elem.Ticker] = balance.WalletInfoWrapper{
-				HotWalletBalance: mapBalances[elem.Ticker],
-				FirebaseConf:     mapConf[elem.Ticker],
+			/*
+				If the current coin is present in both the coinConfig and the acquired Balance maps,
+			 	the proceed with the wrapper creation that will handle the balancing of the coins.
+
+			 */
+
+			elem.SetTarget(mapConf[elem.Ticker].Balances.HotWallet) // Final attribute for Balance class, represents the target amount in the base currency that should be present
+			if elem.Target > 0.0 {
+				availableCoins[elem.Ticker] = balance.WalletInfoWrapper{
+					HotWalletBalance: elem,
+					FirebaseConf:     mapConf[elem.Ticker],
+				}
 			}
 		}
 	}
-	log.Println("Not balancing the following coins: ", missingCoins);
 	return availableCoins, missingCoins
 }

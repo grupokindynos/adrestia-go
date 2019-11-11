@@ -3,6 +3,7 @@ package balance
 import (
 	"fmt"
 	"github.com/grupokindynos/common/hestia"
+	"log"
 )
 
 type HotWalletBalances struct {
@@ -48,8 +49,8 @@ func (b *Balance) GetTotalBalance() float64{
 }
 
 func (b *Balance) GetDiff() {
+	log.Println(fmt.Sprintf("%s has %.8f as balance, a target of %.8f and a rate of %.8f", b.Ticker, b.GetTotalBalance(), b.Target, b.RateBTC))
 	b.DiffBTC = (b.GetTotalBalance() - b.Target) * b.RateBTC
-	fmt.Printf("%s has diff %.8f\n", b.Ticker, b.DiffBTC)
 	// TODO Update this section to account for Tx/Miner Fees
 	// Make it >= a range
 	if b.DiffBTC >= 0.0 {
@@ -57,6 +58,10 @@ func (b *Balance) GetDiff() {
 	} else {
 		b.IsBalanced = false
 	}
+}
+
+func (b *Balance) SetTarget(target float64) {
+	b.Target = target
 }
 
 func (b *Balance) SetRate(rate float64){

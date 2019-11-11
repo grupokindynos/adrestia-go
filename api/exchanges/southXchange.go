@@ -2,7 +2,7 @@ package exchanges
 
 import (
 	"fmt"
-	south "github.com/PrettyBoyHelios/go-southxchange"
+	south "github.com/bitbandi/go-southxchange"
 	"github.com/grupokindynos/adrestia-go/api/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	"github.com/grupokindynos/adrestia-go/utils"

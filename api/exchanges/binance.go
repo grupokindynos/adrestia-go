@@ -46,7 +46,7 @@ func NewBinance() *Binance {
 	ctx, _ := context.WithCancel(context.Background())
 	// use second return value for cancelling request when shutting down the app
 
-	l.Println("Binance Service Building...")
+	// l.Println("Binance Service Building...")
 	binanceService := binance.NewAPIService(
 		"https://www.binance.com",
 		data.PublicApi,
@@ -190,7 +190,7 @@ func GetSettings() config.BinanceAuth {
 	if err := godotenv.Load(); err != nil {
 		l.Println(err)
 	}
-	l.Println(fmt.Sprintf("[GetSettings] Retrieving settings for Binance"))
+	// l.Println(fmt.Sprintf("[GetSettings] Retrieving settings for Binance"))
 	var data config.BinanceAuth
 	data.PublicApi = os.Getenv("BINANCE_PUB_API")
 	data.PrivateApi = os.Getenv("BINANCE_PRIV_API")

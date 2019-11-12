@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gookit/color"
-	services2 "github.com/grupokindynos/adrestia-go/api/services"
+	api_services "github.com/grupokindynos/adrestia-go/api/services"
 	coinfactory "github.com/grupokindynos/common/coin-factory"
 	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/plutus"
@@ -23,7 +23,7 @@ import (
 	"github.com/grupokindynos/adrestia-go/services"
 )
 
-const fiatThreshold = 10.00 // USD
+const fiatThreshold = 2.00 // USD // 2.0 for Testing, 10 USD for production
 
 func init() {
 	if err := godotenv.Load(); err != nil {
@@ -32,12 +32,17 @@ func init() {
 }
 
 func main() {
+	balOrders, err := services.GetBalancingOrders()
+	if err != nil {
+		fmt.Print(err)
+		panic(err)
+	} else {
+		fmt.Println("Balancing Orders: ", balOrders)
+	}
 	// TODO Disable and Enable Shift at star nd ending of the process
 	color.Info.Tips("Program Started")
-
-
 	var balances = GetWalletBalances()						// Gets balance from Hot Wallets
-	var confHestia, err = services.GetCoinConfiguration()	// Firebase Wallet Configuratio
+	confHestia, err := services.GetCoinConfiguration()	// Firebase Wallet Configuratio
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -49,10 +54,9 @@ func main() {
 	// TODO Sort
 	balanced, unbalanced := SortBalances(availableWallets)
 	status, amount := DetermineBalanceability(balanced, unbalanced)
-	log.Println(fmt.Sprintf("Wallets Balanceability Status: %t\nAmount (+/-): %.8f", status,amount))
+	log.Println(fmt.Sprintf("Wallets Balanceability Status: %t\nAmount (+/-): %.8f", status, amount))
 
-	panic("Force Stop")
-
+	// Calculates Balancing txes
 	var sendToExchanges []transaction.PTx
 	// Evaluate wallets with exceeding amount
 	for i, w := range availableWallets {
@@ -66,7 +70,7 @@ func main() {
 			sendToExchanges = append(sendToExchanges, *tx)
 		}
 	}
-	ef := new(services2.ExchangeFactory)
+	ef := new(api_services.ExchangeFactory)
 	// Send remaining amount to exchanges using plutus
 	for _, tx := range sendToExchanges{
 		fmt.Println("------------ TX-----------")
@@ -114,14 +118,15 @@ func GetWalletBalances() []balance.Balance {
 		res, err := plutus.GetWalletBalance(os.Getenv("PLUTUS_URL"), strings.ToLower(coin.Tag), os.Getenv("ADRESTIA_PRIV_KEY"), "adrestia", os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
 		if err != nil {
 			fmt.Println(fmt.Sprintf("Plutus Service Error for %s: %v", coin.Tag, err))
+		} else {
+			// Create Balance Object
+			b := balance.Balance{}
+			b.ConfirmedBalance = res.Confirmed
+			b.UnconfirmedBalance = res.Unconfirmed
+			b.Ticker = coin.Tag
+			rawBalances = append(rawBalances, b)
+			fmt.Println(fmt.Sprintf("%.8f %s\t of a total of %.8f\t%.2f%%", b.ConfirmedBalance, b.Ticker, b.ConfirmedBalance + b.UnconfirmedBalance, b.GetConfirmedProportion()))
 		}
-		// Create Balance Object
-		b := balance.Balance{}
-		b.ConfirmedBalance = res.Confirmed
-		b.UnconfirmedBalance = res.Unconfirmed
-		b.Ticker = coin.Tag
-		rawBalances = append(rawBalances, b)
-		fmt.Println(fmt.Sprintf("%.8f %s\t of a total of %.8f\t%.2f%%", b.ConfirmedBalance, b.Ticker, b.ConfirmedBalance + b.UnconfirmedBalance, b.GetConfirmedProportion()))
 	}
 	log.Println("Finished Retrieving Balances")
 
@@ -240,7 +245,6 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 					Amount: initialDiff - filledAmount,
 					Rate: balanced[i].RateBTC,
 				}
-
 				pendingTransactions = append(pendingTransactions, newTx)
 			}
 			// TODO Optimize sending TXs for the same coin (instead of making 5 dash transactions, make one)
@@ -249,7 +253,7 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 	}
 	fmt.Println(pendingTransactions)
 	exchangeSet := make(map[string]bool)
-	ef := services2.ExchangeFactory{}
+	ef := api_services.ExchangeFactory{}
 
 	for i, tx := range pendingTransactions {
 		color.Info.Tips(fmt.Sprintf("Performing tx %d: From %s to %s amounting for %.8f %s (%.8f BTC)", i+1, tx.FromCoin, tx.ToCoin, tx.Amount / tx.Rate, tx.FromCoin, tx.Amount))

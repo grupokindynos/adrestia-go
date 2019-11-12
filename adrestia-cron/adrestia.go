@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gookit/color"
-	api_services "github.com/grupokindynos/adrestia-go/api/services"
+	apiServices "github.com/grupokindynos/adrestia-go/api/services"
 	coinfactory "github.com/grupokindynos/common/coin-factory"
 	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/plutus"
@@ -70,7 +70,7 @@ func main() {
 			sendToExchanges = append(sendToExchanges, *tx)
 		}
 	}
-	ef := new(api_services.ExchangeFactory)
+	ef := new(apiServices.ExchangeFactory)
 	// Send remaining amount to exchanges using plutus
 	for _, tx := range sendToExchanges{
 		fmt.Println("------------ TX-----------")
@@ -253,7 +253,7 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 	}
 	fmt.Println(pendingTransactions)
 	exchangeSet := make(map[string]bool)
-	ef := api_services.ExchangeFactory{}
+	ef := apiServices.ExchangeFactory{}
 
 	for i, tx := range pendingTransactions {
 		color.Info.Tips(fmt.Sprintf("Performing tx %d: From %s to %s amounting for %.8f %s (%.8f BTC)", i+1, tx.FromCoin, tx.ToCoin, tx.Amount / tx.Rate, tx.FromCoin, tx.Amount))

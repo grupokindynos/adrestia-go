@@ -242,54 +242,30 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 		// TODO add fields for out addresses
 		for filledAmount < initialDiff {
 			// color.Info.Tips(fmt.Sprintf("BalanceHW::\tUsing %s to balanace %s", balanced[i].Ticker, wallet.Ticker))
+			var newTx transaction.PTx
 			if balanced[i].DiffBTC < initialDiff - filledAmount {
-				var newTx =  transaction.PTx{
-					ToCoin:  wallet.Ticker,
-					FromCoin: balanced[i].Ticker,
-					Amount: balanced[i].DiffBTC,
-					Rate: balanced[i].RateBTC,
-				}
+				newTx.ToCoin = wallet.Ticker
+				newTx.FromCoin = balanced[i].Ticker
+				newTx.Amount = balanced[i].DiffBTC
+				newTx.Rate = balanced[i].RateBTC
+
 				filledAmount += balanced[i].DiffBTC
 				balanced[i].DiffBTC = 0.0
 				i++
-				fmt.Println(newTx)
+				fmt.Println("Type I tx: ", newTx)
 				pendingTransactions = append(pendingTransactions, newTx)
 			}else {
+				newTx.Amount = initialDiff - filledAmount
 				filledAmount += initialDiff - filledAmount
 				balanced[i].DiffBTC -= initialDiff - filledAmount
-				var newTx =  transaction.PTx{
-					ToCoin: wallet.Ticker,
-					FromCoin: balanced[i].Ticker,
-					Amount: initialDiff - filledAmount,
-					Rate: balanced[i].RateBTC,
-				}
+				newTx.ToCoin = wallet.Ticker
+				newTx.FromCoin = balanced[i].Ticker
+				newTx.Rate = balanced[i].RateBTC
+				fmt.Println("Type II tx: ", newTx)
 				pendingTransactions = append(pendingTransactions, newTx)
 			}
-			// TODO Optimize sending TXs for the same coin (instead of making 5 dash transactions, make one)
-			//color.Info.Tips(fmt.Sprintf("The exchange for %s is %s", wallet.Ticker, coinData.Rates.Exchange))
 		}
 	}
-	// exchangeSet := make(map[string]bool)
-	// ef := apiServices.ExchangeFactory{}
-
-	/* for i, tx := range pendingTransactions {
-		color.Info.Tips(fmt.Sprintf("Performing tx %d: From %s to %s amounting for %.8f %s (%.8f BTC)", i+1, tx.FromCoin, tx.ToCoin, tx.Amount / tx.Rate, tx.FromCoin, tx.Amount))
-		coin, err := coinfactory.GetCoin(tx.ToCoin)
-		if err != nil{
-			log.Println(err)
-		}
-		ex, err := ef.GetExchangeByCoin(*coin)
-		if err == nil {
-			exName, err := ex.GetName()
-			if err != nil{
-				log.Println(err)
-			}
-			_, ok := exchangeSet[exName]
-			if !ok {
-				exchangeSet[exName] = true
-			}
-		}
-	}*/
 	// TODO Optimization for txes to exchanges
 	return pendingTransactions
 }
@@ -368,6 +344,7 @@ func SendToExchanges(sendToExchanges []transaction.PTx) (adrestiaOrders []hestia
 			if err != nil {
 				fmt.Println(err)
 			} else {
+				fmt.Println("debugging: ", tx.Amount)
 				address, _ := ex.GetAddress(*coinInfo)
 				fmt.Print(address)
 				order.ToCoin = tx.ToCoin

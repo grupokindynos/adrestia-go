@@ -69,7 +69,7 @@ func main() {
 
 		StoreOrders(orders)
 	} else {
-		log.Println(fmt.Sprintf("can not balance by missing %.8f BTC in BTC HotWallet", ))
+		log.Println(fmt.Sprintf("can not balance by missing %.8f BTC in BTC HotWallet", amount))
 	}
 
 

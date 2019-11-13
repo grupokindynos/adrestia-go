@@ -9,6 +9,7 @@ import (
 	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/plutus"
 	"github.com/joho/godotenv"
+	"github.com/lithammer/shortuuid"
 	"io/ioutil"
 	"log"
 	"math"
@@ -352,10 +353,11 @@ func SendToExchanges(sendToExchanges []transaction.PTx) (adrestiaOrders []hestia
 				order.Amount = tx.Amount
 				order.Status = "ORDER_PLACED"
 				order.Exchange, _ = ex.GetName()
-				order.ID = "testing"
+				order.ID = shortuuid.New()
 				order.Message = "testing adrestia 13-Nov"
 				order.Time = time.Now().Unix()
 				order.WithdrawAddress = address
+				order.OrderId = "pending match with order id"
 
 				adrestiaOrders = append(adrestiaOrders, order)
 				res, err := services.CreateAdrestiaOrder(order)

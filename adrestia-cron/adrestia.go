@@ -56,22 +56,24 @@ func main() {
 	// TODO Sort
 	balanced, unbalanced := SortBalances(availableWallets)
 	status, amount := DetermineBalanceability(balanced, unbalanced)
-	if status {
-
-	} else {
-
-	}
 	log.Println(fmt.Sprintf("Wallets Balanceability Status: %t\nAmount (+/-): %.8f", status, amount))
+	if status {
+		log.Println("balancing...")
+		// Calculates Balancing txes
+		sendToExchanges := BalanceHW(balanced, unbalanced)
 
-	// Calculates Balancing txes
-	sendToExchanges := BalanceHW(balanced, unbalanced)
+		fmt.Println(sendToExchanges)
+		fmt.Println("Found Txes: ", sendToExchanges)
 
-	fmt.Println(sendToExchanges)
-	fmt.Println("Found Txes: ", sendToExchanges)
+		orders, _ := SendToExchanges(sendToExchanges)
 
-	orders, err := SendToExchanges(sendToExchanges)
+		StoreOrders(orders)
+	} else {
+		log.Println(fmt.Sprintf("can not balance by missing %.8f BTC in BTC HotWallet", ))
+	}
 
-	StoreOrders(orders)
+
+
 
 	panic("stop!")
 	// Evaluate wallets with exceeding amount

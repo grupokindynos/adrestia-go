@@ -28,9 +28,7 @@ var ex = map[string]exchanges.IExchange{
 }
 
 func (e *ExchangeFactory) GetExchangeByCoin(coin coins.Coin) (exchanges.IExchange, error) {
-	// TODO Make this compatible with coinfactory
 	coinInfo, _ := coinfactory.GetCoin(coin.Tag)
-
 	exchange, ok := ex[coinInfo.Rates.Exchange]
 	if !ok {
 		return nil, errors.New("exchange not found for " + coin.Tag)

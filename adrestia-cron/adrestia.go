@@ -15,6 +15,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/grupokindynos/adrestia-go/models/transaction"
 	"github.com/grupokindynos/common/obol"
@@ -42,14 +43,14 @@ func main() {
 	// TODO Disable and Enable Shift at star nd ending of the process
 	color.Info.Tips("Program Started")
 	var balances = GetWalletBalances()						// Gets balance from Hot Wallets
-	confHestia, err := services.GetCoinConfiguration()	// Firebase Wallet Configuratio
+	confHestia, err := services.GetCoinConfiguration()		// Firebase Wallet ConfiguratioN
 	if err != nil {
 		log.Fatalln(err)
 	}
-	availableWallets, error_wallets := NormalizeWallets(balances, confHestia) // Verifies wallets in firebase are the same as in plutus and creates a map
+	availableWallets, errorWallets := NormalizeWallets(balances, confHestia) // Verifies wallets in firebase are the same as in plutus and creates a map
 
 	fmt.Println("Balancing these Wallets: ", availableWallets)
-	fmt.Println("Errors on these Wallets: ", error_wallets)
+	fmt.Println("Errors on these Wallets: ", errorWallets)
 
 	// TODO Sort
 	balanced, unbalanced := SortBalances(availableWallets)
@@ -57,7 +58,45 @@ func main() {
 	log.Println(fmt.Sprintf("Wallets Balanceability Status: %t\nAmount (+/-): %.8f", status, amount))
 
 	// Calculates Balancing txes
-	var sendToExchanges []transaction.PTx
+	sendToExchanges := BalanceHW(balanced, unbalanced)
+
+	fmt.Println(sendToExchanges)
+	fmt.Println("Found Txes: ", sendToExchanges)
+
+
+	// Order Creation
+	var adrestiaOrders []hestia.AdrestiaOrder
+	ef := new(apiServices.ExchangeFactory)
+
+	for _, tx := range sendToExchanges {
+		var order hestia.AdrestiaOrder
+		coinInfo, err := coinfactory.GetCoin(tx.ToCoin)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			ex, err := ef.GetExchangeByCoin(*coinInfo)
+			if err != nil {
+				fmt.Println(err)
+			} else {
+				address, _ := ex.GetAddress(*coinInfo)
+				fmt.Print(address)
+				order.ToCoin = tx.ToCoin
+				order.FromCoin = tx.FromCoin
+				order.Amount = tx.Amount
+				order.Status = "ORDER_PLACED"
+				order.Exchange, _ = ex.GetName()
+				order.ID = "testing"
+				order.Message = "testing adrestia 12-Nov"
+				order.Time = time.Now().Unix()
+				order.WithdrawAddress = address
+
+				adrestiaOrders = append(adrestiaOrders, order)
+			}
+		}
+		fmt.Println(adrestiaOrders)
+
+	}
+	panic("stop!")
 	// Evaluate wallets with exceeding amount
 	for i, w := range availableWallets {
 		fmt.Println("Retrieving for ", i, " ", w)
@@ -70,7 +109,7 @@ func main() {
 			sendToExchanges = append(sendToExchanges, *tx)
 		}
 	}
-	ef := new(apiServices.ExchangeFactory)
+
 	// Send remaining amount to exchanges using plutus
 	for _, tx := range sendToExchanges{
 		fmt.Println("------------ TX-----------")
@@ -218,12 +257,12 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 	var pendingTransactions []transaction.PTx
 	i := 0 // Balanced wallet index
 	for _, wallet := range unbalanced {
-		log.Println("BalanceHW:: Balancing ", wallet.Ticker)
+		// log.Println("BalanceHW:: Balancing ", wallet.Ticker)
 		filledAmount := 0.0 // Amount that stores current fulfillment of a Balancing Transaction.
 		initialDiff := math.Abs(wallet.DiffBTC)
 		// TODO add fields for out addresses
 		for filledAmount < initialDiff {
-			color.Info.Tips(fmt.Sprintf("BalanceHW::\tUsing %s to balanace %s", balanced[i].Ticker, wallet.Ticker))
+			// color.Info.Tips(fmt.Sprintf("BalanceHW::\tUsing %s to balanace %s", balanced[i].Ticker, wallet.Ticker))
 			if balanced[i].DiffBTC < initialDiff - filledAmount {
 				var newTx =  transaction.PTx{
 					ToCoin:  wallet.Ticker,
@@ -251,11 +290,10 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 			//color.Info.Tips(fmt.Sprintf("The exchange for %s is %s", wallet.Ticker, coinData.Rates.Exchange))
 		}
 	}
-	fmt.Println(pendingTransactions)
-	exchangeSet := make(map[string]bool)
-	ef := apiServices.ExchangeFactory{}
+	// exchangeSet := make(map[string]bool)
+	// ef := apiServices.ExchangeFactory{}
 
-	for i, tx := range pendingTransactions {
+	/* for i, tx := range pendingTransactions {
 		color.Info.Tips(fmt.Sprintf("Performing tx %d: From %s to %s amounting for %.8f %s (%.8f BTC)", i+1, tx.FromCoin, tx.ToCoin, tx.Amount / tx.Rate, tx.FromCoin, tx.Amount))
 		coin, err := coinfactory.GetCoin(tx.ToCoin)
 		if err != nil{
@@ -272,8 +310,8 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 				exchangeSet[exName] = true
 			}
 		}
-	}
-	// Optimization for txes to exchanges
+	}*/
+	// TODO Optimization for txes to exchanges
 	return pendingTransactions
 }
 

@@ -3,6 +3,7 @@ package services
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/tokens/mrt"
 	"github.com/grupokindynos/common/tokens/mvt"
@@ -47,7 +48,7 @@ func GetCoinConfiguration() ([]hestia.Coin, error) {
 	if err != nil {
 		return []hestia.Coin{}, err
 	}
-	// fmt.Println("Hestia Conf: ", response)
+	fmt.Println("Hestia Conf: ", response)
 	return response, nil
 }
 
@@ -87,5 +88,44 @@ func GetBalancingOrders() ([]hestia.AdrestiaOrder, error) {
 		return []hestia.AdrestiaOrder{}, err
 	}
 	// fmt.Println("Hestia Conf: ", response)
+	return response, nil
+}
+
+func CreateAdrestiaOrder(orderData hestia.AdrestiaOrder) (string, error) {
+	req, err := mvt.CreateMVTToken("POST", hestia.ProductionURL + "/adrestia/new", "adrestia", os.Getenv("MASTER_PASSWORD"), orderData, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
+	if err != nil {
+		return "", err
+	}
+	client := http.Client{
+		Transport:     nil,
+		CheckRedirect: nil,
+		Jar:           nil,
+		Timeout:       time.Second * 30,
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+	tokenResponse, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+	var tokenString string
+	err = json.Unmarshal(tokenResponse, &tokenString)
+	if err != nil {
+		return "", err
+	}
+	headerSignature := res.Header.Get("service")
+	valid, payload := mrt.VerifyMRTToken(headerSignature, tokenString, os.Getenv("HESTIA_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
+	if !valid {
+		return "", err
+	}
+	var response string
+	err = json.Unmarshal(payload, &response)
+	if err != nil {
+		return "", err
+	}
+
 	return response, nil
 }

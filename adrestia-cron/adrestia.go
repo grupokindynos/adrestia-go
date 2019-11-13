@@ -55,6 +55,11 @@ func main() {
 	// TODO Sort
 	balanced, unbalanced := SortBalances(availableWallets)
 	status, amount := DetermineBalanceability(balanced, unbalanced)
+	if status {
+
+	} else {
+
+	}
 	log.Println(fmt.Sprintf("Wallets Balanceability Status: %t\nAmount (+/-): %.8f", status, amount))
 
 	// Calculates Balancing txes
@@ -63,39 +68,10 @@ func main() {
 	fmt.Println(sendToExchanges)
 	fmt.Println("Found Txes: ", sendToExchanges)
 
+	orders, err := SendToExchanges(sendToExchanges)
 
-	// Order Creation
-	var adrestiaOrders []hestia.AdrestiaOrder
-	ef := new(apiServices.ExchangeFactory)
+	StoreOrders(orders)
 
-	for _, tx := range sendToExchanges {
-		var order hestia.AdrestiaOrder
-		coinInfo, err := coinfactory.GetCoin(tx.ToCoin)
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			ex, err := ef.GetExchangeByCoin(*coinInfo)
-			if err != nil {
-				fmt.Println(err)
-			} else {
-				address, _ := ex.GetAddress(*coinInfo)
-				fmt.Print(address)
-				order.ToCoin = tx.ToCoin
-				order.FromCoin = tx.FromCoin
-				order.Amount = tx.Amount
-				order.Status = "ORDER_PLACED"
-				order.Exchange, _ = ex.GetName()
-				order.ID = "testing"
-				order.Message = "testing adrestia 12-Nov"
-				order.Time = time.Now().Unix()
-				order.WithdrawAddress = address
-
-				adrestiaOrders = append(adrestiaOrders, order)
-			}
-		}
-		fmt.Println(adrestiaOrders)
-
-	}
 	panic("stop!")
 	// Evaluate wallets with exceeding amount
 	for i, w := range availableWallets {
@@ -109,7 +85,7 @@ func main() {
 			sendToExchanges = append(sendToExchanges, *tx)
 		}
 	}
-
+	/*
 	// Send remaining amount to exchanges using plutus
 	for _, tx := range sendToExchanges{
 		fmt.Println("------------ TX-----------")
@@ -119,19 +95,21 @@ func main() {
 			color.Error.Tips("%s", err)
 			continue
 		}
-		ex, err := ef.GetExchangeByName(coinInfo.Rates.Exchange)
+		// ex, err := ef.GetExchangeByName(coinInfo.Rates.Exchange)
 		if err != nil {
 			color.Error.Tips("%s", err)
 			continue
 		}
-		add, err :=ex.GetAddress(*coinInfo)
+		// add, err :=ex.GetAddress(*coinInfo)
 		if err != nil {
 			color.Error.Tips("%s", err)
 			continue
 		}
-		color.Info.Tips("Sending %.8f %s to its exchange at %s", tx.Amount, tx.FromCoin, add)
+		// color.Info.Tips("Sending %.8f %s to its exchange at %s", tx.Amount, tx.FromCoin, add)
 	}
 	// fmt.Println(conf)
+
+	 */
 	/* var balanced, unbalanced = SortBalances(balances, conf)
 
 	isBalanceable, diff := DetermineBalanceability(balanced, unbalanced)
@@ -180,6 +158,7 @@ func GetWalletBalances() []balance.Balance {
 			flagAllRates = true
 			errRates = append(errRates, coin.Ticker)
 		} else {
+			fmt.Println("Rate for ", coin.Ticker, " is ", rate)
 			currentBalance.SetRate(rate)
 			updatedBalances = append(updatedBalances, currentBalance)
 		}
@@ -362,7 +341,7 @@ func NormalizeWallets(balances []balance.Balance, hestiaConf []hestia.Coin) (map
 			 	the proceed with the wrapper creation that will handle the balancing of the coins.
 
 			 */
-
+			fmt.Println(elem.Ticker, "\n", mapConf[elem.Ticker].Balances.HotWallet)
 			elem.SetTarget(mapConf[elem.Ticker].Balances.HotWallet) // Final attribute for Balance class, represents the target amount in the base currency that should be present
 			if elem.Target > 0.0 {
 				availableCoins[elem.Ticker] = balance.WalletInfoWrapper{
@@ -373,4 +352,54 @@ func NormalizeWallets(balances []balance.Balance, hestiaConf []hestia.Coin) (map
 		}
 	}
 	return availableCoins, missingCoins
+}
+
+func SendToExchanges(sendToExchanges []transaction.PTx) (adrestiaOrders []hestia.AdrestiaOrder, err error){
+	// Order Creation
+	ef := new(apiServices.ExchangeFactory)
+
+	for _, tx := range sendToExchanges {
+		var order hestia.AdrestiaOrder
+		coinInfo, err := coinfactory.GetCoin(tx.ToCoin)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			ex, err := ef.GetExchangeByCoin(*coinInfo)
+			if err != nil {
+				fmt.Println(err)
+			} else {
+				address, _ := ex.GetAddress(*coinInfo)
+				fmt.Print(address)
+				order.ToCoin = tx.ToCoin
+				order.FromCoin = tx.FromCoin
+				order.Amount = tx.Amount
+				order.Status = "ORDER_PLACED"
+				order.Exchange, _ = ex.GetName()
+				order.ID = "testing"
+				order.Message = "testing adrestia 13-Nov"
+				order.Time = time.Now().Unix()
+				order.WithdrawAddress = address
+
+				adrestiaOrders = append(adrestiaOrders, order)
+				res, err := services.CreateAdrestiaOrder(order)
+				if err != nil {
+					fmt.Println("Error posting order to Hestia", err)
+				}
+				fmt.Println(res)
+			}
+		}
+		fmt.Println(adrestiaOrders)
+	}
+	return adrestiaOrders, nil
+}
+
+func StoreOrders(orders []hestia.AdrestiaOrder) {
+	for _, order := range orders {
+		res, err := services.CreateAdrestiaOrder(order)
+		if err != nil {
+			fmt.Println("error posting order to hestia: ", err)
+		} else {
+			fmt.Println(res)
+		}
+	}
 }

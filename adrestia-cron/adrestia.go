@@ -71,10 +71,7 @@ func main() {
 	} else {
 		log.Println(fmt.Sprintf("can not balance by missing %.8f BTC in BTC HotWallet", amount))
 	}
-
-
-
-
+	
 	panic("stop!")
 	// Evaluate wallets with exceeding amount
 	for i, w := range availableWallets {

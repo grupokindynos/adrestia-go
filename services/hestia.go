@@ -149,9 +149,7 @@ func GetAllOrders(adrestiaOrderParams services.AdrestiaOrderParams) ([]hestia.Ad
 	if err != nil {
 		return nil, errors.New("problem with query parameters")
 	}
-	req.URL.RawQuery = q + val.Encode()
-	fmt.Println(req.URL.RawQuery)
-
+	req.URL.RawQuery = q + val.Encode() // add encoded values
 	res, err := client.Do(req)
 	if err != nil {
 		return nil, err
@@ -176,6 +174,5 @@ func GetAllOrders(adrestiaOrderParams services.AdrestiaOrderParams) ([]hestia.Ad
 	if err != nil {
 		return nil, err
 	}
-
 	return response, nil
 }

@@ -2,10 +2,25 @@ package main
 
 import (
 	"fmt"
+	"github.com/grupokindynos/adrestia-go/adrestia-cron/models"
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	"github.com/grupokindynos/adrestia-go/services"
+	"github.com/joho/godotenv"
+	"log"
 	"testing"
 )
+
+func init() {
+	if err := godotenv.Load(); err != nil {
+		log.Print("No .env file found")
+	}
+}
+
+func TestOrdersAdrestia(t *testing.T) {
+	var orderManager models.OrderManager
+	orders := orderManager.GetOrderMap()
+	fmt.Println(orders)
+}
 
 func TestBalancing(t *testing.T) {
 	var mdBalances []balance.Balance

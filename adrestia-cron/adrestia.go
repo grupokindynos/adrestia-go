@@ -82,7 +82,7 @@ func main() {
 			tx.ToCoin = w.HotWalletBalance.Ticker
 			tx.Amount = w.FirebaseConf.Balances.HotWallet - w.HotWalletBalance.GetTotalBalance()
 			tx.Rate = 1.0
-			sendToExchanges = append(sendToExchanges, *tx)
+			//sendToExchanges = append(sendToExchanges, *tx)
 		}
 	}
 	/*
@@ -315,7 +315,6 @@ func NormalizeWallets(balances []balance.Balance, hestiaConf []hestia.Coin) (map
 			/*
 				If the current coin is present in both the coinConfig and the acquired Balance maps,
 			 	the proceed with the wrapper creation that will handle the balancing of the coins.
-
 			 */
 			fmt.Println(elem.Ticker, "\n", mapConf[elem.Ticker].Balances.HotWallet)
 			elem.SetTarget(mapConf[elem.Ticker].Balances.HotWallet) // Final attribute for Balance class, represents the target amount in the base currency that should be present
@@ -350,7 +349,7 @@ func SendToExchanges(sendToExchanges []transaction.PTx) (adrestiaOrders []hestia
 				order.ToCoin = tx.ToCoin
 				order.FromCoin = tx.FromCoin
 				order.Amount = tx.Amount
-				order.Status = "ORDER_PLACED"
+				order.Status = hestia.AdrestiaStatusStr[hestia.AdrestiaStatusCompleted]
 				order.Exchange, _ = ex.GetName()
 				order.ID = shortuuid.New()
 				order.Message = "testing adrestia 13-Nov"

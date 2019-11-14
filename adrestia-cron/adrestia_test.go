@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/grupokindynos/adrestia-go/adrestia-cron/models"
-	"github.com/grupokindynos/adrestia-go/models/balance"
 	"github.com/grupokindynos/adrestia-go/services"
 	"github.com/joho/godotenv"
 	"log"
@@ -20,11 +19,6 @@ func TestOrdersAdrestia(t *testing.T) {
 	var orderManager models.OrderManager
 	orders := orderManager.GetOrderMap()
 	fmt.Println(orders)
-}
-
-func TestBalancing(t *testing.T) {
-	var mdBalances []balance.Balance
-	fmt.Println(mdBalances)
 }
 
 func TestOpenOrders(t *testing.T) {

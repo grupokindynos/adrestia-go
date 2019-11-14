@@ -11,7 +11,7 @@ type OrderManager struct {
 
 }
 
-func (o *OrderManager) GetOrderMap() []hestia.AdrestiaOrder {
+func (o *OrderManager) GetOrderMap() map[string][]hestia.AdrestiaOrder {
 	var adrestiaOrders = services2.AdrestiaOrderParams{
 		IncludeComplete: true,
 		AddedSince: 0,
@@ -20,5 +20,9 @@ func (o *OrderManager) GetOrderMap() []hestia.AdrestiaOrder {
 	if err!= nil {
 		fmt.Println(err)
 	}
-	return orders
+	var mappedOrders = make(map[string][]hestia.AdrestiaOrder)
+	for _, order := range orders {
+		mappedOrders[order.Status] = append(mappedOrders[order.Status], order)
+	}
+	return mappedOrders
 }

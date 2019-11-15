@@ -24,7 +24,7 @@ require (
 	github.com/google/pprof v0.0.0-20191105193234-27840fff0d09 // indirect
 	github.com/gookit/color v1.2.0
 	github.com/gorilla/websocket v1.4.1 // indirect
-	github.com/grupokindynos/common v0.0.0-20191113193530-ba0ad0e8f22a
+	github.com/grupokindynos/common v0.0.0-20191115191832-86db1d6de755
 	github.com/grupokindynos/gobitso v0.0.0-20191030183629-c86efdb0dae4
 	github.com/grupokindynos/hestia v0.0.0-20191114184654-999c40e5ff84 // indirect
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
@@ -49,9 +49,9 @@ require (
 	golang.org/x/mobile v0.0.0-20191112165657-c2e8f9e9c7a3 // indirect
 	golang.org/x/net v0.0.0-20191112182307-2180aed22343 // indirect
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e // indirect
-	golang.org/x/sys v0.0.0-20191113165036-4c7a9d0fe056 // indirect
+	golang.org/x/sys v0.0.0-20191115151921-52ab43148777 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
-	golang.org/x/tools v0.0.0-20191114161115-faa69481e761 // indirect
+	golang.org/x/tools v0.0.0-20191115173008-1c71899d35ca // indirect
 	golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
 	google.golang.org/genproto v0.0.0-20191114150713-6bbd007550de // indirect

@@ -34,6 +34,11 @@ func init() {
 }
 
 func main() {
+	/*
+		pROCESS dESCRIPTION
+	Check for wallets with superavits, send remaining to exchange conversion to bTC and then send to HW.
+	Use exceedent balance in HW (or a new bTC WALLET that solely fits this purpose) to balance other wallets in exchanges (should convert and withdraw to an address stored in Firestore).
+	 */
 	balOrders, err := services.GetBalancingOrders()
 	if err != nil {
 		fmt.Print(err)
@@ -352,7 +357,7 @@ func SendToExchanges(sendToExchanges []transaction.PTx) (adrestiaOrders []hestia
 				order.Status = hestia.AdrestiaStatusStr[hestia.AdrestiaStatusCompleted]
 				order.Exchange, _ = ex.GetName()
 				order.ID = shortuuid.New()
-				order.Message = "testing adrestia 13-Nov"
+				order.Message = "testing adrestia 15-Nov"
 				order.Time = time.Now().Unix()
 				order.WithdrawAddress = address
 				order.OrderId = "pending match with order id"

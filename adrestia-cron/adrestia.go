@@ -115,7 +115,6 @@ func main() {
 		if err != nil {
 			color.Error.Tips(fmt.Sprintf("%v", err))
 		} else {
-
 			// fmt.Println("ex name: ", ex.GetName())
 			exAddress, err := ex.GetAddress(*coinfactory.Coins["BTC"])
 			if err == nil {
@@ -142,6 +141,8 @@ func main() {
 				order.TxId = txId
 
 				deficitOrders = append(deficitOrders, order)
+			} else {
+				fmt.Println("error ex factory: ", err)
 			}
 		}
 	}
@@ -298,7 +299,7 @@ func NormalizeWallets(balances []balance.Balance, hestiaConf []hestia.Coin) (map
 				If the current coin is present in both the coinConfig and the acquired Balance maps,
 			 	the proceed with the wrapper creation that will handle the balancing of the coins.
 			 */
-			fmt.Println(elem.Ticker, "\n", mapConf[elem.Ticker].Balances.HotWallet)
+			// fmt.Println(elem.Ticker, "\n", mapConf[elem.Ticker].Balances.HotWallet)
 			elem.SetTarget(mapConf[elem.Ticker].Balances.HotWallet) // Final attribute for Balance class, represents the target amount in the base currency that should be present
 			if elem.Target > 0.0 {
 				availableCoins[elem.Ticker] = balance.WalletInfoWrapper{

@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gookit/color"
+	"github.com/grupokindynos/adrestia-go/adrestia-cron/models"
 	apiServices "github.com/grupokindynos/adrestia-go/api/services"
-	services "github.com/grupokindynos/adrestia-go/services"
+	"github.com/grupokindynos/adrestia-go/services"
 	coinfactory "github.com/grupokindynos/common/coin-factory"
 	"github.com/grupokindynos/common/hestia"
+	"github.com/grupokindynos/common/plutus"
 	"github.com/joho/godotenv"
 	"github.com/lithammer/shortuuid"
 	"io/ioutil"
@@ -23,6 +25,9 @@ import (
 )
 
 const fiatThreshold = 2.00 // USD // 2.0 for Testing, 10 USD for production
+const orderTimeOut = 2 * time.Hour
+const exConfirmationThreshold = 10
+const walletConfirmationThreshold = 3
 
 func init() {
 	if err := godotenv.Load(); err != nil {
@@ -36,17 +41,22 @@ func main() {
 	Check for wallets with superavits, send remaining to exchange conversion to bTC and then send to HW.
 	Use exceedent balance in HW (or a new bTC WALLET that solely fits this purpose) to balance other wallets in exchanges (should convert and withdraw to an address stored in Firestore).
 	 */
-	balOrders, err := services.GetBalancingOrders()
-	if err != nil {
-		fmt.Print(err)
-		panic(err)
-	} else {
-		fmt.Println("Balancing Orders: ", balOrders)
+	om := new(models.OrderManager)
+	orders := om.GetOrderMap()
+
+	// First case: verify sent orders
+	sentOrders := orders[hestia.AdrestiaStatusStr[hestia.AdrestiaStatusSentAmount]]
+	fmt.Print(sentOrders)
+	for _, order := range sentOrders {
+		fmt.Print(order)
 	}
+
+
 	// TODO Disable and Enable Shift at star nd ending of the process
 	color.Info.Tips("Program Started")
-	var balances = services.GetWalletBalances()						// Gets balance from Hot Wallets
+	var balances = services.GetWalletBalances()				// Gets balance from Hot Wallets
 	confHestia, err := services.GetCoinConfiguration()		// Firebase Wallet ConfiguratioN
+
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -67,20 +77,33 @@ func main() {
 		if err != nil {
 			color.Error.Tips(fmt.Sprintf("%v", err))
 		} else {
-			// TODO Order posting
-			var order hestia.AdrestiaOrder
-			order.Status = hestia.AdrestiaStatusStr[hestia.AdrestiaStatusCreated]
-			order.Amount = bWallet.DiffBTC / bWallet.RateBTC
-			order.OrderId = "get order from method"
-			order.FromCoin = bWallet.Ticker
-			order.ToCoin = "BTC"
-			order.WithdrawAddress = btcAddress
-			order.Time = time.Now().Unix()
-			order.Message = "Adrestia outward balancing"
-			order.ID = shortuuid.New()
-			order.Exchange, _ = ex.GetName()
+			// TODO Send to Exchange
+			exAddress, err := ex.GetAddress(*coinInfo)
+			if err != nil {
+				var txInfo = plutus.SendAddressBodyReq{
+					Address: exAddress,
+					Coin:    coinInfo.Tag,
+					Amount:  0.0001,
+				}
+				fmt.Println(txInfo)
+				txId := "test txId"// txId, _ := services.WithdrawToAddress(txInfo)
+				var order hestia.AdrestiaOrder
+				order.Status = hestia.AdrestiaStatusStr[hestia.AdrestiaStatusSentAmount]
+				order.Amount = bWallet.DiffBTC / bWallet.RateBTC
+				order.OrderId = "get order from method"
+				order.FromCoin = bWallet.Ticker
+				order.ToCoin = "BTC"
+				order.WithdrawAddress = btcAddress
+				order.Time = time.Now().Unix()
+				order.Message = "Adrestia outward balancing"
+				order.ID = shortuuid.New()
+				order.Exchange, _ = ex.GetName()
+				order.ExchangeAddress = exAddress
+				order.TxId = txId
 
-			superavitOrders = append(superavitOrders, order)
+				superavitOrders = append(superavitOrders, order)
+			}
+
 		}
 	}
 

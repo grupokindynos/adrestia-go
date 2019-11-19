@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"github.com/gookit/color"
 	apiServices "github.com/grupokindynos/adrestia-go/api/services"
+	services "github.com/grupokindynos/adrestia-go/services"
 	coinfactory "github.com/grupokindynos/common/coin-factory"
 	"github.com/grupokindynos/common/hestia"
-	"github.com/grupokindynos/common/plutus"
 	"github.com/joho/godotenv"
 	"github.com/lithammer/shortuuid"
 	"io/ioutil"
@@ -15,14 +15,11 @@ import (
 	"math"
 	"os"
 	"sort"
-	"strings"
 	"time"
 
 	"github.com/grupokindynos/adrestia-go/models/transaction"
-	"github.com/grupokindynos/common/obol"
 
 	"github.com/grupokindynos/adrestia-go/models/balance"
-	"github.com/grupokindynos/adrestia-go/services"
 )
 
 const fiatThreshold = 2.00 // USD // 2.0 for Testing, 10 USD for production
@@ -35,7 +32,7 @@ func init() {
 
 func main() {
 	/*
-		pROCESS dESCRIPTION
+	Process Description
 	Check for wallets with superavits, send remaining to exchange conversion to bTC and then send to HW.
 	Use exceedent balance in HW (or a new bTC WALLET that solely fits this purpose) to balance other wallets in exchanges (should convert and withdraw to an address stored in Firestore).
 	 */
@@ -48,7 +45,7 @@ func main() {
 	}
 	// TODO Disable and Enable Shift at star nd ending of the process
 	color.Info.Tips("Program Started")
-	var balances = GetWalletBalances()						// Gets balance from Hot Wallets
+	var balances = services.GetWalletBalances()						// Gets balance from Hot Wallets
 	confHestia, err := services.GetCoinConfiguration()		// Firebase Wallet ConfiguratioN
 	if err != nil {
 		log.Fatalln(err)
@@ -58,8 +55,64 @@ func main() {
 	fmt.Println("Balancing these Wallets: ", availableWallets)
 	fmt.Println("Errors on these Wallets: ", errorWallets)
 
-	// TODO Sort
 	balanced, unbalanced := SortBalances(availableWallets)
+
+	var superavitOrders []hestia.AdrestiaOrder
+	var deficitOrders []hestia.AdrestiaOrder
+	for _, bWallet := range balanced {
+		btcAddress, err := services.GetBtcAddress()
+		ef := new(apiServices.ExchangeFactory)
+		coinInfo, err := coinfactory.GetCoin(bWallet.Ticker)
+		ex, err := ef.GetExchangeByCoin(*coinInfo)
+		if err != nil {
+			color.Error.Tips(fmt.Sprintf("%v", err))
+		} else {
+			// TODO Order posting
+			var order hestia.AdrestiaOrder
+			order.Status = hestia.AdrestiaStatusStr[hestia.AdrestiaStatusCreated]
+			order.Amount = bWallet.DiffBTC / bWallet.RateBTC
+			order.OrderId = "get order from method"
+			order.FromCoin = bWallet.Ticker
+			order.ToCoin = "BTC"
+			order.WithdrawAddress = btcAddress
+			order.Time = time.Now().Unix()
+			order.Message = "Adrestia outward balancing"
+			order.ID = shortuuid.New()
+			order.Exchange, _ = ex.GetName()
+
+			superavitOrders = append(superavitOrders, order)
+		}
+	}
+
+	for _, uWallet := range unbalanced {
+		address, err := services.GetAddress(uWallet.Ticker)
+		ef := new(apiServices.ExchangeFactory)
+		coinInfo, err := coinfactory.GetCoin(uWallet.Ticker)
+		ex, err := ef.GetExchangeByCoin(*coinInfo)
+		if err != nil {
+			color.Error.Tips(fmt.Sprintf("%v", err))
+		} else {
+			// TODO Order posting
+			var order hestia.AdrestiaOrder
+			order.Status = hestia.AdrestiaStatusStr[hestia.AdrestiaStatusCreated]
+			order.Amount = uWallet.DiffBTC / uWallet.RateBTC
+			order.OrderId = "get order from method"
+			order.FromCoin = "btc"
+			order.ToCoin = uWallet.Ticker
+			order.WithdrawAddress = address
+			order.Time = time.Now().Unix()
+			order.Message = "Adrestia inward balancing"
+			order.ID = shortuuid.New()
+			order.Exchange, _ = ex.GetName()
+
+			deficitOrders = append(deficitOrders, order)
+		}
+	}
+	log.Println(superavitOrders)
+	log.Println(deficitOrders)
+	StoreOrders(superavitOrders)
+	StoreOrders(deficitOrders)
+	panic("stop!!")
 	status, amount := DetermineBalanceability(balanced, unbalanced)
 	log.Println(fmt.Sprintf("Wallets Balanceability Status: %t\nAmount (+/-): %.8f", status, amount))
 	if status {
@@ -131,49 +184,6 @@ func main() {
 	}*/
 }
 
-func GetWalletBalances() []balance.Balance {
-	flagAllRates := false
-	log.Println("Retrieving Wallet Balances...")
-	var rawBalances []balance.Balance
-	availableCoins := coinfactory.Coins
-	for _, coin := range availableCoins {
-		res, err := plutus.GetWalletBalance(os.Getenv("PLUTUS_URL"), strings.ToLower(coin.Tag), os.Getenv("ADRESTIA_PRIV_KEY"), "adrestia", os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
-		if err != nil {
-			fmt.Println(fmt.Sprintf("Plutus Service Error for %s: %v", coin.Tag, err))
-		} else {
-			// Create Balance Object
-			b := balance.Balance{}
-			b.ConfirmedBalance = res.Confirmed
-			b.UnconfirmedBalance = res.Unconfirmed
-			b.Ticker = coin.Tag
-			rawBalances = append(rawBalances, b)
-			fmt.Println(fmt.Sprintf("%.8f %s\t of a total of %.8f\t%.2f%%", b.ConfirmedBalance, b.Ticker, b.ConfirmedBalance + b.UnconfirmedBalance, b.GetConfirmedProportion()))
-		}
-	}
-	log.Println("Finished Retrieving Balances")
-
-	var errRates []string
-
-	var updatedBalances []balance.Balance
-	log.Println("Retrieving Wallet Rates...")
-	for _, coin := range rawBalances {
-		var currentBalance = coin
-		rate, err := obol.GetCoin2CoinRates("https://obol-rates.herokuapp.com/", "btc", currentBalance.Ticker)
-		if err != nil{
-			flagAllRates = true
-			errRates = append(errRates, coin.Ticker)
-		} else {
-			fmt.Println("Rate for ", coin.Ticker, " is ", rate)
-			currentBalance.SetRate(rate)
-			updatedBalances = append(updatedBalances, currentBalance)
-		}
-	}
-	if flagAllRates {
-		color.Error.Tips("Not all rates could be retrieved. Balancing the rest of them. Missing rates for %s", errRates)
-	}
-	return updatedBalances
-}
-
 // Retrieves minimum set balance configuration from test data
 func GetFBConfiguration(file string) map[string]balance.Balance {
 	jsonFile, err := os.Open(file)
@@ -197,7 +207,7 @@ func SortBalances(data map[string]balance.WalletInfoWrapper) ([]balance.Balance,
 	var unbalancedWallets []balance.Balance
 
 	for _, obj := range data {
-		x:= obj.HotWalletBalance // Curreny Wallet Info Wrapper
+		x := obj.HotWalletBalance // Curreny Wallet Info Wrapper
 		x.GetDiff()
 		if x.IsBalanced {
 			balancedWallets = append(balancedWallets, x)

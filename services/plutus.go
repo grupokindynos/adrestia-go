@@ -6,12 +6,10 @@ import (
 	"github.com/gookit/color"
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	coinfactory "github.com/grupokindynos/common/coin-factory"
-	"github.com/grupokindynos/common/jwt"
 	"github.com/grupokindynos/common/obol"
 	"github.com/grupokindynos/common/plutus"
 	"github.com/grupokindynos/common/tokens/mrt"
 	"github.com/grupokindynos/common/tokens/mvt"
-	"github.com/pkg/errors"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -56,7 +54,7 @@ func GetWalletBalances() []balance.Balance {
 			flagAllRates = true
 			errRates = append(errRates, coin.Ticker)
 		} else {
-			fmt.Println("Rate for ", coin.Ticker, " is ", rate)
+			// fmt.Println("Rate for ", coin.Ticker, " is ", rate)
 			currentBalance.SetRate(rate)
 			updatedBalances = append(updatedBalances, currentBalance)
 		}

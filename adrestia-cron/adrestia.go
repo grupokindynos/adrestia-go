@@ -39,7 +39,7 @@ func main() {
 	/*
 	Process Description
 	Check for wallets with superavits, send remaining to exchange conversion to bTC and then send to HW.
-	Use exceedent balance in HW (or a new bTC WALLET that solely fits this purpose) to balance other wallets in exchanges (should convert and withdraw to an address stored in Firestore).
+	Use exceeding balance in HW (or a new bTC WALLET that solely fits this purpose) to balance other wallets in exchanges (should convert and withdraw to an address stored in Firestore).
 	 */
 	om := new(models.OrderManager)
 	orders := om.GetOrderMap()
@@ -55,7 +55,7 @@ func main() {
 	// TODO Disable and Enable Shift at star nd ending of the process
 	color.Info.Tips("Program Started")
 	var balances = services.GetWalletBalances()				// Gets balance from Hot Wallets
-	confHestia, err := services.GetCoinConfiguration()		// Firebase Wallet ConfiguratioN
+	confHestia, err := services.GetCoinConfiguration()		// Firebase Wallet Configuration
 
 	if err != nil {
 		log.Fatalln(err)
@@ -79,7 +79,7 @@ func main() {
 		} else {
 			// TODO Send to Exchange
 			exAddress, err := ex.GetAddress(*coinInfo)
-			if err != nil {
+			if err == nil {
 				var txInfo = plutus.SendAddressBodyReq{
 					Address: exAddress,
 					Coin:    coinInfo.Tag,
@@ -90,7 +90,7 @@ func main() {
 				var order hestia.AdrestiaOrder
 				order.Status = hestia.AdrestiaStatusStr[hestia.AdrestiaStatusSentAmount]
 				order.Amount = bWallet.DiffBTC / bWallet.RateBTC
-				order.OrderId = "get order from method"
+				order.OrderId = ""
 				order.FromCoin = bWallet.Ticker
 				order.ToCoin = "BTC"
 				order.WithdrawAddress = btcAddress
@@ -115,96 +115,40 @@ func main() {
 		if err != nil {
 			color.Error.Tips(fmt.Sprintf("%v", err))
 		} else {
-			// TODO Order posting
-			var order hestia.AdrestiaOrder
-			order.Status = hestia.AdrestiaStatusStr[hestia.AdrestiaStatusCreated]
-			order.Amount = uWallet.DiffBTC / uWallet.RateBTC
-			order.OrderId = "get order from method"
-			order.FromCoin = "btc"
-			order.ToCoin = uWallet.Ticker
-			order.WithdrawAddress = address
-			order.Time = time.Now().Unix()
-			order.Message = "Adrestia inward balancing"
-			order.ID = shortuuid.New()
-			order.Exchange, _ = ex.GetName()
 
-			deficitOrders = append(deficitOrders, order)
+			// fmt.Println("ex name: ", ex.GetName())
+			exAddress, err := ex.GetAddress(*coinfactory.Coins["BTC"])
+			if err == nil {
+				var txInfo = plutus.SendAddressBodyReq{
+					Address: exAddress,
+					Coin:    "BTC",
+					Amount:  0.0001,
+				}
+				fmt.Println(txInfo)
+				txId := "test txId" // txId, _ := services.WithdrawToAddress(txInfo)
+				// TODO Order posting
+				var order hestia.AdrestiaOrder
+				order.Status = hestia.AdrestiaStatusStr[hestia.AdrestiaStatusCreated]
+				order.Amount = uWallet.DiffBTC / uWallet.RateBTC
+				order.OrderId = ""
+				order.FromCoin = "BTC"
+				order.ToCoin = uWallet.Ticker
+				order.WithdrawAddress = address
+				order.Time = time.Now().Unix()
+				order.Message = "Adrestia inward balancing"
+				order.ID = shortuuid.New()
+				order.Exchange, _ = ex.GetName()
+				order.ExchangeAddress = exAddress
+				order.TxId = txId
+
+				deficitOrders = append(deficitOrders, order)
+			}
 		}
 	}
 	log.Println(superavitOrders)
 	log.Println(deficitOrders)
 	StoreOrders(superavitOrders)
 	StoreOrders(deficitOrders)
-	panic("stop!!")
-	status, amount := DetermineBalanceability(balanced, unbalanced)
-	log.Println(fmt.Sprintf("Wallets Balanceability Status: %t\nAmount (+/-): %.8f", status, amount))
-	if status {
-		log.Println("balancing...")
-		// Calculates Balancing txes
-		sendToExchanges := BalanceHW(balanced, unbalanced)
-
-		fmt.Println(sendToExchanges)
-		fmt.Println("Found Txes: ", sendToExchanges)
-
-		orders, _ := SendToExchanges(sendToExchanges)
-
-		StoreOrders(orders)
-	} else {
-		log.Println(fmt.Sprintf("can not balance by missing %.8f BTC in BTC HotWallet", amount))
-	}
-
-	panic("stop!")
-	// Evaluate wallets with exceeding amount
-	for i, w := range availableWallets {
-		fmt.Println("Retrieving for ", i, " ", w)
-		if w.FirebaseConf.Balances.HotWallet < w.HotWalletBalance.GetTotalBalance() {
-			tx := new(transaction.PTx)
-			tx.FromCoin = w.HotWalletBalance.Ticker
-			tx.ToCoin = w.HotWalletBalance.Ticker
-			tx.Amount = w.FirebaseConf.Balances.HotWallet - w.HotWalletBalance.GetTotalBalance()
-			tx.Rate = 1.0
-			//sendToExchanges = append(sendToExchanges, *tx)
-		}
-	}
-	/*
-	// Send remaining amount to exchanges using plutus
-	for _, tx := range sendToExchanges{
-		fmt.Println("------------ TX-----------")
-		fmt.Println(tx)
-		coinInfo, err := coinfactory.GetCoin(tx.FromCoin)
-		if err != nil {
-			color.Error.Tips("%s", err)
-			continue
-		}
-		// ex, err := ef.GetExchangeByName(coinInfo.Rates.Exchange)
-		if err != nil {
-			color.Error.Tips("%s", err)
-			continue
-		}
-		// add, err :=ex.GetAddress(*coinInfo)
-		if err != nil {
-			color.Error.Tips("%s", err)
-			continue
-		}
-		// color.Info.Tips("Sending %.8f %s to its exchange at %s", tx.Amount, tx.FromCoin, add)
-	}
-	// fmt.Println(conf)
-
-	 */
-	/* var balanced, unbalanced = SortBalances(balances, conf)
-
-	isBalanceable, diff := DetermineBalanceability(balanced, unbalanced)
-	if isBalanceable {
-		fmt.Printf("Wallet is balanceable by %.8f\n", diff)
-		BalanceHW(balanced, unbalanced) // Balances HW
-	} else {
-		fmt.Printf("Wallet is not balanceable by %.8f\n", diff)
-		BalanceHW(balanced, unbalanced)
-		/*
-			TODO Handle buy and sell requests on Adrestia as well as proper retrial
-			on condition fulfillments
-
-	}*/
 }
 
 // Retrieves minimum set balance configuration from test data
@@ -365,47 +309,6 @@ func NormalizeWallets(balances []balance.Balance, hestiaConf []hestia.Coin) (map
 		}
 	}
 	return availableCoins, missingCoins
-}
-
-func SendToExchanges(sendToExchanges []transaction.PTx) (adrestiaOrders []hestia.AdrestiaOrder, err error){
-	// Order Creation
-	ef := new(apiServices.ExchangeFactory)
-
-	for _, tx := range sendToExchanges {
-		var order hestia.AdrestiaOrder
-		coinInfo, err := coinfactory.GetCoin(tx.ToCoin)
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			ex, err := ef.GetExchangeByCoin(*coinInfo)
-			if err != nil {
-				fmt.Println(err)
-			} else {
-				fmt.Println("debugging: ", tx.Amount)
-				address, _ := ex.GetAddress(*coinInfo)
-				fmt.Print(address)
-				order.ToCoin = tx.ToCoin
-				order.FromCoin = tx.FromCoin
-				order.Amount = tx.Amount
-				order.Status = hestia.AdrestiaStatusStr[hestia.AdrestiaStatusCompleted]
-				order.Exchange, _ = ex.GetName()
-				order.ID = shortuuid.New()
-				order.Message = "testing adrestia 15-Nov"
-				order.Time = time.Now().Unix()
-				order.WithdrawAddress = address
-				order.OrderId = "pending match with order id"
-
-				adrestiaOrders = append(adrestiaOrders, order)
-				res, err := services.CreateAdrestiaOrder(order)
-				if err != nil {
-					fmt.Println("Error posting order to Hestia", err)
-				}
-				fmt.Println(res)
-			}
-		}
-		fmt.Println(adrestiaOrders)
-	}
-	return adrestiaOrders, nil
 }
 
 func StoreOrders(orders []hestia.AdrestiaOrder) {

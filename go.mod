@@ -26,6 +26,7 @@ require (
 	github.com/lithammer/shortuuid v3.0.0+incompatible
 	github.com/mattn/go-isatty v0.0.10 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
+	github.com/pkg/errors v0.8.2-0.20190227000051-27936f6d90f9
 	github.com/rootpd/go-binance v0.0.0-20171024115603-c656b55bcff4
 	github.com/sethvargo/go-password v0.1.3 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect

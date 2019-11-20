@@ -95,7 +95,7 @@ func main() {
 				order.ToCoin = "BTC"
 				order.WithdrawAddress = btcAddress
 				order.Time = time.Now().Unix()
-				order.Message = "Adrestia outward balancing"
+				order.Message = "adrestia outward balancing"
 				order.ID = shortuuid.New()
 				order.Exchange, _ = ex.GetName()
 				order.ExchangeAddress = exAddress
@@ -111,6 +111,9 @@ func main() {
 		address, err := services.GetAddress(uWallet.Ticker)
 		ef := new(apiServices.ExchangeFactory)
 		coinInfo, err := coinfactory.GetCoin(uWallet.Ticker)
+		if err != nil {
+			continue
+		}
 		ex, err := ef.GetExchangeByCoin(*coinInfo)
 		if err != nil {
 			color.Error.Tips(fmt.Sprintf("%v", err))
@@ -125,16 +128,16 @@ func main() {
 				}
 				fmt.Println(txInfo)
 				txId := "test txId" // txId, _ := services.WithdrawToAddress(txInfo)
-				// TODO Order posting
+				// TODO Send to Exchange
 				var order hestia.AdrestiaOrder
-				order.Status = hestia.AdrestiaStatusStr[hestia.AdrestiaStatusCreated]
+				order.Status = hestia.AdrestiaStatusStr[hestia.AdrestiaStatusSentAmount]
 				order.Amount = uWallet.DiffBTC / uWallet.RateBTC
 				order.OrderId = ""
 				order.FromCoin = "BTC"
 				order.ToCoin = uWallet.Ticker
 				order.WithdrawAddress = address
 				order.Time = time.Now().Unix()
-				order.Message = "Adrestia inward balancing"
+				order.Message = "adrestia inward balancing"
 				order.ID = shortuuid.New()
 				order.Exchange, _ = ex.GetName()
 				order.ExchangeAddress = exAddress
@@ -319,6 +322,46 @@ func StoreOrders(orders []hestia.AdrestiaOrder) {
 			fmt.Println("error posting order to hestia: ", err)
 		} else {
 			fmt.Println(res)
+		}
+	}
+}
+
+func HandleSentOrders(orders []hestia.AdrestiaOrder) {
+	for _, order := range orders {
+		tx, err :=services.GetWalletTx(order.FromCoin, order.TxId)
+		if err != nil {
+			fmt.Println(err)
+		}
+		if tx.Confirmations > exConfirmationThreshold {
+			// TODO Create Order in Exchange and Update Status
+			// TODO Handle rate variation
+		}
+	}
+}
+
+func HandleCreatedOrders(orders []hestia.AdrestiaOrder) {
+	ef := new(apiServices.ExchangeFactory)
+	for _, order := range orders {
+		coinInfo, _ := coinfactory.GetCoin(order.ToCoin)
+		ex, err := ef.GetExchangeByCoin(*coinInfo)  // ex
+		if err != nil {
+			return
+		}
+		orderFulfilled := false
+		// TODO ex.getOrderStatus
+		if orderFulfilled {
+			// TODO Withdraw
+			conf, err := ex.Withdraw(*coinInfo, order.WithdrawAddress, 0.0)
+			// conf, err := ex.Withdraw(*coinInfo, order.WithdrawAddress, order.Amount)
+			if err != nil {
+				fmt.Println(err)
+				// TODO Bot report
+				return
+			}
+			if conf {
+				// TODO Update Status
+			}
+
 		}
 	}
 }

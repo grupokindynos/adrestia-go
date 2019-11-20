@@ -119,3 +119,8 @@ func WithdrawToAddress(body plutus.SendAddressBodyReq) (txId string, err error) 
 	}
 	return response, nil
 }
+
+func GetWalletTx(coin string, txId string) (transaction plutus.Transaction, err error) {
+	transaction, err = plutus.GetWalletTX(os.Getenv("PLUTUS_URL"), strings.ToLower(coin), strings.ToLower(txId), os.Getenv("ADRESTIA_PRIV_KEY"), "adrestia", os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
+	return
+}

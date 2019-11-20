@@ -5,6 +5,7 @@ import (
 	"github.com/grupokindynos/adrestia-go/adrestia-cron/models"
 	"github.com/grupokindynos/adrestia-go/services"
 	"github.com/joho/godotenv"
+	"github.com/stretchr/testify/assert"
 	"log"
 	"testing"
 )
@@ -28,4 +29,12 @@ func TestOpenOrders(t *testing.T) {
 		return
 	}
 	fmt.Println("Balancing Orders: ", balOrders)
+}
+
+func TestPlutusTxInfo(t *testing.T) {
+	tx, err := services.GetWalletTx("polis", "c28e88833169b0b383331beb9241c0db50c32911b2cabe32924ce3bdb150cc60")
+	assert.Nil(t, err)
+	assert.Equal(t, "05062aa74c43a95a268c3e50791bf4d1c644c061b53047dd9c3d5b0ea8e0240e", tx.Blockhash)
+	assert.Equal(t, "c28e88833169b0b383331beb9241c0db50c32911b2cabe32924ce3bdb150cc60", tx.Txid)
+	assert.Equal(t, 1163.39856061, tx.Vout[1].Value)
 }

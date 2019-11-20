@@ -64,11 +64,12 @@ func (b Binance) GetName() (string, error) {
 
 func (b Binance) GetAddress(coin coins.Coin) (string, error) {
 	var addresses = make(map[string]string)
-
+	// TODO Make this implementation https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md
 	addresses["DASH"] = "XuVmLDmUHZCjaSjm8KfXkGVhRG8fVC3Jis"
 	addresses["XZC"] = "aJUE5rLmGvSu9ThnWzUu4TpYgKPPgfbCAy"
 	addresses["LTC"] = "LPZom4L6oTJ3JkRDJz6EYkdg9Bga9VrFFL"
 	addresses["GRS"] = "FjC2vAtjhdPeWfjsKGxoxrfxEJw5KWNNmR"
+	addresses["BTC"] = "157kMZrgThAmHrvinRLP4RKPC5AU4KdYKt"
 
 	if val, ok := addresses[strings.ToUpper(coin.Tag)]; ok {
 		return val, nil

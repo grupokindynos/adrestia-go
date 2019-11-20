@@ -40,7 +40,8 @@ func TestWithdrawSouth(t *testing.T) {
 }
 
 // For all implemented coins, tests that an exchange is provided
-// and that an address can be retrieved from them
+// and that an address can be retrieved from them.
+// Also requests a BTC address needed to
 func TestAddresses(t *testing.T) {
 
 
@@ -62,6 +63,15 @@ func TestAddresses(t *testing.T) {
 			fmt.Println(coin.Name, ": ", address)
 			assert.Nil(t, err)
 			assert.NotEqual(t, "", address)
+
+			// Bitcoin Address
+			btcAddress, err := ex.GetAddress(coins.Bitcoin)
+			if err != nil {
+				fmt.Println(err)
+			} else {
+				fmt.Println(btcAddress)
+				assert.NotEqual(t, "", btcAddress)
+			}
 		}
 	}
 }

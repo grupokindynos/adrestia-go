@@ -365,3 +365,10 @@ func HandleCreatedOrders(orders []hestia.AdrestiaOrder) {
 		}
 	}
 }
+
+func HandleWithdrawnOrders(orders []hestia.AdrestiaOrder) {
+	for _, order := range orders {
+		fmt.Println(order)
+		// TODO Create exchange method for tracking order status
+	}
+}

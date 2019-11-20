@@ -149,7 +149,7 @@ func (b Binance) Withdraw(coin coins.Coin, address string, amount float64) (bool
 		Timestamp:  time.Now(),
 	})*/
 
-	l.Println(fmt.Sprintf("[Withdraw] Performing withdraw request on %s for %s", b.Name, coin))
+	l.Println(fmt.Sprintf("[Withdraw] Performing withdraw request on %s for %s", b.Name, coin.Tag))
 	withdrawal, err := b.binanceApi.Withdraw(binance.WithdrawRequest{
 		Asset:      strings.ToLower(coin.Tag),
 		Address:    address,

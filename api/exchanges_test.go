@@ -62,7 +62,6 @@ func TestAddresses(t *testing.T) {
 			fmt.Println(coin.Name, ": ", address)
 			assert.Nil(t, err)
 			assert.NotEqual(t, "", address)
-
 		}
 	}
 }

@@ -49,6 +49,8 @@ func NormalizeWallets(balances []balance.Balance, hestiaConf []hestia.Coin) (map
 			}
 		}
 	}
+	fmt.Println("Balancing these Wallets: ", availableCoins)
+	fmt.Println("Errors on these Wallets: ", missingCoins)
 	return availableCoins, missingCoins
 }
 

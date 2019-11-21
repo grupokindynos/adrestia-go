@@ -2,12 +2,16 @@ package models
 
 import (
 	"fmt"
+	"github.com/gookit/color"
 	"github.com/grupokindynos/adrestia-go/api/exchanges"
 	apiServices "github.com/grupokindynos/adrestia-go/api/services"
+	"github.com/grupokindynos/adrestia-go/models/balance"
 	services2 "github.com/grupokindynos/adrestia-go/models/services"
 	"github.com/grupokindynos/adrestia-go/services"
 	coinfactory "github.com/grupokindynos/common/coin-factory"
 	"github.com/grupokindynos/common/hestia"
+	"github.com/grupokindynos/common/plutus"
+	"github.com/lithammer/shortuuid"
 	"time"
 )
 
@@ -115,4 +119,94 @@ func (o *OrderManager)HandleWithdrawnOrders(orders []hestia.AdrestiaOrder) {
 		fmt.Println(order)
 		// TODO Create exchange method for tracking order status
 	}
+}
+
+func GetOutwardOrders(balanced []balance.Balance, testingAmount float64) (superavitOrders []hestia.AdrestiaOrder) {
+	for _, bWallet := range balanced {
+		btcAddress, err := services.GetBtcAddress()
+		ef := new(apiServices.ExchangeFactory)
+		coinInfo, err := coinfactory.GetCoin(bWallet.Ticker)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		ex, err := ef.GetExchangeByCoin(*coinInfo)
+		if err != nil {
+			color.Error.Tips(fmt.Sprintf("%v", err))
+		} else {
+			// TODO Send to Exchange
+			exAddress, err := ex.GetAddress(*coinInfo)
+			if err == nil {
+				var txInfo = plutus.SendAddressBodyReq{
+					Address: exAddress,
+					Coin:    coinInfo.Tag,
+					Amount:  testingAmount,	// TODO Replace with actual amount
+				}
+				fmt.Println(txInfo)
+				txId := "test txId"// txId, _ := services.WithdrawToAddress(txInfo)
+				var order hestia.AdrestiaOrder
+				order.Status = hestia.AdrestiaStatusStr[hestia.AdrestiaStatusSentAmount]
+				order.Amount = bWallet.DiffBTC / bWallet.RateBTC
+				order.OrderId = ""
+				order.FromCoin = bWallet.Ticker
+				order.ToCoin = "BTC"
+				order.WithdrawAddress = btcAddress
+				order.Time = time.Now().Unix()
+				order.Message = "adrestia outward balancing"
+				order.ID = shortuuid.New()
+				order.Exchange, _ = ex.GetName()
+				order.ExchangeAddress = exAddress
+				order.TxId = txId
+
+				superavitOrders = append(superavitOrders, order)
+			}
+		}
+	}
+	return
+}
+
+func GetInwardOrders(unbalanced []balance.Balance, testingAmount float64) (deficitOrders []hestia.AdrestiaOrder) {
+	for _, uWallet := range unbalanced {
+		address, err := services.GetAddress(uWallet.Ticker)
+		ef := new(apiServices.ExchangeFactory)
+		coinInfo, err := coinfactory.GetCoin(uWallet.Ticker)
+		if err != nil {
+			continue
+		}
+		ex, err := ef.GetExchangeByCoin(*coinInfo)
+		if err != nil {
+			color.Error.Tips(fmt.Sprintf("%v", err))
+		} else {
+			// fmt.Println("ex name: ", ex.GetName())
+			exAddress, err := ex.GetAddress(*coinfactory.Coins["BTC"])
+			if err == nil {
+				var txInfo = plutus.SendAddressBodyReq{
+					Address: exAddress,
+					Coin:    "BTC",
+					Amount:  0.0001,
+				}
+				fmt.Println(txInfo)
+				txId := "test txId" // txId, _ := services.WithdrawToAddress(txInfo)
+				// TODO Send to Exchange
+				var order hestia.AdrestiaOrder
+				order.Status = hestia.AdrestiaStatusStr[hestia.AdrestiaStatusSentAmount]
+				order.Amount = testingAmount // TODO Replace with uWallet.DiffBTC
+				order.OrderId = ""
+				order.FromCoin = "BTC"
+				order.ToCoin = uWallet.Ticker
+				order.WithdrawAddress = address
+				order.Time = time.Now().Unix()
+				order.Message = "adrestia inward balancing"
+				order.ID = shortuuid.New()
+				order.Exchange, _ = ex.GetName()
+				order.ExchangeAddress = exAddress
+				order.TxId = txId
+
+				deficitOrders = append(deficitOrders, order)
+			} else {
+				fmt.Println("error ex factory: ", err)
+			}
+		}
+	}
+	return
 }

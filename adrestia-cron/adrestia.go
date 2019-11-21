@@ -48,7 +48,6 @@ func main() {
 		log.Fatalln(err)
 	}
 	availableWallets, _ := utils.NormalizeWallets(balances, confHestia) // Verifies wallets in firebase are the same as in plutus and creates a map
-
 	balanced, unbalanced := utils.SortBalances(availableWallets)
 
 	var superavitOrders = models.GetOutwardOrders(balanced, testingAmount)

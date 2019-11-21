@@ -62,6 +62,10 @@ func main() {
 		btcAddress, err := services.GetBtcAddress()
 		ef := new(apiServices.ExchangeFactory)
 		coinInfo, err := coinfactory.GetCoin(bWallet.Ticker)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
 		ex, err := ef.GetExchangeByCoin(*coinInfo)
 		if err != nil {
 			color.Error.Tips(fmt.Sprintf("%v", err))

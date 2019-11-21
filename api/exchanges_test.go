@@ -109,8 +109,10 @@ func TestBalances(t *testing.T) {
 			if err != nil {
 				fmt.Println(err)
 			}
+			fmt.Println(balances)
 			assert.NotNil(t, balances)
 		}
 
 	}
 }
+

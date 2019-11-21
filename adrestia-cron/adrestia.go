@@ -28,6 +28,7 @@ const fiatThreshold = 2.00 // USD // 2.0 for Testing, 10 USD for production
 const orderTimeOut = 2 * time.Hour
 const exConfirmationThreshold = 10
 const walletConfirmationThreshold = 3
+const testingAmount = 0.00001
 
 func init() {
 	if err := godotenv.Load(); err != nil {
@@ -83,7 +84,7 @@ func main() {
 				var txInfo = plutus.SendAddressBodyReq{
 					Address: exAddress,
 					Coin:    coinInfo.Tag,
-					Amount:  0.0001,
+					Amount:  testingAmount,	// TODO Replace with actual amount
 				}
 				fmt.Println(txInfo)
 				txId := "test txId"// txId, _ := services.WithdrawToAddress(txInfo)
@@ -131,7 +132,7 @@ func main() {
 				// TODO Send to Exchange
 				var order hestia.AdrestiaOrder
 				order.Status = hestia.AdrestiaStatusStr[hestia.AdrestiaStatusSentAmount]
-				order.Amount = uWallet.DiffBTC / uWallet.RateBTC
+				order.Amount = testingAmount // TODO Replace with uWallet.DiffBTC
 				order.OrderId = ""
 				order.FromCoin = "BTC"
 				order.ToCoin = uWallet.Ticker
@@ -360,10 +361,26 @@ func HandleCreatedOrders(orders []hestia.AdrestiaOrder) {
 			}
 			if conf {
 				// TODO Update Status
+
 			}
 
 		}
 	}
+}
+
+func ChangeOrderStatus(order hestia.AdrestiaOrder, status hestia.AdrestiaStatus) () {
+	fallbackStatus := order.Status
+	order.Status = hestia.AdrestiaStatusStr[status]
+	resp, err := services.UpdateAdrestiaOrder(order)
+	// TODO Move in map (if concurrency on maps allows for it)
+	if err != nil {
+		order.Status = fallbackStatus
+		fmt.Println(err)
+	} else {
+		log.Println(fmt.Sprintf("order %s in %s has been updated to %s\t%s", order.OrderId, order.Exchange, order.Status, resp))
+	}
+
+
 }
 
 func HandleWithdrawnOrders(orders []hestia.AdrestiaOrder) {

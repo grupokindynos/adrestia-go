@@ -4,6 +4,7 @@ import (
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	"github.com/grupokindynos/adrestia-go/models/transaction"
 	"github.com/grupokindynos/common/coin-factory/coins"
+	"github.com/grupokindynos/common/hestia"
 )
 
 type IExchange interface {
@@ -14,6 +15,7 @@ type IExchange interface {
 	SellAtMarketPrice(SellOrder transaction.ExchangeSell) (bool, error)
 	Withdraw(coin coins.Coin, address string, amount float64) (bool, error)
 	GetRateByAmount(sell transaction.ExchangeSell) (float64, error)
+	GetOrderStatus(orderId string) (hestia.AdrestiaStatus, error)
 }
 
 type Exchange struct {

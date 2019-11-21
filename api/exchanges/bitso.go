@@ -80,6 +80,7 @@ func (b BitsoI) GetBalances() ([]balance.Balance, error) {
 			balances = append(balances, b)
 		}
 	}
+	fmt.Println("Balances BitsoI: ", balances)
 	return balances, nil
 }
 

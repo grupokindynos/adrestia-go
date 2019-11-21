@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"github.com/gookit/color"
 	"github.com/grupokindynos/adrestia-go/adrestia-cron/models"
+	"github.com/grupokindynos/adrestia-go/adrestia-cron/utils"
 	apiServices "github.com/grupokindynos/adrestia-go/api/services"
+	"github.com/grupokindynos/adrestia-go/models/transaction"
 	"github.com/grupokindynos/adrestia-go/services"
 	coinfactory "github.com/grupokindynos/common/coin-factory"
 	"github.com/grupokindynos/common/hestia"
@@ -16,10 +18,7 @@ import (
 	"log"
 	"math"
 	"os"
-	"sort"
 	"time"
-
-	"github.com/grupokindynos/adrestia-go/models/transaction"
 
 	"github.com/grupokindynos/adrestia-go/models/balance"
 )
@@ -37,10 +36,13 @@ func init() {
 }
 
 func main() {
+	// TODO Disable and Enable Shift at star nd ending of the process
+	color.Info.Tips("Program Started")
 	/*
-	Process Description
-	Check for wallets with superavits, send remaining to exchange conversion to bTC and then send to HW.
-	Use exceeding balance in HW (or a new bTC WALLET that solely fits this purpose) to balance other wallets in exchanges (should convert and withdraw to an address stored in Firestore).
+		Process Description
+		Check for wallets with superavits, send remaining to exchange conversion to bTC and then send to HW.
+		Use exceeding balance in HW (or a new bTC WALLET that solely fits this purpose) to balance other wallets
+		in exchanges (should convert and withdraw to an address stored in Firestore).
 	 */
 	om := new(models.OrderManager)
 	orders := om.GetOrderMap()
@@ -48,25 +50,18 @@ func main() {
 	// First case: verify sent orders
 	sentOrders := orders[hestia.AdrestiaStatusStr[hestia.AdrestiaStatusSentAmount]]
 	fmt.Print(sentOrders)
-	for _, order := range sentOrders {
-		fmt.Print(order)
-	}
 
-
-	// TODO Disable and Enable Shift at star nd ending of the process
-	color.Info.Tips("Program Started")
 	var balances = services.GetWalletBalances()				// Gets balance from Hot Wallets
 	confHestia, err := services.GetCoinConfiguration()		// Firebase Wallet Configuration
-
 	if err != nil {
 		log.Fatalln(err)
 	}
-	availableWallets, errorWallets := NormalizeWallets(balances, confHestia) // Verifies wallets in firebase are the same as in plutus and creates a map
+	availableWallets, errorWallets := utils.NormalizeWallets(balances, confHestia) // Verifies wallets in firebase are the same as in plutus and creates a map
 
 	fmt.Println("Balancing these Wallets: ", availableWallets)
 	fmt.Println("Errors on these Wallets: ", errorWallets)
 
-	balanced, unbalanced := SortBalances(availableWallets)
+	balanced, unbalanced := utils.SortBalances(availableWallets)
 
 	var superavitOrders []hestia.AdrestiaOrder
 	var deficitOrders []hestia.AdrestiaOrder
@@ -156,49 +151,6 @@ func main() {
 	StoreOrders(deficitOrders)
 }
 
-// Retrieves minimum set balance configuration from test data
-func GetFBConfiguration(file string) map[string]balance.Balance {
-	jsonFile, err := os.Open(file)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println("Successfully Opened conf.json")
-	defer jsonFile.Close()
-	byteValue, _ := ioutil.ReadAll(jsonFile)
-	var conf map[string]balance.Balance
-	err = json.Unmarshal(byteValue, &conf)
-	if err != nil {
-		log.Println(err)
-	}
-	return conf
-}
-
-// Sorts Balances given their diff, so that topped wallets are used to fill the missing ones
-func SortBalances(data map[string]balance.WalletInfoWrapper) ([]balance.Balance, []balance.Balance) {
-	var balancedWallets []balance.Balance
-	var unbalancedWallets []balance.Balance
-
-	for _, obj := range data {
-		x := obj.HotWalletBalance // Curreny Wallet Info Wrapper
-		x.GetDiff()
-		if x.IsBalanced {
-			balancedWallets = append(balancedWallets, x)
-		} else {
-			unbalancedWallets = append(unbalancedWallets, x)
-		}
-	}
-
-	sort.Sort(balance.ByDiffInverse(balancedWallets))
-	sort.Sort(balance.ByDiff(unbalancedWallets))
-	for _, wallet := range unbalancedWallets {
-		fmt.Printf("%s has a deficit of %.8f BTC\n", wallet.Ticker, wallet.DiffBTC)
-	}
-	for _, wallet := range balancedWallets {
-		fmt.Printf("%s has a superavit of %.8f BTC\n", wallet.Ticker, wallet.DiffBTC)
-	}
-	return balancedWallets, unbalancedWallets
-}
-
 func DetermineBalanceability(balanced []balance.Balance, unbalanced []balance.Balance) (bool, float64) {
 	superavit := 0.0 // Exceeding amount in balanced wallets
 	deficit := 0.0   // Missing amount in unbalanced wallets
@@ -276,46 +228,6 @@ func loadTestingData() ([]balance.Balance, error){
 	return b, nil
 }
 
-func NormalizeWallets(balances []balance.Balance, hestiaConf []hestia.Coin) (map[string]balance.WalletInfoWrapper, []string){
-	/*
-		This function normalizes the wallets that were detected in Plutus and those with configuration in Hestia.
-		Returns a map of the coins' ticker as key containing a wrapper with both the actual balance of the wallet and
-		its firebase configuration.
-	*/
-	var mapBalances = make(map[string]balance.Balance)
-	var mapConf =  make(map[string]hestia.Coin)
-	var missingCoins []string
-	var availableCoins = make(map[string]balance.WalletInfoWrapper)
-
-	for _, b := range balances {
-		mapBalances[b.Ticker] = b
-	}
-	for _, c := range hestiaConf {
-		mapConf[c.Ticker] = c
-	}
-
-	for _, elem := range mapBalances {
-		_, ok := mapConf[elem.Ticker]
-		if !ok {
-			missingCoins = append(missingCoins, elem.Ticker)
-		} else {
-			/*
-				If the current coin is present in both the coinConfig and the acquired Balance maps,
-			 	the proceed with the wrapper creation that will handle the balancing of the coins.
-			 */
-			// fmt.Println(elem.Ticker, "\n", mapConf[elem.Ticker].Balances.HotWallet)
-			elem.SetTarget(mapConf[elem.Ticker].Balances.HotWallet) // Final attribute for Balance class, represents the target amount in the base currency that should be present
-			if elem.Target > 0.0 {
-				availableCoins[elem.Ticker] = balance.WalletInfoWrapper{
-					HotWalletBalance: elem,
-					FirebaseConf:     mapConf[elem.Ticker],
-				}
-			}
-		}
-	}
-	return availableCoins, missingCoins
-}
-
 func StoreOrders(orders []hestia.AdrestiaOrder) {
 	for _, order := range orders {
 		res, err := services.CreateAdrestiaOrder(order)
@@ -325,6 +237,12 @@ func StoreOrders(orders []hestia.AdrestiaOrder) {
 			fmt.Println(res)
 		}
 	}
+}
+
+func HandleBalances() {
+	/*
+		Fetches information about exchanges, their pending orders
+	 */
 }
 
 func HandleSentOrders(orders []hestia.AdrestiaOrder) {

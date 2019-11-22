@@ -1,16 +1,15 @@
 package exchanges
 
 import (
-	"errors"
 	"fmt"
 	"github.com/grupokindynos/adrestia-go/api/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	"github.com/grupokindynos/common/coin-factory/coins"
 	"github.com/grupokindynos/common/obol"
 	bitso "github.com/grupokindynos/gobitso"
+	"github.com/grupokindynos/gobitso/models"
 	"os"
 	"strconv"
-	"strings"
 )
 
 var BitsoInstance = NewBitso()
@@ -35,12 +34,11 @@ func (b BitsoI) GetName() (string, error){
 }
 
 func (b BitsoI) GetAddress(coin coins.Coin) (string, error) {
-	// TODO Neither wrapper nor API allow for address requests
-	addresses["BTC"] = "33E8cuy2QVJwmzFd1xGgzKdsbLtTd6rH5L"
-	if val, ok := addresses[strings.ToUpper(coin.Tag)]; ok {
-		return val, nil
+	address, err := b.bitsoService.FundingDestination(models.DestinationParams{FundCurrency:coin.Tag})
+	if err != nil {
+		return "", err
 	}
-	return "", errors.New("coin not supported " + strings.ToLower(coin.Tag))
+	return address.Payload.AccountIdentifier, nil
 }
 
 func (b BitsoI) OneCoinToBtc(coin coins.Coin) (float64, error) {

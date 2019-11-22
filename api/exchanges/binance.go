@@ -161,7 +161,7 @@ func (b Binance) Withdraw(coin coins.Coin, address string, amount float64) (bool
 	})
 
 	if err != nil {
-		l.Println(fmt.Sprintf("[Withdraw] Failed to withdraw %s", err))
+		l.Println(fmt.Sprintf("[Withdraw] Binance failed to withdraw %s", err))
 		return false, err
 	}
 	// TODO Binance go library has an issue signing withdrawals

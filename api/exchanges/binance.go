@@ -2,31 +2,27 @@ package exchanges
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"github.com/grupokindynos/adrestia-go/models/balance"
+	"github.com/grupokindynos/adrestia-go/models/transaction"
+	"github.com/grupokindynos/adrestia-go/utils"
 	"github.com/joho/godotenv"
 	l "log"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/grupokindynos/adrestia-go/models/transaction"
-
 	"github.com/go-kit/kit/log"
 	"github.com/grupokindynos/adrestia-go/api/exchanges/config"
-	"github.com/grupokindynos/adrestia-go/models/balance"
-	"github.com/grupokindynos/adrestia-go/utils"
 	"github.com/grupokindynos/common/coin-factory/coins"
 	"github.com/grupokindynos/common/obol"
-	"github.com/rootpd/go-binance"
+	"github.com/grupokindynos/go-binance"
 )
 
 type Binance struct {
 	Exchange
 	AccountName  string
-	BitSharesUrl string
 	binanceApi   binance.Binance
-	withdrawApi  binance.Binance
 }
 
 var BinanceInstance = NewBinance()
@@ -63,8 +59,7 @@ func (b Binance) GetName() (string, error) {
 }
 
 func (b Binance) GetAddress(coin coins.Coin) (string, error) {
-	var addresses = make(map[string]string)
-	// TODO Make this implementation https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md
+	/*var addresses = make(map[string]string)
 	addresses["DASH"] = "XuVmLDmUHZCjaSjm8KfXkGVhRG8fVC3Jis"
 	addresses["XZC"] = "aJUE5rLmGvSu9ThnWzUu4TpYgKPPgfbCAy"
 	addresses["LTC"] = "LPZom4L6oTJ3JkRDJz6EYkdg9Bga9VrFFL"
@@ -73,8 +68,19 @@ func (b Binance) GetAddress(coin coins.Coin) (string, error) {
 
 	if val, ok := addresses[strings.ToUpper(coin.Tag)]; ok {
 		return val, nil
+	}*/
+	address, err := b.binanceApi.DepositAddress(binance.AddressRequest{
+		Asset: "DASH",
+		RecvWindow: 5 * time.Second,
+		Status: true,
+		Timestamp: time.Now(),
+	})
+	if err != nil {
+		fmt.Println("binance exchange: ", err)
+		return "", err
 	}
-	return "", errors.New("address not found for coin")
+	fmt.Println(*address)
+	return address.Address, nil
 }
 
 func (b Binance) GetBalances() ([]balance.Balance, error) {

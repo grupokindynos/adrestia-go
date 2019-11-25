@@ -38,7 +38,13 @@ func main() {
 
 	// First case: verify sent orders
 	sentOrders := orders[hestia.AdrestiaStatusStr[hestia.AdrestiaStatusSentAmount]]
-	fmt.Print(sentOrders)
+	createdOrders := orders[hestia.AdrestiaStatusStr[hestia.AdrestiaStatusCreated]]
+	partiallyFulfilledOrders := orders[hestia.AdrestiaStatusStr[hestia.AdrestiaStatusPartiallyFulfilled]]
+	awaitingWithdrawOrders := orders[hestia.AdrestiaStatusStr[hestia.AdrestiaStatusPendingWidthdrawal]]
+	completedOrders := orders[hestia.AdrestiaStatusStr[hestia.AdrestiaStatusCompleted]]
+
+	fmt.Print("Sent Orders: ", sentOrders)
+	fmt.Println("Created Orders: ", createdOrders)
 
 
 	// TODO This should be the last process, accounting for moved orders
@@ -55,6 +61,8 @@ func main() {
 
 	log.Println(superavitOrders)
 	log.Println(deficitOrders)
+
+	// Stores orders in Firestore for further processing
 	utils.StoreOrders(superavitOrders)
 	utils.StoreOrders(deficitOrders)
 }

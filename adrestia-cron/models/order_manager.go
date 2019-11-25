@@ -74,6 +74,8 @@ func (o *OrderManager)HandleBalances() {
 }
 
 func (o *OrderManager)HandleSentOrders(orders []hestia.AdrestiaOrder) {
+	ef := new(apiServices.ExchangeFactory)
+	coinfactory.GetCoin()
 	for _, order := range orders {
 		tx, err :=services.GetWalletTx(order.FromCoin, order.TxId)
 		if err != nil {
@@ -81,7 +83,26 @@ func (o *OrderManager)HandleSentOrders(orders []hestia.AdrestiaOrder) {
 		}
 		if tx.Confirmations > o.exConfirmationThreshold {
 			// TODO Create Order in Exchange and Update Status
+			coinInfo, _ := coinfactory.GetCoin(order.FromCoin)
+			ex, err := ef.GetExchangeByCoin(*coinInfo)
+			if err != nil {
+				continue
+			}
+			// TODO CreateOrder Method ex.CreateOrder()
+			orderId, err := "bdiwbfdusbfdsfdfsd", nil // CreateOrder()
+			fmt.Println(ex.GetName())
+			if err != nil {
+				color.Error.Tips(fmt.Sprintf("%v", err))
+				continue
+			}
+			order.OrderId = orderId
+			order.Status = hestia.AdrestiaStatusStr[hestia.AdrestiaStatusCreated]
 			// TODO Handle rate variation
+			order.Amount = 0.05 // TODO Replace with handled rate variation returned in object from CreateOrder()
+			_, err = services.UpdateAdrestiaOrder(order)
+			if err != nil {
+				continue
+			}
 		}
 	}
 }
@@ -95,9 +116,9 @@ func (o *OrderManager)HandleCreatedOrders(orders []hestia.AdrestiaOrder) {
 			return
 		}
 		orderFulfilled := false
-		// TODO ex.getOrderStatus
+		// TODO ex.getOrderStatus // ex.GetOrderStatus(order.OrderId)
 		if orderFulfilled {
-			// TODO Withdraw
+			// TODO Replace Amount with Order's amount
 			conf, err := ex.Withdraw(*coinInfo, order.WithdrawAddress, 0.0)
 			// conf, err := ex.Withdraw(*coinInfo, order.WithdrawAddress, order.Amount)
 			if err != nil {
@@ -106,8 +127,12 @@ func (o *OrderManager)HandleCreatedOrders(orders []hestia.AdrestiaOrder) {
 				return
 			}
 			if conf {
-				// TODO Update Status
-
+				order.Status = hestia.AdrestiaStatusStr[hestia.AdrestiaStatusPendingWidthdrawal]
+				ok, err := services.UpdateAdrestiaOrder(order)
+				if err != nil {
+					continue
+				}
+				fmt.Println("HandleCreatedOrders Status: ", ok)
 			}
 
 		}

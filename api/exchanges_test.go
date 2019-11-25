@@ -43,8 +43,6 @@ func TestWithdrawSouth(t *testing.T) {
 // and that an address can be retrieved from them.
 // Also requests a BTC address needed to
 func TestAddresses(t *testing.T) {
-
-
 	log.Println("Coins to test: ", coinsToCheck)
 	var exchangeFactory = new(services.ExchangeFactory)
 
@@ -62,6 +60,8 @@ func TestAddresses(t *testing.T) {
 			address, err := ex.GetAddress(*coin)
 			fmt.Println(coin.Name, ": ", address)
 			assert.Nil(t, err)
+
+			fmt.Println(err)
 			assert.NotEqual(t, "", address)
 
 			// Bitcoin Address

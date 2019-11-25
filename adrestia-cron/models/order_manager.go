@@ -75,14 +75,12 @@ func (o *OrderManager)HandleBalances() {
 
 func (o *OrderManager)HandleSentOrders(orders []hestia.AdrestiaOrder) {
 	ef := new(apiServices.ExchangeFactory)
-	coinfactory.GetCoin()
 	for _, order := range orders {
 		tx, err :=services.GetWalletTx(order.FromCoin, order.TxId)
 		if err != nil {
 			fmt.Println(err)
 		}
 		if tx.Confirmations > o.exConfirmationThreshold {
-			// TODO Create Order in Exchange and Update Status
 			coinInfo, _ := coinfactory.GetCoin(order.FromCoin)
 			ex, err := ef.GetExchangeByCoin(*coinInfo)
 			if err != nil {

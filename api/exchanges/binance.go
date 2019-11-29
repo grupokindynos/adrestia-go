@@ -70,9 +70,9 @@ func (b Binance) GetAddress(coin coins.Coin) (string, error) {
 		return val, nil
 	}*/
 	address, err := b.binanceApi.DepositAddress(binance.AddressRequest{
-		Asset: "DASH",
-		RecvWindow: 5 * time.Second,
-		Status: true,
+		Asset: "btc",
+		//RecvWindow: 5 * time.Second,
+		//Status: true,
 		Timestamp: time.Now(),
 	})
 	if err != nil {

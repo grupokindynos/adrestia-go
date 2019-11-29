@@ -46,6 +46,9 @@ func main() {
 	fmt.Print("Sent Orders: ", sentOrders)
 	fmt.Println("Created Orders: ", createdOrders)
 
+	fmt.Println(partiallyFulfilledOrders)
+	fmt.Println(awaitingWithdrawOrders)
+	fmt.Println(completedOrders)
 
 	// TODO This should be the last process, accounting for moved orders
 	var balances = services.GetWalletBalances()				// Gets balance from Hot Wallets

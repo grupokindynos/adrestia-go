@@ -39,6 +39,19 @@ func TestWithdrawSouth(t *testing.T) {
 	fmt.Println(val)
 }
 
+func TestBinanceAddress(t *testing.T) {
+	ef := new(services.ExchangeFactory)
+	ex, _ := ef.GetExchangeByCoin(coins.Dash)
+	address, err := ex.GetAddress(coins.Dash)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("address: ", address)
+
+	bal, _ := ex.GetBalances()
+	fmt.Println(bal)
+}
+
 // For all implemented coins, tests that an exchange is provided
 // and that an address can be retrieved from them.
 // Also requests a BTC address needed to

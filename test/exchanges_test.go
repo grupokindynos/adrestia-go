@@ -2,7 +2,7 @@ package test
 
 import (
 	"fmt"
-	services "github.com/grupokindynos/adrestia-go/services"
+	"github.com/grupokindynos/adrestia-go/exchanges"
 	"github.com/grupokindynos/common/coin-factory/coins"
 	"log"
 	"strings"
@@ -30,7 +30,7 @@ func init() {
 // Test Withdrawal for SouthExchange from BitBandi's repo
 func TestWithdrawSouth(t *testing.T) {
 	fmt.Println("Test South Withdrawal")
-	var exchangeFactory = new(services.ExchangeFactory)
+	var exchangeFactory = new(exchanges.ExchangeFactory)
 	ex, err := exchangeFactory.GetExchangeByCoin(coins.Polis)
 	if err != nil {
 		fmt.Println(err)

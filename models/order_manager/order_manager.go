@@ -3,9 +3,9 @@ package order_manager
 import (
 	"fmt"
 	"github.com/gookit/color"
+	"github.com/grupokindynos/adrestia-go/exchanges"
+	"github.com/grupokindynos/adrestia-go/models/adrestia"
 	"github.com/grupokindynos/adrestia-go/models/balance"
-	"github.com/grupokindynos/adrestia-go/models/exchanges"
-	services2 "github.com/grupokindynos/adrestia-go/models/services"
 	"github.com/grupokindynos/adrestia-go/services"
 	coinfactory "github.com/grupokindynos/common/coin-factory"
 	"github.com/grupokindynos/common/hestia"
@@ -33,7 +33,7 @@ func NewOrderManager(ft float64, ot time.Duration, ect int, wct int, ta float64)
 }
 
 func (o *OrderManager) GetOrderMap() map[string][]hestia.AdrestiaOrder {
-	var adrestiaOrders = services2.AdrestiaOrderParams{
+	var adrestiaOrders = adrestia.OrderParams{
 		IncludeComplete: true,
 		AddedSince: 0,
 	}
@@ -73,7 +73,7 @@ func (o *OrderManager)HandleBalances() {
 }
 
 func (o *OrderManager)HandleSentOrders(orders []hestia.AdrestiaOrder) {
-	ef := new(services.ExchangeFactory)
+	ef := new(exchanges.ExchangeFactory)
 	for _, order := range orders {
 		tx, err :=services.GetWalletTx(order.FromCoin, order.TxId)
 		if err != nil {
@@ -105,7 +105,7 @@ func (o *OrderManager)HandleSentOrders(orders []hestia.AdrestiaOrder) {
 }
 
 func (o *OrderManager)HandleCreatedOrders(orders []hestia.AdrestiaOrder) {
-	ef := new(services.ExchangeFactory)
+	ef := new(exchanges.ExchangeFactory)
 	for _, order := range orders {
 		coinInfo, _ := coinfactory.GetCoin(order.ToCoin)
 		ex, err := ef.GetExchangeByCoin(*coinInfo)  // ex
@@ -146,7 +146,7 @@ func (o *OrderManager)HandleWithdrawnOrders(orders []hestia.AdrestiaOrder) {
 func GetOutwardOrders(balanced []balance.Balance, testingAmount float64) (superavitOrders []hestia.AdrestiaOrder) {
 	for _, bWallet := range balanced {
 		btcAddress, err := services.GetBtcAddress()
-		ef := new(services.ExchangeFactory)
+		ef := new(exchanges.ExchangeFactory)
 		coinInfo, err := coinfactory.GetCoin(bWallet.Ticker)
 		if err != nil {
 			fmt.Println(err)
@@ -190,7 +190,7 @@ func GetOutwardOrders(balanced []balance.Balance, testingAmount float64) (supera
 func GetInwardOrders(unbalanced []balance.Balance, testingAmount float64) (deficitOrders []hestia.AdrestiaOrder) {
 	for _, uWallet := range unbalanced {
 		address, err := services.GetAddress(uWallet.Ticker)
-		ef := new(services.ExchangeFactory)
+		ef := new(exchanges.ExchangeFactory)
 		coinInfo, err := coinfactory.GetCoin(uWallet.Ticker)
 		if err != nil {
 			continue

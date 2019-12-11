@@ -1,8 +1,7 @@
-package services
+package exchanges
 
 import (
 	"errors"
-	exchanges "github.com/grupokindynos/adrestia-go/models/exchanges"
 	coinfactory "github.com/grupokindynos/common/coin-factory"
 	"strings"
 
@@ -11,7 +10,7 @@ import (
 )
 
 type ExchangeFactory struct {
-	Exchanges map[string]*exchanges.IExchange
+
 }
 
 func init() {
@@ -20,14 +19,14 @@ func init() {
 	}
 }
 
-var ex = map[string]exchanges.IExchange{
-	"cryptobridge": exchanges.CBInstance,
-	"binance":      exchanges.BinanceInstance,
-	"bitso":        exchanges.BitsoInstance,
-	"southxchange": exchanges.SouthInstance,
+var ex = map[string]IExchange{
+	"cryptobridge": CBInstance,
+	"binance":      BinanceInstance,
+	"bitso":        BitsoInstance,
+	"southxchange": SouthInstance,
 }
 
-func (e *ExchangeFactory) GetExchangeByCoin(coin coins.Coin) (exchanges.IExchange, error) {
+func (e *ExchangeFactory) GetExchangeByCoin(coin coins.Coin) (IExchange, error) {
 	coinInfo, _ := coinfactory.GetCoin(coin.Tag)
 	exchange, ok := ex[coinInfo.Rates.Exchange]
 	if !ok {
@@ -36,7 +35,7 @@ func (e *ExchangeFactory) GetExchangeByCoin(coin coins.Coin) (exchanges.IExchang
 	return exchange, nil
 }
 
-func (e *ExchangeFactory) GetExchangeByName(name string) (exchanges.IExchange, error) {
+func (e *ExchangeFactory) GetExchangeByName(name string) (IExchange, error) {
 	var exName = strings.ToLower(name)
 	exchange, ok := ex[exName]
 	if !ok {

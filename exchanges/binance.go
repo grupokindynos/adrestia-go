@@ -3,8 +3,8 @@ package exchanges
 import (
 	"context"
 	"fmt"
+	"github.com/grupokindynos/adrestia-go/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
-	config2 "github.com/grupokindynos/adrestia-go/models/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/transaction"
 	"github.com/grupokindynos/adrestia-go/utils"
 	"github.com/joho/godotenv"
@@ -116,12 +116,12 @@ func (b Binance) GetBalances() ([]balance.Balance, error) {
 	return balances, nil
 }
 
-func (b Binance) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (bool, error) {
+func (b Binance) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (bool, string, error) {
 	l.Println(fmt.Sprintf("[SellAtMarketPrice] Selling %.8f %s for %s on %s", SellOrder.Amount, SellOrder.FromCoin.Name, SellOrder.ToCoin.Name, b.Name))
 	// Gets price from Obol considering the amount to sell
 	rate, err := obol.GetCoin2CoinRatesWithAmount("https://obol-rates.herokuapp.com/", SellOrder.FromCoin.Tag, SellOrder.ToCoin.Tag, fmt.Sprintf("%f", SellOrder.Amount))
 	if err != nil {
-		return false, err
+		return false, "", err
 	}
 
 	// Order creation an Post
@@ -146,7 +146,7 @@ func (b Binance) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (bool, er
 	}
 	fmt.Println(newOrder)*/
 
-	return true, nil
+	return true, "order id", nil
 }
 
 func (b Binance) Withdraw(coin coins.Coin, address string, amount float64) (bool, error) {
@@ -193,12 +193,12 @@ func (b Binance) OneCoinToBtc(coin coins.Coin) (float64, error) {
 	return rate.AveragePrice, nil
 }
 
-func GetSettings() config2.BinanceAuth {
+func GetSettings() config.BinanceAuth {
 	if err := godotenv.Load(); err != nil {
 		l.Println(err)
 	}
 	// l.Println(fmt.Sprintf("[GetSettings] Retrieving settings for Binance"))
-	var data config2.BinanceAuth
+	var data config.BinanceAuth
 	data.PublicApi = os.Getenv("BINANCE_PUB_API")
 	data.PrivateApi = os.Getenv("BINANCE_PRIV_API")
 	data.PublicWithdrawKey = os.Getenv("BINANCE_PUB_WITHDRAW")

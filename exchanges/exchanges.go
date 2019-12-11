@@ -19,6 +19,7 @@ type IExchange interface {
 }
 
 type Exchange struct {
+	IExchange
 	Name 	string
 	BaseUrl string
 }

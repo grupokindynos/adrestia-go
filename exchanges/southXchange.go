@@ -3,8 +3,8 @@ package exchanges
 import (
 	"fmt"
 	south "github.com/bitbandi/go-southxchange"
+	"github.com/grupokindynos/adrestia-go/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
-	config2 "github.com/grupokindynos/adrestia-go/models/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/utils"
 	"github.com/grupokindynos/common/coin-factory/coins"
 	"github.com/grupokindynos/common/obol"
@@ -56,8 +56,8 @@ func (s SouthXchange) OneCoinToBtc(coin coins.Coin) (float64, error) {
 	return rate.AveragePrice, nil
 }
 
-func (s SouthXchange) GetSettings() config2.SouthXchangeAuth {
-	var data config2.SouthXchangeAuth
+func (s SouthXchange) GetSettings() config.SouthXchangeAuth {
+	var data config.SouthXchangeAuth
 	data.ApiKey = os.Getenv("SOUTH_API_KEY")
 	data.ApiSecret = os.Getenv("SOUTH_API_SECRET")
 	return data

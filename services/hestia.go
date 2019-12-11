@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/google/go-querystring/query"
-	"github.com/grupokindynos/adrestia-go/models/services"
+	"github.com/grupokindynos/adrestia-go/models/adrestia"
 	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/tokens/mrt"
 	"github.com/grupokindynos/common/tokens/mvt"
@@ -168,7 +168,7 @@ func UpdateAdrestiaOrder(orderData hestia.AdrestiaOrder) (string, error) {
 	return response, nil
 }
 
-func GetAllOrders(adrestiaOrderParams services.AdrestiaOrderParams) ([]hestia.AdrestiaOrder, error){
+func GetAllOrders(adrestiaOrderParams adrestia.OrderParams) ([]hestia.AdrestiaOrder, error){
 	req, err := mvt.CreateMVTToken(http.MethodGet, os.Getenv("HESTIA_URL") + "/adrestia/orders", "adrestia", os.Getenv("MASTER_PASSWORD"), nil, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
 	if err != nil {
 		return nil, err

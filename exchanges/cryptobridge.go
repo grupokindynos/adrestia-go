@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	config2 "github.com/grupokindynos/adrestia-go/models/exchanges/config"
+	"github.com/grupokindynos/adrestia-go/exchanges/config"
 	"io"
 	"io/ioutil"
 	"log"
@@ -26,7 +26,6 @@ import (
 
 type Cryptobridge struct {
 	Exchange
-	IExchange
 	AccountName    string
 	BitSharesUrl   string
 	MasterPassword string
@@ -121,7 +120,7 @@ func (c Cryptobridge) GetBalances() ([]balance.Balance, error) {
 	return balances, nil
 }
 
-func (c Cryptobridge) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (bool, error) {
+func (c Cryptobridge) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (bool, string, error) {
 	s := fmt.Sprintf("Selling %f %s for %s in %s", SellOrder.Amount, SellOrder.FromCoin.Tag, SellOrder.ToCoin.Tag, c.Name)
 	log.Println(s)
 	// sellorders/BRIDGE.{sell.To.tag}/BRIDGE.{sell.From.tag}
@@ -131,7 +130,7 @@ func (c Cryptobridge) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (boo
 	err := getBitSharesRequest(c.MasterPassword, c.BitSharesUrl+url, http.MethodGet, nil, &openOrders)
 
 	if err != nil {
-		return false, err
+		return false, "", err
 	}
 
 	calculatedPrice := 0.0
@@ -159,7 +158,7 @@ func (c Cryptobridge) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (boo
 
 	// TODO Create selling order
 
-	return true, nil
+	return true, "order id", nil
 }
 
 //Withdraw allows Adrestia to send money from exchanges to a valid address
@@ -191,11 +190,11 @@ func (c Cryptobridge) Withdraw(coin coins.Coin, address string, amount float64) 
 	return true, nil
 }
 
-func (c Cryptobridge) GetSettings() config2.CBAuth {
+func (c Cryptobridge) GetSettings() config.CBAuth {
 	if err := godotenv.Load(); err != nil {
 		log.Println(err)
 	}
-	var data config2.CBAuth
+	var data config.CBAuth
 	data.AccountName = os.Getenv("CB_ACCOUNT_NAME")
 	data.BaseUrl = os.Getenv("CB_BASE_URL")
 	data.MasterPassword = os.Getenv("CB_MASTER_PASSWORD")

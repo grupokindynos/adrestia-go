@@ -5,7 +5,7 @@ import (
 	"github.com/gookit/color"
 	"github.com/grupokindynos/adrestia-go/models/order_manager"
 	"github.com/grupokindynos/adrestia-go/services"
-	utils2 "github.com/grupokindynos/adrestia-go/utils"
+	"github.com/grupokindynos/adrestia-go/utils"
 	"github.com/grupokindynos/common/hestia"
 	"github.com/joho/godotenv"
 	"log"
@@ -56,8 +56,8 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	availableWallets, _ := utils2.NormalizeWallets(balances, confHestia) // Verifies wallets in firebase are the same as in plutus and creates a map
-	balanced, unbalanced := utils2.SortBalances(availableWallets)
+	availableWallets, _ := utils.NormalizeWallets(balances, confHestia) // Verifies wallets in firebase are the same as in plutus and creates a map
+	balanced, unbalanced := utils.SortBalances(availableWallets)
 
 	var superavitOrders = order_manager.GetOutwardOrders(balanced, testingAmount)
 	var deficitOrders = order_manager.GetInwardOrders(unbalanced, testingAmount)
@@ -66,6 +66,6 @@ func main() {
 	log.Println(deficitOrders)
 
 	// Stores orders in Firestore for further processing
-	utils2.StoreOrders(superavitOrders)
-	utils2.StoreOrders(deficitOrders)
+	utils.StoreOrders(superavitOrders)
+	utils.StoreOrders(deficitOrders)
 }

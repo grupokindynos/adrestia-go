@@ -1,14 +1,14 @@
-package main
+package test
 
 import (
 	"fmt"
+	services "github.com/grupokindynos/adrestia-go/services"
 	"github.com/grupokindynos/common/coin-factory/coins"
 	"log"
 	"strings"
 	"testing"
 
 	"github.com/gookit/color"
-	"github.com/grupokindynos/adrestia-go/api/services"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 )
@@ -40,7 +40,7 @@ func TestWithdrawSouth(t *testing.T) {
 }
 
 func TestBinanceAddress(t *testing.T) {
-	ef := new(services.ExchangeFactory)
+	ef := new(services2.ExchangeFactory)
 	ex, _ := ef.GetExchangeByCoin(coins.Dash)
 	address, err := ex.GetAddress(coins.Dash)
 	if err != nil {
@@ -57,7 +57,7 @@ func TestBinanceAddress(t *testing.T) {
 // Also requests a BTC address needed to
 func TestAddresses(t *testing.T) {
 	log.Println("Coins to test: ", coinsToCheck)
-	var exchangeFactory = new(services.ExchangeFactory)
+	var exchangeFactory = new(services2.ExchangeFactory)
 
 	for _, coin := range coinsToCheck {
 		log.Println(fmt.Sprintf("Getting Address for %s", coin.Name))
@@ -91,7 +91,7 @@ func TestAddresses(t *testing.T) {
 
 // Makes sure OneConversion to BTC is implemented for every coin
 func TestRateToBtc(t *testing.T) {
-	var exchangeFactory = new(services.ExchangeFactory)
+	var exchangeFactory = new(services2.ExchangeFactory)
 
 	for _, coin := range coinsToCheck {
 		ex, err := exchangeFactory.GetExchangeByCoin(*coin)
@@ -108,7 +108,7 @@ func TestRateToBtc(t *testing.T) {
 
 func TestBalances(t *testing.T) {
 	exchangesToTest := [...]string{"binance", "southxchange", "bitso"}
-	var exFactory = new(services.ExchangeFactory)
+	var exFactory = new(services2.ExchangeFactory)
 
 	for _, exName := range exchangesToTest {
 		s := fmt.Sprintf("Retrieving Balances for %s", exName)

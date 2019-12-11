@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	config2 "github.com/grupokindynos/adrestia-go/models/exchanges/config"
 	"io"
 	"io/ioutil"
 	"log"
@@ -13,7 +14,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/grupokindynos/adrestia-go/api/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	"github.com/grupokindynos/adrestia-go/models/exchange_models"
 	"github.com/grupokindynos/adrestia-go/models/transaction"
@@ -26,6 +26,7 @@ import (
 
 type Cryptobridge struct {
 	Exchange
+	IExchange
 	AccountName    string
 	BitSharesUrl   string
 	MasterPassword string
@@ -190,11 +191,11 @@ func (c Cryptobridge) Withdraw(coin coins.Coin, address string, amount float64) 
 	return true, nil
 }
 
-func (c Cryptobridge) GetSettings() config.CBAuth {
+func (c Cryptobridge) GetSettings() config2.CBAuth {
 	if err := godotenv.Load(); err != nil {
 		log.Println(err)
 	}
-	var data config.CBAuth
+	var data config2.CBAuth
 	data.AccountName = os.Getenv("CB_ACCOUNT_NAME")
 	data.BaseUrl = os.Getenv("CB_BASE_URL")
 	data.MasterPassword = os.Getenv("CB_MASTER_PASSWORD")

@@ -2,10 +2,10 @@ package services
 
 import (
 	"errors"
+	exchanges "github.com/grupokindynos/adrestia-go/models/exchanges"
 	coinfactory "github.com/grupokindynos/common/coin-factory"
 	"strings"
 
-	"github.com/grupokindynos/adrestia-go/api/exchanges"
 	"github.com/grupokindynos/common/coin-factory/coins"
 	"github.com/joho/godotenv"
 )
@@ -23,8 +23,8 @@ func init() {
 var ex = map[string]exchanges.IExchange{
 	"cryptobridge": exchanges.CBInstance,
 	"binance":      exchanges.BinanceInstance,
-	"bitso":		exchanges.BitsoInstance,
-	"southxchange":	exchanges.SouthInstance,
+	"bitso":        exchanges.BitsoInstance,
+	"southxchange": exchanges.SouthInstance,
 }
 
 func (e *ExchangeFactory) GetExchangeByCoin(coin coins.Coin) (exchanges.IExchange, error) {

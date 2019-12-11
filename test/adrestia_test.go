@@ -1,8 +1,8 @@
-package main
+package test
 
 import (
 	"fmt"
-	"github.com/grupokindynos/adrestia-go/adrestia-cron/models"
+	"github.com/grupokindynos/adrestia-go/models/order_manager"
 	"github.com/grupokindynos/adrestia-go/services"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
@@ -17,7 +17,7 @@ func init() {
 }
 
 func TestOrdersAdrestia(t *testing.T) {
-	var orderManager models.OrderManager
+	var orderManager order_manager.OrderManager
 	orders := orderManager.GetOrderMap()
 	fmt.Println(orders)
 }

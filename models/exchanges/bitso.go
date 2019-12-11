@@ -3,8 +3,8 @@ package exchanges
 import (
 	"errors"
 	"fmt"
-	"github.com/grupokindynos/adrestia-go/api/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
+	config2 "github.com/grupokindynos/adrestia-go/models/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/transaction"
 	"github.com/grupokindynos/common/coin-factory/coins"
 	"github.com/grupokindynos/common/hestia"
@@ -149,8 +149,8 @@ func (b BitsoI) GetBalances() ([]balance.Balance, error) {
 	return balances, nil
 }
 
-func (b BitsoI) GetSettings() config.BitsoAuth{
-	var data config.BitsoAuth
+func (b BitsoI) GetSettings() config2.BitsoAuth {
+	var data config2.BitsoAuth
 	data.ApiKey = os.Getenv("BITSO_API_KEY")
 	data.ApiSecret = os.Getenv("BITSO_API_SECRET")
 	data.Url = os.Getenv("BITSO_URL")

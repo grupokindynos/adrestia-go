@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/gookit/color"
-	"github.com/grupokindynos/adrestia-go/adrestia-cron/models"
-	"github.com/grupokindynos/adrestia-go/adrestia-cron/utils"
+	"github.com/grupokindynos/adrestia-go/models/order_manager"
 	"github.com/grupokindynos/adrestia-go/services"
+	utils2 "github.com/grupokindynos/adrestia-go/utils"
 	"github.com/grupokindynos/common/hestia"
 	"github.com/joho/godotenv"
 	"log"
@@ -32,8 +32,8 @@ func main() {
 		Check for wallets with superavits, send remaining to exchange conversion to bTC and then send to HW.
 		Use exceeding balance in HW (or a new bTC WALLET that solely fits this purpose) to balance other wallets
 		in exchanges (should convert and withdraw to an address stored in Firestore).
-	 */
-	om := models.NewOrderManager(fiatThreshold, orderTimeOut, exConfirmationThreshold, walletConfirmationThreshold, testingAmount)
+	*/
+	om := order_manager.NewOrderManager(fiatThreshold, orderTimeOut, exConfirmationThreshold, walletConfirmationThreshold, testingAmount)
 	orders := om.GetOrderMap()
 
 	// First case: verify sent orders
@@ -56,16 +56,16 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	availableWallets, _ := utils.NormalizeWallets(balances, confHestia) // Verifies wallets in firebase are the same as in plutus and creates a map
-	balanced, unbalanced := utils.SortBalances(availableWallets)
+	availableWallets, _ := utils2.NormalizeWallets(balances, confHestia) // Verifies wallets in firebase are the same as in plutus and creates a map
+	balanced, unbalanced := utils2.SortBalances(availableWallets)
 
-	var superavitOrders = models.GetOutwardOrders(balanced, testingAmount)
-	var deficitOrders = models.GetInwardOrders(unbalanced, testingAmount)
+	var superavitOrders = order_manager.GetOutwardOrders(balanced, testingAmount)
+	var deficitOrders = order_manager.GetInwardOrders(unbalanced, testingAmount)
 
 	log.Println(superavitOrders)
 	log.Println(deficitOrders)
 
 	// Stores orders in Firestore for further processing
-	utils.StoreOrders(superavitOrders)
-	utils.StoreOrders(deficitOrders)
+	utils2.StoreOrders(superavitOrders)
+	utils2.StoreOrders(deficitOrders)
 }

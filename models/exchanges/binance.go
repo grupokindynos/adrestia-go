@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/grupokindynos/adrestia-go/models/balance"
+	config2 "github.com/grupokindynos/adrestia-go/models/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/transaction"
 	"github.com/grupokindynos/adrestia-go/utils"
 	"github.com/joho/godotenv"
@@ -13,7 +14,6 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/log"
-	"github.com/grupokindynos/adrestia-go/api/exchanges/config"
 	"github.com/grupokindynos/common/coin-factory/coins"
 	"github.com/grupokindynos/common/obol"
 	"github.com/grupokindynos/go-binance"
@@ -193,12 +193,12 @@ func (b Binance) OneCoinToBtc(coin coins.Coin) (float64, error) {
 	return rate.AveragePrice, nil
 }
 
-func GetSettings() config.BinanceAuth {
+func GetSettings() config2.BinanceAuth {
 	if err := godotenv.Load(); err != nil {
 		l.Println(err)
 	}
 	// l.Println(fmt.Sprintf("[GetSettings] Retrieving settings for Binance"))
-	var data config.BinanceAuth
+	var data config2.BinanceAuth
 	data.PublicApi = os.Getenv("BINANCE_PUB_API")
 	data.PrivateApi = os.Getenv("BINANCE_PRIV_API")
 	data.PublicWithdrawKey = os.Getenv("BINANCE_PUB_WITHDRAW")

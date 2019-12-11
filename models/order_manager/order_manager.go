@@ -1,11 +1,10 @@
-package models
+package order_manager
 
 import (
 	"fmt"
 	"github.com/gookit/color"
-	"github.com/grupokindynos/adrestia-go/api/exchanges"
-	apiServices "github.com/grupokindynos/adrestia-go/api/services"
 	"github.com/grupokindynos/adrestia-go/models/balance"
+	"github.com/grupokindynos/adrestia-go/models/exchanges"
 	services2 "github.com/grupokindynos/adrestia-go/models/services"
 	"github.com/grupokindynos/adrestia-go/services"
 	coinfactory "github.com/grupokindynos/common/coin-factory"
@@ -74,7 +73,7 @@ func (o *OrderManager)HandleBalances() {
 }
 
 func (o *OrderManager)HandleSentOrders(orders []hestia.AdrestiaOrder) {
-	ef := new(apiServices.ExchangeFactory)
+	ef := new(services.ExchangeFactory)
 	for _, order := range orders {
 		tx, err :=services.GetWalletTx(order.FromCoin, order.TxId)
 		if err != nil {
@@ -106,7 +105,7 @@ func (o *OrderManager)HandleSentOrders(orders []hestia.AdrestiaOrder) {
 }
 
 func (o *OrderManager)HandleCreatedOrders(orders []hestia.AdrestiaOrder) {
-	ef := new(apiServices.ExchangeFactory)
+	ef := new(services.ExchangeFactory)
 	for _, order := range orders {
 		coinInfo, _ := coinfactory.GetCoin(order.ToCoin)
 		ex, err := ef.GetExchangeByCoin(*coinInfo)  // ex
@@ -147,7 +146,7 @@ func (o *OrderManager)HandleWithdrawnOrders(orders []hestia.AdrestiaOrder) {
 func GetOutwardOrders(balanced []balance.Balance, testingAmount float64) (superavitOrders []hestia.AdrestiaOrder) {
 	for _, bWallet := range balanced {
 		btcAddress, err := services.GetBtcAddress()
-		ef := new(apiServices.ExchangeFactory)
+		ef := new(services.ExchangeFactory)
 		coinInfo, err := coinfactory.GetCoin(bWallet.Ticker)
 		if err != nil {
 			fmt.Println(err)
@@ -191,7 +190,7 @@ func GetOutwardOrders(balanced []balance.Balance, testingAmount float64) (supera
 func GetInwardOrders(unbalanced []balance.Balance, testingAmount float64) (deficitOrders []hestia.AdrestiaOrder) {
 	for _, uWallet := range unbalanced {
 		address, err := services.GetAddress(uWallet.Ticker)
-		ef := new(apiServices.ExchangeFactory)
+		ef := new(services.ExchangeFactory)
 		coinInfo, err := coinfactory.GetCoin(uWallet.Ticker)
 		if err != nil {
 			continue

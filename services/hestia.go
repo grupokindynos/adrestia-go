@@ -168,7 +168,7 @@ func UpdateAdrestiaOrder(orderData hestia.AdrestiaOrder) (string, error) {
 	return response, nil
 }
 
-func GetAllOrders(adrestiaOrderParams adrestia.OrderParams) ([]hestia.AdrestiaOrder, error){
+func GetAllOrders(adrestiaOrderParams adrestia.OrderParams) ([]hestia.AdrestiaOrder, error) {
 	req, err := mvt.CreateMVTToken(http.MethodGet, os.Getenv("HESTIA_URL") + "/adrestia/orders", "adrestia", os.Getenv("MASTER_PASSWORD"), nil, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
 	if err != nil {
 		return nil, err

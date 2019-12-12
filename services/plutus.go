@@ -18,10 +18,6 @@ import (
 	"time"
 )
 
-var HTTPClient = http.Client{
-	Timeout: time.Second * 15,
-}
-
 func GetWalletBalances() []balance.Balance {
 	flagAllRates := false
 	log.Println("Retrieving Wallet Balances...")
@@ -65,7 +61,7 @@ func GetWalletBalances() []balance.Balance {
 	return updatedBalances
 }
 
-func GetBtcAddress() (string, error){
+func GetBtcAddress() (string, error) {
 	address, err := plutus.GetWalletAddress(os.Getenv("PLUTUS_URL"), "btc", os.Getenv("ADRESTIA_PRIV_KEY"), "adrestia", os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
 	if err != nil {
 		return "", err

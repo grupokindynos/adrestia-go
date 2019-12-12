@@ -24,6 +24,8 @@ func init() {
 	}
 }
 
+
+
 func main() {
 	// TODO Disable and Enable Shift at star nd ending of the process
 	color.Info.Tips("Program Started")

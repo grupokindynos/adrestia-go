@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gookit/color"
 	"github.com/grupokindynos/adrestia-go/models/order_manager"
+	"github.com/grupokindynos/adrestia-go/processor"
 	"github.com/grupokindynos/adrestia-go/services"
 	"github.com/grupokindynos/adrestia-go/utils"
 	"github.com/grupokindynos/common/hestia"
@@ -27,6 +28,7 @@ func init() {
 
 
 func main() {
+	processor.Start()
 	// TODO Disable and Enable Shift at star nd ending of the process
 	color.Info.Tips("Program Started")
 	/*

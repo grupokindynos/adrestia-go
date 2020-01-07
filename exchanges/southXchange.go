@@ -89,8 +89,8 @@ func (s *SouthXchange) GetBalances() ([]balance.Balance, error) {
 	return balances, nil
 }
 
-func (s *SouthXchange) SellAtMarketPrice(sellOrder transaction.ExchangeSell) (bool, error) {
-	return false, errors.New("func not implemented")
+func (s *SouthXchange) SellAtMarketPrice(sellOrder transaction.ExchangeSell) (bool, string, error) {
+	return false, "", errors.New("func not implemented")
 }
 
 func (s *SouthXchange) Withdraw(coin coins.Coin, address string, amount float64) (bool, error) {

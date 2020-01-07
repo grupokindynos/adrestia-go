@@ -4,15 +4,19 @@ import (
 	"fmt"
 	"github.com/grupokindynos/adrestia-go/models/adrestia"
 	"github.com/grupokindynos/adrestia-go/services"
+	"github.com/grupokindynos/common/hestia"
 	"log"
 	"sync"
 )
 
+var hestiaService = services.HestiaRequests{}
+var adrestiaOrders[] hestia.AdrestiaOrder
+
 func Start() {
 	const adrestiaStatus = true // TODO Replace with Hestia conf variable
-	log.Println("Starting Adrestia Order Processor")
 
-	adrestiaOrders, err := services.GetAllOrders(adrestia.OrderParams{
+	log.Println("Starting Adrestia Order Processor")
+	adrestiaOrders, err := hestiaService.GetAllOrders(adrestia.OrderParams{
 		IncludeComplete: false,
 	})
 
@@ -28,18 +32,20 @@ func Start() {
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go handleCreatedOrders(&wg)
-	go handleSentAmount(&wg)
+	go handleFirstExchange(&wg)
 	wg.Wait()
 	fmt.Println("Voucher Processor Finished")
-
 }
 
 func handleCreatedOrders(wg *sync.WaitGroup) {
 	defer wg.Done()
+	orders := getOrders(hestia.AdrestiaStatusCreated)
+	log.Println(orders)
+	// 1.  Sends the amount to first exchange
 	fmt.Println("Finished CreatedOrders")
 }
 
-func handleSentAmount(wg *sync.WaitGroup) {
+func handleFirstExchange(wg *sync.WaitGroup) {
 	defer wg.Done()
 	// 1. Verifies deposit in exchange and creates Selling Order always targets BTC
 	fmt.Println("Finished SentAmount")
@@ -60,4 +66,18 @@ func handleSecondExchange(wg *sync.WaitGroup) {
 
 func handleConvertedCoins(wg *sync.WaitGroup) {
 	// Sends from final exchange to target coin HotWallet
+}
+
+func handleCompletedOrders(wg *sync.WaitGroup) {
+	// Sends a telegram message and deletes order from CurrentOrders. Moves it to legacy table
+}
+
+func getOrders(status hestia.AdrestiaStatus) (filteredOrders[] hestia.AdrestiaOrder){
+	for _, order := range adrestiaOrders {
+		fmt.Println(order)
+		if order.Status == hestia.AdrestiaStatusStr[status] {
+			filteredOrders = append(filteredOrders, order)
+		}
+	}
+	return
 }

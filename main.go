@@ -30,6 +30,7 @@ func init() {
 func main() {
 	processor.Start()
 	// TODO Disable and Enable Shift at star nd ending of the process
+	panic("hard panic")
 	color.Info.Tips("Program Started")
 	hestiaService := services.HestiaRequests{}
 	plutusService := services.PlutusRequests{Obol: &obol.ObolRequest{}}

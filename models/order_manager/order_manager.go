@@ -9,6 +9,7 @@ import (
 	"github.com/grupokindynos/adrestia-go/services"
 	coinfactory "github.com/grupokindynos/common/coin-factory"
 	"github.com/grupokindynos/common/hestia"
+	"github.com/grupokindynos/common/obol"
 	"github.com/grupokindynos/common/plutus"
 	"github.com/lithammer/shortuuid"
 	"time"
@@ -37,7 +38,7 @@ func (o *OrderManager) GetOrderMap() map[string][]hestia.AdrestiaOrder {
 		IncludeComplete: true,
 		AddedSince: 0,
 	}
-	orders, err := services.GetAllOrders(adrestiaOrders)
+	orders, err := hestiaService.GetAllOrders(adrestiaOrders)
 	if err!= nil {
 		fmt.Println(err)
 	}

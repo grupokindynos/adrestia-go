@@ -18,41 +18,83 @@ import (
 
 var BitsoInstance = NewBitso()
 
-type BitsoI struct {
+type Bitso struct {
 	Exchange
 	bitsoService bitso.Bitso
+	Obol         obol.ObolService
 }
 
-func NewBitso() *BitsoI {
-	b := new(BitsoI)
-	data := b.GetSettings()
+func NewBitso() *Bitso {
+	b := new(Bitso)
+	data := b.getSettings()
 	b.bitsoService = *bitso.NewBitso(data.Url)
 	b.bitsoService.SetAuth(data.ApiKey, data.ApiSecret)
 	return b
 }
 
-func (b BitsoI) GetName() (string, error){
+func (b *Bitso) GetName() (string, error) {
 	return "bitso", nil
 }
 
-func (b BitsoI) GetAddress(coin coins.Coin) (string, error) {
-	address, err := b.bitsoService.FundingDestination(models.DestinationParams{FundCurrency:coin.Tag})
+func (b *Bitso) GetAddress(coin coins.Coin) (string, error) {
+	address, err := b.bitsoService.FundingDestination(models.DestinationParams{FundCurrency: coin.Tag})
 	if err != nil {
 		return "", err
 	}
 	return address.Payload.AccountIdentifier, nil
 }
 
-func (b BitsoI) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (bool, string, error){
+func (b *Bitso) OneCoinToBtc(coin coins.Coin) (float64, error) {
+	if coin.Tag == "BTC" {
+		return 1.0, nil
+	}
+	rate, err := b.Obol.GetCoin2CoinRatesWithAmount("btc", coin.Tag, fmt.Sprintf("%f", 1.0))
+	if err != nil {
+		return 0.0, err
+	}
+	return rate.AveragePrice, nil
+}
+
+func (b *Bitso) GetBalances() ([]balance.Balance, error) {
+	bal, err := b.bitsoService.Balances()
+	if err != nil {
+		return nil, err
+	}
+	var balances []balance.Balance
+
+	for _, asset := range bal.Payload.Balances {
+		rate, _ := b.Obol.GetCoin2CoinRates("BTC", asset.Currency)
+		confirmedAmount, err := strconv.ParseFloat(asset.Available, 64)
+		unconfirmedAmount, err := strconv.ParseFloat(asset.Available, 64)
+		if err != nil {
+			return nil, err
+		}
+		var b = balance.Balance{
+			Ticker:             asset.Currency,
+			ConfirmedBalance:   confirmedAmount,
+			UnconfirmedBalance: unconfirmedAmount,
+			RateBTC:            rate,
+			DiffBTC:            0,
+			IsBalanced:         false,
+		}
+		if b.GetTotalBalance() > 0.0 {
+			balances = append(balances, b)
+		}
+	}
+	fmt.Println("Balances BitsoI: ", balances)
+	return balances, nil
+}
+
+func (b *Bitso) SellAtMarketPrice(sellOrder transaction.ExchangeSell) (bool, string, error) {
 	// TODO Elaborate tests
-	bookName, side, err := b.getPair(SellOrder)
+	bookName, side, err := b.getPair(sellOrder)
 	if err != nil {
 		return false, "", err
 	}
 	orderId, err := b.bitsoService.PlaceOrder(models.PlaceOrderParams{
-		Book:       bookName,
-		Side:       side,
-		Type:		"market",
+		Book: bookName,
+		Side: side,
+		Type: "market",
 	})
 	if err != nil || !orderId.Success {
 		return false, "", errors.New("Bitso:SellAtMarketPrice error on request")
@@ -60,45 +102,15 @@ func (b BitsoI) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (bool, str
 	return true, orderId.Payload.Oid, nil
 }
 
-
-func (b *BitsoI) getPair(Order transaction.ExchangeSell) (string, models.OrderSide, error){
-	fromCoin := strings.ToLower(Order.FromCoin.Tag)
-	toCoin := strings.ToLower(Order.ToCoin.Tag)
-	books, err := b.bitsoService.AvailableBooks()
-	if err != nil {
-		return "", "", err
-	}
-	var bookName string
-	for _, book := range books.Payload {
-		if strings.Contains(book.Book, fromCoin) && strings.Contains(book.Book, toCoin) {
-			bookName = book.Book
-		}
-	}
-	// ltc_btc
-	fromIndex := strings.Index(bookName, fromCoin)
-	toIndex := strings.Index(bookName, toCoin)
-
-	if fromIndex < toIndex{
-		return bookName, models.Sell, nil
-	}
-	if toIndex > fromIndex {
-		return bookName, models.Buy, nil
-	}
-	return bookName, "unknown", errors.New("could not find a satisfying book")
+func (b *Bitso) WithDraw(coin coins.Coin, address string, amount float64) (bool, error) {
+	return false, errors.New("func not implemented")
 }
 
-func (b BitsoI) OneCoinToBtc(coin coins.Coin) (float64, error) {
-	if coin.Tag == "BTC" {
-		return 1.0, nil
-	}
-	rate, err := obol.GetCoin2CoinRatesWithAmount("https://obol-rates.herokuapp.com/", "btc", coin.Tag, fmt.Sprintf("%f", 1.0))
-	if err != nil {
-		return 0.0, err
-	}
-	return rate.AveragePrice, nil
+func (b *Bitso) GetRateByAmount(sell transaction.ExchangeSell) (float64, error) {
+	return 0.0, errors.New("func not implemented")
 }
 
-func (b BitsoI) GetOrderStatus(orderId string) (status hestia.AdrestiaStatus, err error){
+func (b *Bitso) GetOrderStatus(orderId string) (status hestia.AdrestiaStatus, err error) {
 	var wrappedOrder []string
 	wrappedOrder = append(wrappedOrder, orderId)
 	res, err := b.bitsoService.LookUpOrders(wrappedOrder)
@@ -117,40 +129,36 @@ func (b BitsoI) GetOrderStatus(orderId string) (status hestia.AdrestiaStatus, er
 	return hestia.AdrestiaStatusCreated, errors.New("unknown order status " + res.Payload[0].Status)
 }
 
-func (b BitsoI) GetBalances() ([]balance.Balance, error) {
-	bal, err := b.bitsoService.Balances()
-	if err!=nil {
-		return nil, err
-	}
-	var balances []balance.Balance
-
-	for _, asset := range bal.Payload.Balances {
-		rate, _ := obol.GetCoin2CoinRates("https://obol-rates.herokuapp.com/", "BTC", asset.Currency)
-		confirmedAmount, err := strconv.ParseFloat(asset.Available, 64)
-		unconfirmedAmount, err := strconv.ParseFloat(asset.Available, 64)
-		if err != nil {
-			return nil, err
-		}
-		var b = balance.Balance{
-			Ticker:     asset.Currency,
-			ConfirmedBalance:    	confirmedAmount,
-			UnconfirmedBalance: 	unconfirmedAmount,
-			RateBTC:    			rate,
-			DiffBTC:    			0,
-			IsBalanced: 			false,
-		}
-		if b.GetTotalBalance() > 0.0 {
-			balances = append(balances, b)
-		}
-	}
-	fmt.Println("Balances BitsoI: ", balances)
-	return balances, nil
-}
-
-func (b BitsoI) GetSettings() config.BitsoAuth {
+func (b *Bitso) getSettings() config.BitsoAuth {
 	var data config.BitsoAuth
 	data.ApiKey = os.Getenv("BITSO_API_KEY")
 	data.ApiSecret = os.Getenv("BITSO_API_SECRET")
 	data.Url = os.Getenv("BITSO_URL")
 	return data
+}
+
+func (b *Bitso) getPair(Order transaction.ExchangeSell) (string, models.OrderSide, error) {
+	fromCoin := strings.ToLower(Order.FromCoin.Tag)
+	toCoin := strings.ToLower(Order.ToCoin.Tag)
+	books, err := b.bitsoService.AvailableBooks()
+	if err != nil {
+		return "", "", err
+	}
+	var bookName string
+	for _, book := range books.Payload {
+		if strings.Contains(book.Book, fromCoin) && strings.Contains(book.Book, toCoin) {
+			bookName = book.Book
+		}
+	}
+	// ltc_btc
+	fromIndex := strings.Index(bookName, fromCoin)
+	toIndex := strings.Index(bookName, toCoin)
+
+	if fromIndex < toIndex {
+		return bookName, models.Sell, nil
+	}
+	if toIndex > fromIndex {
+		return bookName, models.Buy, nil
+	}
+	return bookName, "unknown", errors.New("could not find a satisfying book")
 }

@@ -2,15 +2,17 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/gookit/color"
 	"github.com/grupokindynos/adrestia-go/models/order_manager"
 	"github.com/grupokindynos/adrestia-go/processor"
 	"github.com/grupokindynos/adrestia-go/services"
 	"github.com/grupokindynos/adrestia-go/utils"
 	"github.com/grupokindynos/common/hestia"
+	"github.com/grupokindynos/common/obol"
 	"github.com/joho/godotenv"
-	"log"
-	"time"
 )
 
 const fiatThreshold = 2.00 // USD // 2.0 for Testing, 10 USD for production
@@ -25,12 +27,12 @@ func init() {
 	}
 }
 
-
-
 func main() {
 	processor.Start()
 	// TODO Disable and Enable Shift at star nd ending of the process
 	color.Info.Tips("Program Started")
+	hestiaService := services.HestiaRequests{}
+	plutusService := services.PlutusRequests{Obol: &obol.ObolRequest{}}
 	/*
 		Process Description
 		Check for wallets with superavits, send remaining to exchange conversion to bTC and then send to HW.
@@ -55,8 +57,8 @@ func main() {
 	fmt.Println(completedOrders)
 
 	// TODO This should be the last process, accounting for moved orders
-	var balances = services.GetWalletBalances()				// Gets balance from Hot Wallets
-	confHestia, err := services.GetCoinConfiguration()		// Firebase Wallet Configuration
+	var balances = plutusService.GetWalletBalances()        // Gets balance from Hot Wallets
+	confHestia, err := hestiaService.GetCoinConfiguration() // Firebase Wallet Configuration
 	if err != nil {
 		log.Fatalln(err)
 	}

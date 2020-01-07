@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/gookit/color"
 	"github.com/grupokindynos/adrestia-go/exchanges"
 	"github.com/grupokindynos/adrestia-go/models/adrestia"
@@ -11,7 +13,6 @@ import (
 	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/plutus"
 	"github.com/lithammer/shortuuid"
-	"time"
 )
 
 type OrderManager struct {

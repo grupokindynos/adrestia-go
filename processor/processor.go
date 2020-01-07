@@ -14,13 +14,15 @@ type Processor struct {
 	Hestia services.HestiaService
 }
 
+var adrestiaOrders []hestia.AdrestiaOrder
+
 func (p *Processor) Start() {
 	const adrestiaStatus = true // TODO Replace with Hestia conf variable
 	log.Println("Starting Adrestia Order Processor")
-
 	adrestiaOrders, err := p.Hestia.GetAllOrders(adrestia.OrderParams{
 		IncludeComplete: false,
 	})
+
 	if err != nil {
 		log.Fatal("Could not retrieve adrestiaOrders form Hestia", err)
 	}
@@ -33,21 +35,35 @@ func (p *Processor) Start() {
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go p.handleCreatedOrders(&wg)
-	go p.handleSentAmount(&wg)
+	go p.handleFirstExchange(&wg)
 	wg.Wait()
 	fmt.Println("Voucher Processor Finished")
-
 }
 
 func (p *Processor) handleCreatedOrders(wg *sync.WaitGroup) {
 	defer wg.Done()
-
+	orders := getOrders(hestia.AdrestiaStatusCreated)
+	log.Println(orders)
+	// 1.  Sends the amount to first exchange
 	fmt.Println("Finished CreatedOrders")
-
 }
-func (p *Processor) handleSentAmount(wg *sync.WaitGroup) {
-	defer wg.Done()
 
+func (p *Processor) handleFirstExchange(wg *sync.WaitGroup) {
+	defer wg.Done()
+	// 1. Verifies deposit in exchange and creates Selling Order always targets BTC
+	fmt.Println("Finished SentAmount")
+}
+
+func (p *Processor) handleFirstConversion(wg *sync.WaitGroup) {
+	defer wg.Done()
+	// 1. Checks if order has been fulfilled.
+	// 2. If target coin is BTC sends it to HW, else sends it to a second exchange
+	fmt.Println("Finished SentAmount")
+}
+
+func (p *Processor) handleSecondExchange(wg *sync.WaitGroup) {
+	defer wg.Done()
+	// Verifies deposit in second exchange that targets the final coin. Arrives here if target is not BTC
 	fmt.Println("Finished SentAmount")
 }
 
@@ -73,4 +89,21 @@ func (p *Processor) StoreOrders(orders []hestia.AdrestiaOrder) {
 			fmt.Println(res)
 		}
 	}
+}
+func (p *Processor) handleConvertedCoins(wg *sync.WaitGroup) {
+	// Sends from final exchange to target coin HotWallet
+}
+
+func (p *Processor) handleCompletedOrders(wg *sync.WaitGroup) {
+	// Sends a telegram message and deletes order from CurrentOrders. Moves it to legacy table
+}
+
+func getOrders(status hestia.AdrestiaStatus) (filteredOrders []hestia.AdrestiaOrder) {
+	for _, order := range adrestiaOrders {
+		fmt.Println(order)
+		if order.Status == hestia.AdrestiaStatusStr[status] {
+			filteredOrders = append(filteredOrders, order)
+		}
+	}
+	return
 }

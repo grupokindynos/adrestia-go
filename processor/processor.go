@@ -33,9 +33,13 @@ func (p *Processor) Start() {
 	}
 
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(6)
 	go p.handleCreatedOrders(&wg)
 	go p.handleFirstExchange(&wg)
+	go p.handleSecondExchange(&wg)
+	go p.handleFirstConversion(&wg)
+	go p.handleCompletedExchange(&wg)
+	go p.handleCompleted(&wg)
 	wg.Wait()
 	fmt.Println("Voucher Processor Finished")
 }
@@ -90,11 +94,11 @@ func (p *Processor) StoreOrders(orders []hestia.AdrestiaOrder) {
 		}
 	}
 }
-func (p *Processor) handleConvertedCoins(wg *sync.WaitGroup) {
+func (p *Processor) handleCompletedExchange(wg *sync.WaitGroup) {
 	// Sends from final exchange to target coin HotWallet
 }
 
-func (p *Processor) handleCompletedOrders(wg *sync.WaitGroup) {
+func (p *Processor) handleCompleted(wg *sync.WaitGroup) {
 	// Sends a telegram message and deletes order from CurrentOrders. Moves it to legacy table
 }
 

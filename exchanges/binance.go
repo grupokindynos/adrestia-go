@@ -2,27 +2,31 @@ package exchanges
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"github.com/grupokindynos/adrestia-go/exchanges/config"
-	"github.com/grupokindynos/adrestia-go/models/balance"
-	"github.com/grupokindynos/adrestia-go/models/transaction"
-	"github.com/grupokindynos/adrestia-go/utils"
-	"github.com/joho/godotenv"
 	l "log"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/grupokindynos/adrestia-go/exchanges/config"
+	"github.com/grupokindynos/adrestia-go/models/balance"
+	"github.com/grupokindynos/adrestia-go/models/transaction"
+	"github.com/grupokindynos/adrestia-go/utils"
+	"github.com/joho/godotenv"
+
 	"github.com/go-kit/kit/log"
 	"github.com/grupokindynos/common/coin-factory/coins"
+	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/obol"
 	"github.com/grupokindynos/go-binance"
 )
 
 type Binance struct {
 	Exchange
-	AccountName  string
-	binanceApi   binance.Binance
+	AccountName string
+	binanceApi  binance.Binance
+	Obol        obol.ObolService
 }
 
 var BinanceInstance = NewBinance()
@@ -54,11 +58,11 @@ func NewBinance() *Binance {
 	return c
 }
 
-func (b Binance) GetName() (string, error) {
+func (b *Binance) GetName() (string, error) {
 	return b.Name, nil
 }
 
-func (b Binance) GetAddress(coin coins.Coin) (string, error) {
+func (b *Binance) GetAddress(coin coins.Coin) (string, error) {
 	/*var addresses = make(map[string]string)
 	addresses["DASH"] = "XuVmLDmUHZCjaSjm8KfXkGVhRG8fVC3Jis"
 	addresses["XZC"] = "aJUE5rLmGvSu9ThnWzUu4TpYgKPPgfbCAy"
@@ -83,7 +87,22 @@ func (b Binance) GetAddress(coin coins.Coin) (string, error) {
 	return address.Address, nil
 }
 
-func (b Binance) GetBalances() ([]balance.Balance, error) {
+// TODO Missing
+func (b *Binance) OneCoinToBtc(coin coins.Coin) (float64, error) {
+	l.Println(fmt.Sprintf("[OneCoinToBtc] Calculating for %s using %s", coin.Name, b.Name))
+	if coin.Tag == "BTC" {
+		return 1.0, nil
+	}
+	// TODO Missing update on method, not strictly needed though
+	rate, err := b.Obol.GetCoin2CoinRatesWithAmount("btc", coin.Tag, fmt.Sprintf("%f", 1.0))
+	if err != nil {
+		return 0.0, err
+	}
+	l.Println(fmt.Sprintf("[OneCoinToBtc] Calculated rate for %s as %.8f BTC per Coin", coin.Name, rate))
+	return rate.AveragePrice, nil
+}
+
+func (b *Binance) GetBalances() ([]balance.Balance, error) {
 	s := fmt.Sprintf("[GetBalances] Retrieving Balances for coins at %s", b.Name)
 	l.Println(s)
 	var balances []balance.Balance
@@ -97,14 +116,14 @@ func (b Binance) GetBalances() ([]balance.Balance, error) {
 	}
 
 	for _, asset := range res.Balances {
-		rate, _ := obol.GetCoin2CoinRates("https://obol-rates.herokuapp.com/", "BTC", asset.Asset)
+		rate, _ := b.Obol.GetCoin2CoinRates("BTC", asset.Asset)
 		var b = balance.Balance{
-			Ticker:     		asset.Asset,
+			Ticker:             asset.Asset,
 			ConfirmedBalance:   asset.Free,
 			UnconfirmedBalance: asset.Locked,
-			RateBTC:    		rate,
-			DiffBTC:    		0,
-			IsBalanced: 		false,
+			RateBTC:            rate,
+			DiffBTC:            0,
+			IsBalanced:         false,
 		}
 		if b.GetTotalBalance() > 0.0 {
 			balances = append(balances, b)
@@ -116,16 +135,16 @@ func (b Binance) GetBalances() ([]balance.Balance, error) {
 	return balances, nil
 }
 
-func (b Binance) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (bool, string, error) {
-	l.Println(fmt.Sprintf("[SellAtMarketPrice] Selling %.8f %s for %s on %s", SellOrder.Amount, SellOrder.FromCoin.Name, SellOrder.ToCoin.Name, b.Name))
+func (b *Binance) SellAtMarketPrice(sellOrder transaction.ExchangeSell) (bool, string, error) {
+	l.Println(fmt.Sprintf("[SellAtMarketPrice] Selling %.8f %s for %s on %s", sellOrder.Amount, sellOrder.FromCoin.Name, sellOrder.ToCoin.Name, b.Name))
 	// Gets price from Obol considering the amount to sell
-	rate, err := obol.GetCoin2CoinRatesWithAmount("https://obol-rates.herokuapp.com/", SellOrder.FromCoin.Tag, SellOrder.ToCoin.Tag, fmt.Sprintf("%f", SellOrder.Amount))
+	rate, err := b.Obol.GetCoin2CoinRatesWithAmount(sellOrder.FromCoin.Tag, sellOrder.ToCoin.Tag, fmt.Sprintf("%f", sellOrder.Amount))
 	if err != nil {
 		return false, "", err
 	}
 
 	// Order creation an Post
-	symbol := SellOrder.FromCoin.Tag + SellOrder.ToCoin.Tag
+	symbol := sellOrder.FromCoin.Tag + sellOrder.ToCoin.Tag
 	fmt.Println(symbol)
 	fmt.Println(rate)
 	// TODO Update to work with new Rate Response models rate.AveragePrice
@@ -149,7 +168,7 @@ func (b Binance) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (bool, st
 	return true, "order id", nil
 }
 
-func (b Binance) Withdraw(coin coins.Coin, address string, amount float64) (bool, error) {
+func (b *Binance) Withdraw(coin coins.Coin, address string, amount float64) (bool, error) {
 	// l.Println(fmt.Sprintf("[Withdraw] Retrieving Account Info for %s", b.Name))
 	/*res, _ := b.binanceApi.Account(binance.AccountRequest{
 		RecvWindow: 5 * time.Second,
@@ -178,19 +197,12 @@ func (b Binance) Withdraw(coin coins.Coin, address string, amount float64) (bool
 
 }
 
-// TODO Missing
-func (b Binance) OneCoinToBtc(coin coins.Coin) (float64, error) {
-	l.Println(fmt.Sprintf("[OneCoinToBtc] Calculating for %s using %s", coin.Name, b.Name))
-	if coin.Tag == "BTC" {
-		return 1.0, nil
-	}
-	// TODO Missing update on method, not strictly needed though
-	rate, err := obol.GetCoin2CoinRatesWithAmount("https://obol-rates.herokuapp.com/", "btc", coin.Tag, fmt.Sprintf("%f", 1.0))
-	if err != nil {
-		return 0.0, err
-	}
-	l.Println(fmt.Sprintf("[OneCoinToBtc] Calculated rate for %s as %.8f BTC per Coin", coin.Name, rate))
-	return rate.AveragePrice, nil
+func (b *Binance) GetRateByAmount(sell transaction.ExchangeSell) (float64, error) {
+	return 0.0, errors.New("func not implemented")
+}
+
+func (b *Binance) GetOrderStatus(orderId string) (hestia.AdrestiaStatus, error) {
+	return -1, errors.New("func not implemented")
 }
 
 func GetSettings() config.BinanceAuth {

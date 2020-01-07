@@ -18,7 +18,11 @@ import (
 	"time"
 )
 
-func GetWalletBalances() []balance.Balance {
+type PlutusRequests struct {
+	Obol obol.ObolService
+}
+
+func (p *PlutusRequests) GetWalletBalances() []balance.Balance {
 	flagAllRates := false
 	log.Println("Retrieving Wallet Balances...")
 	var rawBalances []balance.Balance
@@ -34,7 +38,7 @@ func GetWalletBalances() []balance.Balance {
 			b.UnconfirmedBalance = res.Unconfirmed
 			b.Ticker = coin.Tag
 			rawBalances = append(rawBalances, b)
-			fmt.Println(fmt.Sprintf("%.8f %s\t of a total of %.8f\t%.2f%%", b.ConfirmedBalance, b.Ticker, b.ConfirmedBalance + b.UnconfirmedBalance, b.GetConfirmedProportion()))
+			fmt.Println(fmt.Sprintf("%.8f %s\t of a total of %.8f\t%.2f%%", b.ConfirmedBalance, b.Ticker, b.ConfirmedBalance+b.UnconfirmedBalance, b.GetConfirmedProportion()))
 		}
 	}
 	log.Println("Finished Retrieving Balances")
@@ -45,8 +49,8 @@ func GetWalletBalances() []balance.Balance {
 	log.Println("Retrieving Wallet Rates...")
 	for _, coin := range rawBalances {
 		var currentBalance = coin
-		rate, err := obol.GetCoin2CoinRates("https://obol-rates.herokuapp.com/", "btc", currentBalance.Ticker)
-		if err != nil{
+		rate, err := p.Obol.GetCoin2CoinRates("btc", currentBalance.Ticker)
+		if err != nil {
 			flagAllRates = true
 			errRates = append(errRates, coin.Ticker)
 		} else {
@@ -61,7 +65,7 @@ func GetWalletBalances() []balance.Balance {
 	return updatedBalances
 }
 
-func GetBtcAddress() (string, error) {
+func (p *PlutusRequests) GetBtcAddress() (string, error) {
 	address, err := plutus.GetWalletAddress(os.Getenv("PLUTUS_URL"), "btc", os.Getenv("ADRESTIA_PRIV_KEY"), "adrestia", os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
 	if err != nil {
 		return "", err
@@ -69,7 +73,7 @@ func GetBtcAddress() (string, error) {
 	return address, nil
 }
 
-func GetAddress(coin string) (string, error){
+func (p *PlutusRequests) GetAddress(coin string) (string, error) {
 	address, err := plutus.GetWalletAddress(os.Getenv("PLUTUS_URL"), strings.ToLower(coin), os.Getenv("ADRESTIA_PRIV_KEY"), "adrestia", os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
 	if err != nil {
 		return "", err
@@ -78,7 +82,7 @@ func GetAddress(coin string) (string, error){
 }
 
 // Extracted from tyche/services/plutus.go
-func WithdrawToAddress(body plutus.SendAddressBodyReq) (txId string, err error) {
+func (p *PlutusRequests) WithdrawToAddress(body plutus.SendAddressBodyReq) (txId string, err error) {
 	req, err := mvt.CreateMVTToken("POST", plutus.ProductionURL+"/send/address", "tyche", os.Getenv("MASTER_PASSWORD"), body, os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("TYCHE_PRIV_KEY"))
 	if err != nil {
 		return txId, err
@@ -116,7 +120,7 @@ func WithdrawToAddress(body plutus.SendAddressBodyReq) (txId string, err error) 
 	return response, nil
 }
 
-func GetWalletTx(coin string, txId string) (transaction plutus.Transaction, err error) {
+func (p *PlutusRequests) GetWalletTx(coin string, txId string) (transaction plutus.Transaction, err error) {
 	transaction, err = plutus.GetWalletTX(os.Getenv("PLUTUS_URL"), strings.ToLower(coin), strings.ToLower(txId), os.Getenv("ADRESTIA_PRIV_KEY"), "adrestia", os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
 	return
 }

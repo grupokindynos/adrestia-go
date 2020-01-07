@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/grupokindynos/adrestia-go/exchanges/config"
 	"io"
 	"io/ioutil"
 	"log"
@@ -14,12 +13,15 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/grupokindynos/adrestia-go/exchanges/config"
+
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	"github.com/grupokindynos/adrestia-go/models/exchange_models"
 	"github.com/grupokindynos/adrestia-go/models/transaction"
 	"github.com/grupokindynos/adrestia-go/utils"
 	"github.com/grupokindynos/common/coin-factory/coins"
 	"github.com/grupokindynos/common/obol"
+	"github.com/grupokindynos/common/hestia"
 	"github.com/joho/godotenv"
 	"moul.io/http2curl"
 )
@@ -29,6 +31,7 @@ type Cryptobridge struct {
 	AccountName    string
 	BitSharesUrl   string
 	MasterPassword string
+	Obol obol.ObolService
 }
 
 var CBInstance = NewCryptobridge()
@@ -36,7 +39,7 @@ var CBInstance = NewCryptobridge()
 func NewCryptobridge() *Cryptobridge {
 	c := new(Cryptobridge)
 	c.Name = "Cryptobridge"
-	data := c.GetSettings()
+	data := c.getSettings()
 	c.MasterPassword = data.MasterPassword
 	c.AccountName = data.AccountName
 	c.BaseUrl = data.BaseUrl
@@ -44,11 +47,11 @@ func NewCryptobridge() *Cryptobridge {
 	return c
 }
 
-func (c Cryptobridge) GetName() (string, error) {
+func (c *Cryptobridge) GetName() (string, error) {
 	return c.Name, nil
 }
 
-func (c Cryptobridge) GetAddress(coin coins.Coin) (string, error) {
+func (c *Cryptobridge) GetAddress(coin coins.Coin) (string, error) {
 	client := &http.Client{}
 	url := "v2/accounts/" + c.AccountName + "/assets/" + coin.Tag + "/addresses"
 	req, _ := http.NewRequest("GET", c.BitSharesUrl+url, nil)
@@ -60,7 +63,7 @@ func (c Cryptobridge) GetAddress(coin coins.Coin) (string, error) {
 	return "Missing Implementation", nil
 }
 
-func (c Cryptobridge) OneCoinToBtc(coin coins.Coin) (float64, error) {
+func (c *Cryptobridge) OneCoinToBtc(coin coins.Coin) (float64, error) {
 	var rates = new(exchange_models.CBRates)
 	url := "v1/ticker"
 	err := getBitSharesRequest(c.MasterPassword, c.BaseUrl+url, http.MethodGet, nil, &rates)
@@ -88,7 +91,7 @@ func (c Cryptobridge) OneCoinToBtc(coin coins.Coin) (float64, error) {
 	return 0.0, errors.New("no rates found")
 }
 
-func (c Cryptobridge) GetBalances() ([]balance.Balance, error) {
+func (c *Cryptobridge) GetBalances() ([]balance.Balance, error) {
 	s := fmt.Sprintf("Retrieving Balances for %s", c.Name)
 	log.Println(s)
 	var balances []balance.Balance
@@ -103,15 +106,15 @@ func (c Cryptobridge) GetBalances() ([]balance.Balance, error) {
 		if strings.Contains(asset.Symbol, "BRIDGE.") {
 			asset.Symbol = asset.Symbol[7:]
 		}
-		rate, _ := obol.GetCoin2CoinRates("https://obol-rates.herokuapp.com/", "BTC", asset.Symbol)
+		rate, _ := c.Obol.GetCoin2CoinRates("BTC", asset.Symbol)
 
 		var b = balance.Balance{
-			Ticker:     		asset.Symbol,
+			Ticker:             asset.Symbol,
 			ConfirmedBalance:   asset.Amount,
-			UnconfirmedBalance:	0.0,
-			RateBTC:    		rate,
-			DiffBTC:    		0,
-			IsBalanced: 		false,
+			UnconfirmedBalance: 0.0,
+			RateBTC:            rate,
+			DiffBTC:            0,
+			IsBalanced:         false,
 		}
 		balances = append(balances, b)
 	}
@@ -120,11 +123,11 @@ func (c Cryptobridge) GetBalances() ([]balance.Balance, error) {
 	return balances, nil
 }
 
-func (c Cryptobridge) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (bool, string, error) {
-	s := fmt.Sprintf("Selling %f %s for %s in %s", SellOrder.Amount, SellOrder.FromCoin.Tag, SellOrder.ToCoin.Tag, c.Name)
+func (c *Cryptobridge) SellAtMarketPrice(sellOrder transaction.ExchangeSell) (bool, string, error) {
+	s := fmt.Sprintf("Selling %f %s for %s in %s", sellOrder.Amount, sellOrder.FromCoin.Tag, sellOrder.ToCoin.Tag, c.Name)
 	log.Println(s)
 	// sellorders/BRIDGE.{sell.To.tag}/BRIDGE.{sell.From.tag}
-	url := "sellorders/BRIDGE." + strings.ToUpper(SellOrder.ToCoin.Tag) + "/BRIDGE." + strings.ToUpper(SellOrder.FromCoin.Tag)
+	url := "sellorders/BRIDGE." + strings.ToUpper(sellOrder.ToCoin.Tag) + "/BRIDGE." + strings.ToUpper(sellOrder.FromCoin.Tag)
 	var openOrders = new(exchange_models.Orders)
 
 	err := getBitSharesRequest(c.MasterPassword, c.BitSharesUrl+url, http.MethodGet, nil, &openOrders)
@@ -135,13 +138,13 @@ func (c Cryptobridge) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (boo
 
 	calculatedPrice := 0.0
 	auxAmount := 0.0
-	copySellOrder := SellOrder.Amount
+	copySellOrder := sellOrder.Amount
 	amountToSell := 0.0
 	index := 0
 
-	// log.Println("Selling Order ", SellOrder.Amount, " ", SellOrder.FromCoin.Tag)
+	// log.Println("Selling Order ", sellOrder.Amount, " ", sellOrder.FromCoin.Tag)
 
-	for auxAmount < SellOrder.Amount {
+	for auxAmount < sellOrder.Amount {
 		currentAsk := openOrders.Data.Asks[index]
 		auxAmount += currentAsk.Base.Amount
 		calculatedPrice = 1 / currentAsk.Price * 0.9999 // TODO I (Helios) don't quite understand this way of calculating.
@@ -162,7 +165,7 @@ func (c Cryptobridge) SellAtMarketPrice(SellOrder transaction.ExchangeSell) (boo
 }
 
 //Withdraw allows Adrestia to send money from exchanges to a valid address
-func (c Cryptobridge) Withdraw(coin coins.Coin, address string, amount float64) (bool, error) {
+func (c *Cryptobridge) Withdraw(coin coins.Coin, address string, amount float64) (bool, error) {
 	var withdrawObj = exchange_models.CBWithdraw{
 		Amount:  amount,
 		Address: address,
@@ -190,7 +193,15 @@ func (c Cryptobridge) Withdraw(coin coins.Coin, address string, amount float64) 
 	return true, nil
 }
 
-func (c Cryptobridge) GetSettings() config.CBAuth {
+func (c *Cryptobridge) GetRateByAmount(sell transaction.ExchangeSell) (float64, error) {
+	return 0.0, errors.New("func not implemented")
+}
+
+func (c *Cryptobridge) GetOrderStatus(orderId string) (hestia.AdrestiaStatus, error) {
+	return -1, errors.New("func not implemented")
+}
+
+func (c *Cryptobridge) getSettings() config.CBAuth {
 	if err := godotenv.Load(); err != nil {
 		log.Println(err)
 	}

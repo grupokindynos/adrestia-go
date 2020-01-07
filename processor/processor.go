@@ -33,11 +33,10 @@ func (p *Processor) Start() {
 	}
 
 	var wg sync.WaitGroup
-	wg.Add(6)
+	wg.Add(5)
 	go p.handleCreatedOrders(&wg)
-	go p.handleFirstExchange(&wg)
-	go p.handleSecondExchange(&wg)
-	go p.handleFirstConversion(&wg)
+	go p.handleExchange(&wg)
+	go p.handleConversion(&wg)
 	go p.handleCompletedExchange(&wg)
 	go p.handleCompleted(&wg)
 	wg.Wait()
@@ -46,32 +45,34 @@ func (p *Processor) Start() {
 
 func (p *Processor) handleCreatedOrders(wg *sync.WaitGroup) {
 	defer wg.Done()
-	orders := getOrders(hestia.AdrestiaStatusCreated)
+	orders := p.getOrders(hestia.AdrestiaStatusCreated)
 	log.Println(orders)
 	// 1.  Sends the amount to first exchange
 	fmt.Println("Finished CreatedOrders")
 }
 
-func (p *Processor) handleFirstExchange(wg *sync.WaitGroup) {
+func (p *Processor) handleExchange(wg *sync.WaitGroup) {
 	defer wg.Done()
 	// 1. Verifies deposit in exchange and creates Selling Order always targets BTC
 	fmt.Println("Finished SentAmount")
 }
 
-func (p *Processor) handleFirstConversion(wg *sync.WaitGroup) {
+func (p *Processor) handleConversion(wg *sync.WaitGroup) {
 	defer wg.Done()
 	// 1. Checks if order has been fulfilled.
 	// 2. If target coin is BTC sends it to HW, else sends it to a second exchange
 	fmt.Println("Finished SentAmount")
 }
 
-func (p *Processor) handleSecondExchange(wg *sync.WaitGroup) {
-	defer wg.Done()
-	// Verifies deposit in second exchange that targets the final coin. Arrives here if target is not BTC
-	fmt.Println("Finished SentAmount")
+func (p *Processor) handleCompletedExchange(wg *sync.WaitGroup) {
+	// Sends from final exchange to target coin HotWallet
 }
 
-func (p *Processor) ChangeOrderStatus(order hestia.AdrestiaOrder, status hestia.AdrestiaStatus) {
+func (p *Processor) handleCompleted(wg *sync.WaitGroup) {
+	// Sends a telegram message and deletes order from CurrentOrders. Moves it to legacy table
+}
+
+func (p *Processor) changeOrderStatus(order hestia.AdrestiaOrder, status hestia.AdrestiaStatus) {
 	fallbackStatus := order.Status
 	order.Status = hestia.AdrestiaStatusStr[status]
 	resp, err := p.Hestia.UpdateAdrestiaOrder(order)
@@ -84,7 +85,7 @@ func (p *Processor) ChangeOrderStatus(order hestia.AdrestiaOrder, status hestia.
 	}
 }
 
-func (p *Processor) StoreOrders(orders []hestia.AdrestiaOrder) {
+func (p *Processor) storeOrders(orders []hestia.AdrestiaOrder) {
 	for _, order := range orders {
 		res, err := p.Hestia.CreateAdrestiaOrder(order)
 		if err != nil {
@@ -94,15 +95,8 @@ func (p *Processor) StoreOrders(orders []hestia.AdrestiaOrder) {
 		}
 	}
 }
-func (p *Processor) handleCompletedExchange(wg *sync.WaitGroup) {
-	// Sends from final exchange to target coin HotWallet
-}
 
-func (p *Processor) handleCompleted(wg *sync.WaitGroup) {
-	// Sends a telegram message and deletes order from CurrentOrders. Moves it to legacy table
-}
-
-func getOrders(status hestia.AdrestiaStatus) (filteredOrders []hestia.AdrestiaOrder) {
+func (p *Processor) getOrders(status hestia.AdrestiaStatus) (filteredOrders []hestia.AdrestiaOrder) {
 	for _, order := range adrestiaOrders {
 		fmt.Println(order)
 		if order.Status == hestia.AdrestiaStatusStr[status] {

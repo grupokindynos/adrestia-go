@@ -3,20 +3,20 @@ package exchanges
 import (
 	"errors"
 	"fmt"
+	"os"
+	"strconv"
+	"strings"
+
 	"github.com/grupokindynos/adrestia-go/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
+	"github.com/grupokindynos/adrestia-go/models/exchange_models"
 	"github.com/grupokindynos/adrestia-go/models/transaction"
 	"github.com/grupokindynos/common/coin-factory/coins"
 	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/obol"
 	bitso "github.com/grupokindynos/gobitso"
 	"github.com/grupokindynos/gobitso/models"
-	"os"
-	"strconv"
-	"strings"
 )
-
-var BitsoInstance = NewBitso()
 
 type Bitso struct {
 	Exchange
@@ -24,11 +24,12 @@ type Bitso struct {
 	Obol         obol.ObolService
 }
 
-func NewBitso() *Bitso {
+func NewBitso(params exchange_models.Params) *Bitso {
 	b := new(Bitso)
 	data := b.getSettings()
 	b.bitsoService = *bitso.NewBitso(data.Url)
 	b.bitsoService.SetAuth(data.ApiKey, data.ApiSecret)
+	b.Obol = params.Obol
 	return b
 }
 

@@ -2,24 +2,23 @@ package utils
 
 import (
 	"fmt"
+	"math"
+	"sort"
+
 	"github.com/gookit/color"
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	"github.com/grupokindynos/adrestia-go/models/transaction"
-	"github.com/grupokindynos/adrestia-go/services"
 	"github.com/grupokindynos/common/hestia"
-	"log"
-	"math"
-	"sort"
 )
 
-func NormalizeWallets(balances []balance.Balance, hestiaConf []hestia.Coin) (map[string]balance.WalletInfoWrapper, []string){
+func NormalizeWallets(balances []balance.Balance, hestiaConf []hestia.Coin) (map[string]balance.WalletInfoWrapper, []string) {
 	/*
 		This function normalizes the wallets that were detected in Plutus and those with configuration in Hestia.
 		Returns a map of the coins' ticker as key containing a wrapper with both the actual balance of the wallet and
 		its firebase configuration.
 	*/
 	var mapBalances = make(map[string]balance.Balance)
-	var mapConf =  make(map[string]hestia.Coin)
+	var mapConf = make(map[string]hestia.Coin)
 	var missingCoins []string
 	var availableCoins = make(map[string]balance.WalletInfoWrapper)
 
@@ -82,34 +81,10 @@ func SortBalances(data map[string]balance.WalletInfoWrapper) ([]balance.Balance,
 	return balancedWallets, unbalancedWallets
 }
 
-func ChangeOrderStatus(order hestia.AdrestiaOrder, status hestia.AdrestiaStatus) () {
-	fallbackStatus := order.Status
-	order.Status = hestia.AdrestiaStatusStr[status]
-	resp, err := services.UpdateAdrestiaOrder(order)
-	// TODO Move in map (if concurrency on maps allows for it)
-	if err != nil {
-		order.Status = fallbackStatus
-		fmt.Println(err)
-	} else {
-		log.Println(fmt.Sprintf("order %s in %s has been updated to %s\t%s", order.OrderId, order.Exchange, order.Status, resp))
-	}
-}
-
-func StoreOrders(orders []hestia.AdrestiaOrder) {
-	for _, order := range orders {
-		res, err := services.CreateAdrestiaOrder(order)
-		if err != nil {
-			fmt.Println("error posting order to hestia: ", err)
-		} else {
-			fmt.Println(res)
-		}
-	}
-}
-
 func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []transaction.PTx {
 	/*
 		DEPRECATED Used to balance adrestia. Keeping for reference.
-	 */
+	*/
 	var pendingTransactions []transaction.PTx
 	i := 0 // Balanced wallet index
 	for _, wallet := range unbalanced {
@@ -120,7 +95,7 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 		for filledAmount < initialDiff {
 			// color.Info.Tips(fmt.Sprintf("BalanceHW::\tUsing %s to balanace %s", balanced[i].Ticker, wallet.Ticker))
 			var newTx transaction.PTx
-			if balanced[i].DiffBTC < initialDiff - filledAmount {
+			if balanced[i].DiffBTC < initialDiff-filledAmount {
 				newTx.ToCoin = wallet.Ticker
 				newTx.FromCoin = balanced[i].Ticker
 				newTx.Amount = balanced[i].DiffBTC
@@ -131,7 +106,7 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 				i++
 				fmt.Println("Type I tx: ", newTx)
 				pendingTransactions = append(pendingTransactions, newTx)
-			}else {
+			} else {
 				newTx.Amount = initialDiff - filledAmount
 				filledAmount += initialDiff - filledAmount
 				balanced[i].DiffBTC -= initialDiff - filledAmount
@@ -149,10 +124,10 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 func DetermineBalanceability(balanced []balance.Balance, unbalanced []balance.Balance) (bool, float64) {
 	/*
 		DEPRECATED Used to balance adrestia. Keeping for reference.
-	 */
+	*/
 	superavit := 0.0 // Exceeding amount in balanced wallets
 	deficit := 0.0   // Missing amount in unbalanced wallets
-	totalBtc := 0.0 // total amount in wallets
+	totalBtc := 0.0  // total amount in wallets
 
 	for _, wallet := range balanced {
 		superavit += math.Abs(wallet.DiffBTC)

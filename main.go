@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gookit/color"
-	"github.com/grupokindynos/adrestia-go/models/order_manager"
+	"github.com/grupokindynos/adrestia-go/handlers"
 	"github.com/grupokindynos/adrestia-go/processor"
 	"github.com/grupokindynos/adrestia-go/services"
 	"github.com/grupokindynos/adrestia-go/utils"
@@ -28,18 +28,32 @@ func init() {
 }
 
 func main() {
-	processor.Start()
-	// TODO Disable and Enable Shift at star nd ending of the process
-	color.Info.Tips("Program Started")
 	hestiaService := services.HestiaRequests{}
 	plutusService := services.PlutusRequests{Obol: &obol.ObolRequest{}}
+
+	proc := processor.Processor{
+		Hestia: &hestiaService,
+	}
+
+	proc.Start()
+	// TODO Disable and Enable Shift at star nd ending of the process
+	color.Info.Tips("Program Started")
 	/*
 		Process Description
 		Check for wallets with superavits, send remaining to exchange conversion to bTC and then send to HW.
 		Use exceeding balance in HW (or a new bTC WALLET that solely fits this purpose) to balance other wallets
 		in exchanges (should convert and withdraw to an address stored in Firestore).
 	*/
-	om := order_manager.NewOrderManager(fiatThreshold, orderTimeOut, exConfirmationThreshold, walletConfirmationThreshold, testingAmount)
+	om := handlers.OrderManager{
+		FiatThreshold:               fiatThreshold,
+		OrderTimeOut:                orderTimeOut,
+		ExConfirmationThreshold:     exConfirmationThreshold,
+		WalletConfirmationThreshold: walletConfirmationThreshold,
+		TestingAmount:               testingAmount,
+		Hestia:                      &hestiaService,
+		Plutus:                      &plutusService,
+	}
+
 	orders := om.GetOrderMap()
 
 	// First case: verify sent orders
@@ -65,13 +79,13 @@ func main() {
 	availableWallets, _ := utils.NormalizeWallets(balances, confHestia) // Verifies wallets in firebase are the same as in plutus and creates a map
 	balanced, unbalanced := utils.SortBalances(availableWallets)
 
-	var superavitOrders = order_manager.GetOutwardOrders(balanced, testingAmount)
-	var deficitOrders = order_manager.GetInwardOrders(unbalanced, testingAmount)
+	var superavitOrders = om.GetOutwardOrders(balanced, testingAmount)
+	var deficitOrders = om.GetInwardOrders(unbalanced, testingAmount)
 
 	log.Println(superavitOrders)
 	log.Println(deficitOrders)
 
 	// Stores orders in Firestore for further processing
-	utils.StoreOrders(superavitOrders)
-	utils.StoreOrders(deficitOrders)
+	//utils.StoreOrders(superavitOrders)
+	//utils.StoreOrders(deficitOrders)
 }

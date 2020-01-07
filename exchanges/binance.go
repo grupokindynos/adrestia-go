@@ -11,6 +11,7 @@ import (
 
 	"github.com/grupokindynos/adrestia-go/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
+	"github.com/grupokindynos/adrestia-go/models/exchange_models"
 	"github.com/grupokindynos/adrestia-go/models/transaction"
 	"github.com/grupokindynos/adrestia-go/utils"
 	"github.com/joho/godotenv"
@@ -29,9 +30,7 @@ type Binance struct {
 	Obol        obol.ObolService
 }
 
-var BinanceInstance = NewBinance()
-
-func NewBinance() *Binance {
+func NewBinance(params exchange_models.Params) *Binance {
 	c := new(Binance)
 	c.Name = "Binance"
 	c.BaseUrl = ""

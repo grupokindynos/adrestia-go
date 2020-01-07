@@ -10,6 +10,7 @@ import (
 	south "github.com/bitbandi/go-southxchange"
 	"github.com/grupokindynos/adrestia-go/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
+	"github.com/grupokindynos/adrestia-go/models/exchange_models"
 	"github.com/grupokindynos/adrestia-go/models/transaction"
 	"github.com/grupokindynos/adrestia-go/utils"
 	"github.com/grupokindynos/common/coin-factory/coins"
@@ -25,17 +26,17 @@ type SouthXchange struct {
 	Obol        obol.ObolService
 }
 
-var SouthInstance = NewSouthXchange()
-
-func NewSouthXchange() *SouthXchange {
+func NewSouthXchange(params exchange_models.Params) *SouthXchange {
 	s := new(SouthXchange)
 	s.Name = "SouthXchange"
 	data := s.getSettings()
 	s.apiKey = data.ApiKey
 	s.apiSecret = data.ApiSecret
 	s.southClient = *south.New(s.apiKey, s.apiSecret, "user-agent")
+	s.Obol = params.Obol
 	return s
 }
+
 func (s *SouthXchange) GetName() (string, error) {
 	return "southxchange", nil
 }
@@ -89,8 +90,8 @@ func (s *SouthXchange) GetBalances() ([]balance.Balance, error) {
 	return balances, nil
 }
 
-func (s *SouthXchange) SellAtMarketPrice(sellOrder transaction.ExchangeSell) (bool, error) {
-	return false, errors.New("func not implemented")
+func (s *SouthXchange) SellAtMarketPrice(sellOrder transaction.ExchangeSell) (bool, string, error) {
+	return false, "", errors.New("func not implemented")
 }
 
 func (s *SouthXchange) Withdraw(coin coins.Coin, address string, amount float64) (bool, error) {

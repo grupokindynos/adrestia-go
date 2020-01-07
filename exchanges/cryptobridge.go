@@ -20,8 +20,8 @@ import (
 	"github.com/grupokindynos/adrestia-go/models/transaction"
 	"github.com/grupokindynos/adrestia-go/utils"
 	"github.com/grupokindynos/common/coin-factory/coins"
-	"github.com/grupokindynos/common/obol"
 	"github.com/grupokindynos/common/hestia"
+	"github.com/grupokindynos/common/obol"
 	"github.com/joho/godotenv"
 	"moul.io/http2curl"
 )
@@ -31,12 +31,10 @@ type Cryptobridge struct {
 	AccountName    string
 	BitSharesUrl   string
 	MasterPassword string
-	Obol obol.ObolService
+	Obol           obol.ObolService
 }
 
-var CBInstance = NewCryptobridge()
-
-func NewCryptobridge() *Cryptobridge {
+func NewCryptobridge(params exchange_models.Params) *Cryptobridge {
 	c := new(Cryptobridge)
 	c.Name = "Cryptobridge"
 	data := c.getSettings()
@@ -44,6 +42,7 @@ func NewCryptobridge() *Cryptobridge {
 	c.AccountName = data.AccountName
 	c.BaseUrl = data.BaseUrl
 	c.BitSharesUrl = data.BitSharesUrl
+	c.Obol = params.Obol
 	return c
 }
 

@@ -111,7 +111,7 @@ func (b *Bitso) GetRateByAmount(sell transaction.ExchangeSell) (float64, error) 
 	return 0.0, errors.New("func not implemented")
 }
 
-func (b *Bitso) GetOrderStatus(orderId string) (status hestia.AdrestiaStatus, err error) {
+func (b *Bitso) GetOrderStatus(orderId string) (status hestia.ExchangeStatus, err error) {
 	var wrappedOrder []string
 	wrappedOrder = append(wrappedOrder, orderId)
 	res, err := b.bitsoService.LookUpOrders(wrappedOrder)
@@ -119,15 +119,15 @@ func (b *Bitso) GetOrderStatus(orderId string) (status hestia.AdrestiaStatus, er
 		return
 	}
 	if res.Payload[0].Status == "completed" {
-		return hestia.AdrestiaStatusCompleted, nil
+		return hestia.ExchangeStatusCompleted, nil
 	}
 	if res.Payload[0].Status == "partial-fill" {
-		return hestia.AdrestiaStatusFirstExchange, nil
+		return hestia.ExchangeStatusOpen, nil
 	}
 	if res.Payload[0].Status == "open" || res.Payload[0].Status == "queued" {
-		return hestia.AdrestiaStatusCreated, nil
+		return hestia.ExchangeStatusOpen, nil
 	}
-	return hestia.AdrestiaStatusCreated, errors.New("unknown order status " + res.Payload[0].Status)
+	return hestia.ExchangeStatusError, errors.New("unknown order status " + res.Payload[0].Status)
 }
 
 func (b *Bitso) getSettings() config.BitsoAuth {

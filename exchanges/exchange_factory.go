@@ -20,7 +20,6 @@ func NewExchangeFactory(params exchange_models.Params) *ExchangeFactory {
 		panic("you need .env at the root of api/")
 	}
 
-	CBInstance := NewCryptobridge(params)
 	BinanceInstance := NewBinance(params)
 	BitsoInstance := NewBitso(params)
 	SouthInstance := NewSouthXchange(params)
@@ -28,7 +27,6 @@ func NewExchangeFactory(params exchange_models.Params) *ExchangeFactory {
 	exFactory := new(ExchangeFactory)
 
 	exFactory.exchangesMp = map[string]IExchange{
-		"cryptobridge": CBInstance,
 		"binance":      BinanceInstance,
 		"bitso":        BitsoInstance,
 		"southxchange": SouthInstance,

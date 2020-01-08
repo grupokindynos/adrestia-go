@@ -108,7 +108,7 @@ func (s *SouthXchange) GetRateByAmount(sell transaction.ExchangeSell) (float64, 
 	return 0.0, errors.New("func not implemented")
 }
 
-func (s *SouthXchange) GetOrderStatus(orderId string) (hestia.AdrestiaStatus, error) {
+func (s *SouthXchange) GetOrderStatus(orderId string) (hestia.ExchangeStatus, error) {
 	return -1, errors.New("func not implemented")
 }
 

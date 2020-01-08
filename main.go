@@ -57,18 +57,20 @@ func main() {
 	orders := om.GetOrderMap()
 
 	// First case: verify sent orders
-	sentOrders := orders[hestia.AdrestiaStatusStr[hestia.AdrestiaStatusSentAmount]]
 	createdOrders := orders[hestia.AdrestiaStatusStr[hestia.AdrestiaStatusCreated]]
-	partiallyFulfilledOrders := orders[hestia.AdrestiaStatusStr[hestia.AdrestiaStatusPartiallyFulfilled]]
-	awaitingWithdrawOrders := orders[hestia.AdrestiaStatusStr[hestia.AdrestiaStatusPendingWidthdrawal]]
+	firstExchangeOrders := orders[hestia.AdrestiaStatusStr[hestia.AdrestiaStatusFirstExchange]]
+	firstConversionOrders := orders[hestia.AdrestiaStatusStr[hestia.AdrestiaStatusFirstConversion]]
+	secondExchangeOrders := orders[hestia.AdrestiaStatusStr[hestia.AdrestiaStatusSecondExchange]]
+	secondConversionOrders := orders[hestia.AdrestiaStatusStr[hestia.AdrestiaStatusSecondConversion]]
 	completedOrders := orders[hestia.AdrestiaStatusStr[hestia.AdrestiaStatusCompleted]]
 
-	fmt.Print("Sent Orders: ", sentOrders)
-	fmt.Println("Created Orders: ", createdOrders)
+	fmt.Print("Created Orders: ", createdOrders)
+	fmt.Println("Completed Orders: ", completedOrders)
 
-	fmt.Println(partiallyFulfilledOrders)
-	fmt.Println(awaitingWithdrawOrders)
-	fmt.Println(completedOrders)
+	fmt.Println(firstExchangeOrders)
+	fmt.Println(firstConversionOrders)
+	fmt.Println(secondExchangeOrders)
+	fmt.Println(secondConversionOrders)
 
 	// TODO This should be the last process, accounting for moved orders
 	var balances = plutusService.GetWalletBalances()        // Gets balance from Hot Wallets

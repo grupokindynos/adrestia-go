@@ -117,7 +117,7 @@ func (om *OrderManager) HandleCreatedOrders(orders []hestia.AdrestiaOrder) {
 				return
 			}
 			if conf {
-				order.Status = hestia.AdrestiaStatusStr[hestia.AdrestiaStatusPendingWidthdrawal]
+				order.Status = hestia.AdrestiaStatusStr[hestia.AdrestiaStatusSecondExchange]
 				ok, err := om.Hestia.UpdateAdrestiaOrder(order)
 				if err != nil {
 					continue
@@ -160,7 +160,7 @@ func (om *OrderManager) GetOutwardOrders(balanced []balance.Balance, testingAmou
 				fmt.Println(txInfo)
 				txId := "test txId" // txId, _ := services.WithdrawToAddress(txInfo)
 				var order hestia.AdrestiaOrder
-				order.Status = hestia.AdrestiaStatusStr[hestia.AdrestiaStatusSentAmount]
+				order.Status = hestia.AdrestiaStatusStr[hestia.AdrestiaStatusCreated]
 				order.Amount = bWallet.DiffBTC / bWallet.RateBTC
 				order.OrderId = ""
 				order.FromCoin = bWallet.Ticker
@@ -204,7 +204,7 @@ func (om *OrderManager) GetInwardOrders(unbalanced []balance.Balance, testingAmo
 				txId := "test txId" // txId, _ := services.WithdrawToAddress(txInfo)
 				// TODO Send to Exchange
 				var order hestia.AdrestiaOrder
-				order.Status = hestia.AdrestiaStatusStr[hestia.AdrestiaStatusSentAmount]
+				order.Status = hestia.AdrestiaStatusStr[hestia.AdrestiaStatusCreated]
 				order.Amount = testingAmount // TODO Replace with uWallet.DiffBTC
 				order.OrderId = ""
 				order.FromCoin = "BTC"

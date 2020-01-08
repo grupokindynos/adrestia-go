@@ -122,7 +122,7 @@ func (b *Bitso) GetOrderStatus(orderId string) (status hestia.AdrestiaStatus, er
 		return hestia.AdrestiaStatusCompleted, nil
 	}
 	if res.Payload[0].Status == "partial-fill" {
-		return hestia.AdrestiaStatusPartiallyFulfilled, nil
+		return hestia.AdrestiaStatusFirstExchange, nil
 	}
 	if res.Payload[0].Status == "open" || res.Payload[0].Status == "queued" {
 		return hestia.AdrestiaStatusCreated, nil

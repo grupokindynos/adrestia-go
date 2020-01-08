@@ -19,7 +19,7 @@ require (
 	github.com/google/pprof v0.0.0-20191218002539-d4f498aebedc // indirect
 	github.com/gookit/color v1.2.0
 	github.com/gorilla/websocket v1.4.1 // indirect
-	github.com/grupokindynos/common v0.0.0-20200107233019-c9321cf9ce62
+	github.com/grupokindynos/common v0.0.0-20200108162431-fca164da803d
 	github.com/grupokindynos/go-binance v0.0.0-20191125182433-9fbba0bf81e1
 	github.com/grupokindynos/gobitso v0.7.1
 	github.com/grupokindynos/olympus-utils v0.0.0-20191114150906-5c358df85e5c // indirect

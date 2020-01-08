@@ -15,7 +15,7 @@ type IExchange interface {
 	SellAtMarketPrice(sellOrder transaction.ExchangeSell) (bool, string, error)
 	Withdraw(coin coins.Coin, address string, amount float64) (bool, error)
 	GetRateByAmount(sell transaction.ExchangeSell) (float64, error)
-	GetOrderStatus(orderId string) (hestia.AdrestiaStatus, error)
+	GetOrderStatus(orderId string) (hestia.ExchangeStatus, error)
 }
 
 type Exchange struct {

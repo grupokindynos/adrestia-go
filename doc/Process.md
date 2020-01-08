@@ -12,8 +12,8 @@
 
 ## handleConversion()
 1. Checks the order has been completed.
-2. Checks if it is the last conversion or requires a secon one. 
-    a. if it is last conversion marls order as ExchangeComplete
+2. Checks if it is the last conversion or requires a second one. 
+    a. if it is last conversion marks order as ExchangeComplete
     b. Withdraws converted BTC to second exchange.
     
 ## handleCompletedExchange()

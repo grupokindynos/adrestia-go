@@ -3,6 +3,7 @@ package exchanges
 import (
 	"errors"
 	"fmt"
+	"github.com/grupokindynos/adrestia-go/models/order"
 	"os"
 	"strconv"
 	"strings"
@@ -111,9 +112,9 @@ func (b *Bitso) GetRateByAmount(sell transaction.ExchangeSell) (float64, error) 
 	return 0.0, errors.New("func not implemented")
 }
 
-func (b *Bitso) GetOrderStatus(orderId string) (status hestia.ExchangeStatus, err error) {
+func (b *Bitso) GetOrderStatus(order order.Order) (status hestia.ExchangeStatus, err error) {
 	var wrappedOrder []string
-	wrappedOrder = append(wrappedOrder, orderId)
+	wrappedOrder = append(wrappedOrder, order.OrderId)
 	res, err := b.bitsoService.LookUpOrders(wrappedOrder)
 	if err != nil {
 		return

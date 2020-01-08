@@ -3,6 +3,7 @@ package exchanges
 import (
 	"errors"
 	"fmt"
+	"github.com/grupokindynos/adrestia-go/models/order"
 	"log"
 	"os"
 	"strings"
@@ -108,7 +109,7 @@ func (s *SouthXchange) GetRateByAmount(sell transaction.ExchangeSell) (float64, 
 	return 0.0, errors.New("func not implemented")
 }
 
-func (s *SouthXchange) GetOrderStatus(orderId string) (hestia.ExchangeStatus, error) {
+func (s *SouthXchange) GetOrderStatus(order order.Order) (hestia.ExchangeStatus, error) {
 	return -1, errors.New("func not implemented")
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/grupokindynos/adrestia-go/models/order"
 	l "log"
 	"os"
 	"strings"
@@ -200,7 +201,7 @@ func (b *Binance) GetRateByAmount(sell transaction.ExchangeSell) (float64, error
 	return 0.0, errors.New("func not implemented")
 }
 
-func (b *Binance) GetOrderStatus(orderId string) (hestia.ExchangeStatus, error) {
+func (b *Binance) GetOrderStatus(order order.Order) (hestia.ExchangeStatus, error) {
 	// b.binanceApi.QueryOrder()
 	return -1, errors.New("func not implemented")
 }

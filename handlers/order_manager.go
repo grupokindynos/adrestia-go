@@ -41,7 +41,7 @@ func (om *OrderManager) GetOrderMap() map[string][]hestia.AdrestiaOrder {
 	return mappedOrders
 }
 
-func (o *OrderManager) ExchangeCanFulfill(exchange exchanges.IExchange, coin string, amount float64) (bool, error) {
+func (om *OrderManager) ExchangeCanFulfill(exchange exchanges.IExchange, coin string, amount float64) (bool, error) {
 	var exAmount, err = exchange.GetBalances()
 	if err != nil {
 		return false, err

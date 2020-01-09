@@ -36,7 +36,7 @@ func (om *OrderManager) GetOrderMap() map[string][]hestia.AdrestiaOrder {
 	}
 	var mappedOrders = make(map[string][]hestia.AdrestiaOrder)
 	for _, order := range orders {
-		mappedOrders[order.Status] = append(mappedOrders[order.Status], order)
+		mappedOrders[hestia.AdrestiaStatusStr[order.Status]] = append(mappedOrders[hestia.AdrestiaStatusStr[order.Status]], order)
 	}
 	return mappedOrders
 }
@@ -68,7 +68,7 @@ func (om *OrderManager) HandleBalances() {
 func (om *OrderManager) HandleSentOrders(orders []hestia.AdrestiaOrder) {
 	ef := new(exchanges.ExchangeFactory)
 	for _, order := range orders {
-		tx, err := om.Plutus.GetWalletTx(order.FromCoin, order.TxId)
+		tx, err := om.Plutus.GetWalletTx(order.FromCoin, order.HETxId)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -85,8 +85,8 @@ func (om *OrderManager) HandleSentOrders(orders []hestia.AdrestiaOrder) {
 				color.Error.Tips(fmt.Sprintf("%v", err))
 				continue
 			}
-			order.OrderId = orderId
-			order.Status = hestia.AdrestiaStatusStr[hestia.AdrestiaStatusCreated]
+			order.FirstOrder.OrderId = orderId
+			order.Status = hestia.AdrestiaStatusCreated
 			// TODO Handle rate variation
 			order.Amount = 0.05 // TODO Replace with handled rate variation returned in object from CreateOrder()
 			_, err = om.Hestia.UpdateAdrestiaOrder(order)
@@ -117,7 +117,7 @@ func (om *OrderManager) HandleCreatedOrders(orders []hestia.AdrestiaOrder) {
 				return
 			}
 			if conf {
-				order.Status = hestia.AdrestiaStatusStr[hestia.AdrestiaStatusSecondExchange]
+				order.Status = hestia.AdrestiaStatusSecondExchange
 				ok, err := om.Hestia.UpdateAdrestiaOrder(order)
 				if err != nil {
 					continue
@@ -160,18 +160,18 @@ func (om *OrderManager) GetOutwardOrders(balanced []balance.Balance, testingAmou
 				fmt.Println(txInfo)
 				txId := "test txId" // txId, _ := services.WithdrawToAddress(txInfo)
 				var order hestia.AdrestiaOrder
-				order.Status = hestia.AdrestiaStatusStr[hestia.AdrestiaStatusCreated]
+				order.Status = hestia.AdrestiaStatusCreated
 				order.Amount = bWallet.DiffBTC / bWallet.RateBTC
-				order.OrderId = ""
+				order.FirstOrder.OrderId = ""
 				order.FromCoin = bWallet.Ticker
 				order.ToCoin = "BTC"
 				order.WithdrawAddress = btcAddress
 				order.Time = time.Now().Unix()
 				order.Message = "adrestia outward balancing"
 				order.ID = shortuuid.New()
-				order.Exchange, _ = ex.GetName()
-				order.ExchangeAddress = exAddress
-				order.TxId = txId
+				order.FirstOrder.Exchange, _ = ex.GetName()
+				order.FirstExAddress = exAddress
+				order.HETxId = txId
 
 				superavitOrders = append(superavitOrders, order)
 			}
@@ -204,18 +204,18 @@ func (om *OrderManager) GetInwardOrders(unbalanced []balance.Balance, testingAmo
 				txId := "test txId" // txId, _ := services.WithdrawToAddress(txInfo)
 				// TODO Send to Exchange
 				var order hestia.AdrestiaOrder
-				order.Status = hestia.AdrestiaStatusStr[hestia.AdrestiaStatusCreated]
+				order.Status = hestia.AdrestiaStatusCreated
 				order.Amount = testingAmount // TODO Replace with uWallet.DiffBTC
-				order.OrderId = ""
+				order.HETxId = ""
 				order.FromCoin = "BTC"
 				order.ToCoin = uWallet.Ticker
 				order.WithdrawAddress = address
 				order.Time = time.Now().Unix()
 				order.Message = "adrestia inward balancing"
 				order.ID = shortuuid.New()
-				order.Exchange, _ = ex.GetName()
-				order.ExchangeAddress = exAddress
-				order.TxId = txId
+				order.FirstOrder.Exchange, _ = ex.GetName()
+				order.FirstExAddress = exAddress
+				order.EHTxId = txId
 
 				deficitOrders = append(deficitOrders, order)
 			} else {

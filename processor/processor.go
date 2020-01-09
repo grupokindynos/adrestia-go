@@ -74,14 +74,14 @@ func (p *Processor) handleCompleted(wg *sync.WaitGroup) {
 
 func (p *Processor) changeOrderStatus(order hestia.AdrestiaOrder, status hestia.AdrestiaStatus) {
 	fallbackStatus := order.Status
-	order.Status = hestia.AdrestiaStatusStr[status]
+	order.Status = status
 	resp, err := p.Hestia.UpdateAdrestiaOrder(order)
 	// TODO Move in map (if concurrency on maps allows for it)
 	if err != nil {
 		order.Status = fallbackStatus
 		fmt.Println(err)
 	} else {
-		log.Println(fmt.Sprintf("order %s in %s has been updated to %s\t%s", order.OrderId, order.Exchange, order.Status, resp))
+		log.Println(fmt.Sprintf("order %s in %s has been updated to %s\t%s", order.FirstOrder.OrderId, order.FirstOrder.Exchange, order.Status, resp))
 	}
 }
 
@@ -99,7 +99,7 @@ func (p *Processor) storeOrders(orders []hestia.AdrestiaOrder) {
 func (p *Processor) getOrders(status hestia.AdrestiaStatus) (filteredOrders []hestia.AdrestiaOrder) {
 	for _, order := range adrestiaOrders {
 		fmt.Println(order)
-		if order.Status == hestia.AdrestiaStatusStr[status] {
+		if order.Status == status {
 			filteredOrders = append(filteredOrders, order)
 		}
 	}

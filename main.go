@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/gookit/color"
@@ -29,7 +30,7 @@ func init() {
 
 func main() {
 	hestiaService := services.HestiaRequests{}
-	plutusService := services.PlutusRequests{Obol: &obol.ObolRequest{}}
+	plutusService := services.PlutusRequests{Obol: &obol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}}
 
 	proc := processor.Processor{
 		Hestia: &hestiaService,

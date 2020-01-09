@@ -12,6 +12,11 @@ import (
 )
 
 func NormalizeWallets(balances []balance.Balance, hestiaConf []hestia.Coin) (map[string]balance.WalletInfoWrapper, []string) {
+	var activeCoins = make(map[string]bool) // TODO Replace with Hestia call
+	activeCoins["BTC"] = true
+	activeCoins["POLIS"] = true
+	activeCoins["DASH"] = true
+
 	/*
 		This function normalizes the wallets that were detected in Plutus and those with configuration in Hestia.
 		Returns a map of the coins' ticker as key containing a wrapper with both the actual balance of the wallet and
@@ -41,9 +46,11 @@ func NormalizeWallets(balances []balance.Balance, hestiaConf []hestia.Coin) (map
 			// fmt.Println(elem.Ticker, "\n", mapConf[elem.Ticker].Balances.HotWallet)
 			elem.SetTarget(mapConf[elem.Ticker].Balances.HotWallet) // Final attribute for Balance class, represents the target amount in the base currency that should be present
 			if elem.Target > 0.0 {
-				availableCoins[elem.Ticker] = balance.WalletInfoWrapper{
-					HotWalletBalance: elem,
-					FirebaseConf:     mapConf[elem.Ticker],
+				if _, ok := activeCoins[elem.Ticker]; ok {
+					availableCoins[elem.Ticker] = balance.WalletInfoWrapper{
+						HotWalletBalance: elem,
+						FirebaseConf:     mapConf[elem.Ticker],
+					}
 				}
 			}
 		}

@@ -54,22 +54,26 @@ func (p *Processor) handleCreatedOrders(wg *sync.WaitGroup) {
 func (p *Processor) handleExchange(wg *sync.WaitGroup) {
 	defer wg.Done()
 	// 1. Verifies deposit in exchange and creates Selling Order always targets BTC
-	fmt.Println("Finished SentAmount")
+	fmt.Println("Finished handleExchange")
 }
 
 func (p *Processor) handleConversion(wg *sync.WaitGroup) {
 	defer wg.Done()
 	// 1. Checks if order has been fulfilled.
 	// 2. If target coin is BTC sends it to HW, else sends it to a second exchange
-	fmt.Println("Finished SentAmount")
+	fmt.Println("Finished handleConversion")
 }
 
 func (p *Processor) handleCompletedExchange(wg *sync.WaitGroup) {
+	defer wg.Done()
 	// Sends from final exchange to target coin HotWallet
+	fmt.Println("Finished handleCompletedExchange")
 }
 
 func (p *Processor) handleCompleted(wg *sync.WaitGroup) {
+	defer wg.Done()
 	// Sends a telegram message and deletes order from CurrentOrders. Moves it to legacy table
+	fmt.Println("Finished handleCompleted")
 }
 
 func (p *Processor) changeOrderStatus(order hestia.AdrestiaOrder, status hestia.AdrestiaStatus) {

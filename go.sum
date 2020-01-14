@@ -87,6 +87,8 @@ github.com/grupokindynos/common v0.0.0-20200108195418-671cf1debc8b h1:qPMSllnb8Y
 github.com/grupokindynos/common v0.0.0-20200108195418-671cf1debc8b/go.mod h1:QI361g3CmU3niktGqcM1esmc/hM08wY4PsWfUj6emgs=
 github.com/grupokindynos/common v0.0.0-20200109015607-6e53c6df8f66 h1:+3JWChf+gSWl8z3Q2rpTfmw/cTq/f0yBWiv7TiJnXpk=
 github.com/grupokindynos/common v0.0.0-20200109015607-6e53c6df8f66/go.mod h1:QI361g3CmU3niktGqcM1esmc/hM08wY4PsWfUj6emgs=
+github.com/grupokindynos/common v0.0.0-20200109184835-f6654d04d453 h1:/2hgorl3q/dvtFmCQYQaa0umCqjsuqFL4a9SfJ1K8fQ=
+github.com/grupokindynos/common v0.0.0-20200109184835-f6654d04d453/go.mod h1:QI361g3CmU3niktGqcM1esmc/hM08wY4PsWfUj6emgs=
 github.com/grupokindynos/go-binance v0.0.0-20191125182433-9fbba0bf81e1 h1:6iBlzNB/Zuemkg32qNSBYSA4gf/N7fwSBMrgRds6iD4=
 github.com/grupokindynos/go-binance v0.0.0-20191125182433-9fbba0bf81e1/go.mod h1:RgYTB+ZsGwA2qfu4o9ObHcsGijn3F04BdV5Nv0mmMqI=
 github.com/grupokindynos/gobitso v0.7.1 h1:a6gve0l39t9n3BzGfWpI+LbYZ5XFRNbZ1Ca6ymA6KP4=
@@ -145,6 +147,10 @@ github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd/go.mod h1:6dJ
 github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742/go.mod h1:bx2lNnkwVCuqBIxFjflWJWanXIb3RllmbCylyMrvgv0=
 github.com/modern-go/reflect2 v1.0.1 h1:9f412s+6RmYXLWZSEzVVgPGK7C2PphHj5RJrvfx9AWI=
 github.com/modern-go/reflect2 v1.0.1/go.mod h1:bx2lNnkwVCuqBIxFjflWJWanXIb3RllmbCylyMrvgv0=
+github.com/oedipusK/go-southxchange v0.0.0-20200108194014-bc8bc5caeffc h1:CQhTSRK4kRI+MhvqSR8tlGMGGv2aZi3x0AE7zO6j590=
+github.com/oedipusK/go-southxchange v0.0.0-20200108194014-bc8bc5caeffc/go.mod h1:F3maalQptou4ZKoLp7LPX7NG2TF1RTP2q8P2ENweXvo=
+github.com/oedipusK/go-southxchange v0.0.0-20200109172815-60830945dae1 h1:5aXjx1oIneyz8sK/nVY4nMC9E88dz8m1ljTer5MWohM=
+github.com/oedipusK/go-southxchange v0.0.0-20200109172815-60830945dae1/go.mod h1:F3maalQptou4ZKoLp7LPX7NG2TF1RTP2q8P2ENweXvo=
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/ginkgo v1.7.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/ginkgo v1.11.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=

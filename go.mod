@@ -19,7 +19,7 @@ require (
 	github.com/google/pprof v0.0.0-20191218002539-d4f498aebedc // indirect
 	github.com/gookit/color v1.2.0
 	github.com/gorilla/websocket v1.4.1 // indirect
-	github.com/grupokindynos/common v0.0.0-20200109015607-6e53c6df8f66
+	github.com/grupokindynos/common v0.0.0-20200109184835-f6654d04d453
 	github.com/grupokindynos/go-binance v0.0.0-20191125182433-9fbba0bf81e1
 	github.com/grupokindynos/gobitso v0.7.1
 	github.com/grupokindynos/olympus-utils v0.0.0-20191114150906-5c358df85e5c // indirect
@@ -33,6 +33,7 @@ require (
 	github.com/lithammer/shortuuid v3.0.0+incompatible
 	github.com/mattn/go-isatty v0.0.11 // indirect
 	github.com/mmcloughlin/avo v0.0.0-20200107035638-205fc6a3d76b // indirect
+	github.com/oedipusK/go-southxchange v0.0.0-20200109172815-60830945dae1
 	github.com/onsi/ginkgo v1.11.0 // indirect
 	github.com/onsi/gomega v1.8.1 // indirect
 	github.com/pkg/errors v0.8.2-0.20190227000051-27936f6d90f9 // indirect

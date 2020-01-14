@@ -3,7 +3,6 @@ package exchanges
 import (
 	"errors"
 	"fmt"
-	"github.com/grupokindynos/adrestia-go/models/order"
 	"os"
 	"strconv"
 	"strings"
@@ -112,23 +111,24 @@ func (b *Bitso) GetRateByAmount(sell transaction.ExchangeSell) (float64, error) 
 	return 0.0, errors.New("func not implemented")
 }
 
-func (b *Bitso) GetOrderStatus(order order.Order) (status hestia.ExchangeStatus, err error) {
-	var wrappedOrder []string
-	wrappedOrder = append(wrappedOrder, order.OrderId)
-	res, err := b.bitsoService.LookUpOrders(wrappedOrder)
-	if err != nil {
-		return
-	}
-	if res.Payload[0].Status == "completed" {
-		return hestia.ExchangeStatusCompleted, nil
-	}
-	if res.Payload[0].Status == "partial-fill" {
-		return hestia.ExchangeStatusOpen, nil
-	}
-	if res.Payload[0].Status == "open" || res.Payload[0].Status == "queued" {
-		return hestia.ExchangeStatusOpen, nil
-	}
-	return hestia.ExchangeStatusError, errors.New("unknown order status " + res.Payload[0].Status)
+func (b *Bitso) GetOrderStatus(order hestia.AdrestiaOrder) (status hestia.ExchangeStatus, err error) {
+	// var wrappedOrder []string
+	// wrappedOrder = append(wrappedOrder, order.OrderId)
+	// res, err := b.bitsoService.LookUpOrders(wrappedOrder)
+	// if err != nil {
+	// 	return
+	// }
+	// if res.Payload[0].Status == "completed" {
+	// 	return hestia.ExchangeStatusCompleted, nil
+	// }
+	// if res.Payload[0].Status == "partial-fill" {
+	// 	return hestia.ExchangeStatusOpen, nil
+	// }
+	// if res.Payload[0].Status == "open" || res.Payload[0].Status == "queued" {
+	// 	return hestia.ExchangeStatusOpen, nil
+	// }
+	//return hestia.ExchangeStatusError, errors.New("unknown order status " + res.Payload[0].Status)
+	return hestia.ExchangeStatusError, nil
 }
 
 func (b *Bitso) getSettings() config.BitsoAuth {

@@ -30,10 +30,13 @@ func init() {
 
 func main() {
 	hestiaService := services.HestiaRequests{}
-	plutusService := services.PlutusRequests{Obol: &obol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}}
+	obolService := obol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
+	plutusService := services.PlutusRequests{Obol: &obolService}
 
 	proc := processor.Processor{
 		Hestia: &hestiaService,
+		Plutus: plutusService,
+		Obol: &obolService,
 	}
 
 	proc.Start()

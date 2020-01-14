@@ -47,6 +47,9 @@ func (p *Processor) handleCreatedOrders(wg *sync.WaitGroup) {
 	defer wg.Done()
 	orders := p.getOrders(hestia.AdrestiaStatusCreated)
 	log.Println(orders)
+	for _, order := range orders {
+		order.FirstExAddress
+	}
 	// 1.  Sends the amount to first exchange
 	fmt.Println("Finished CreatedOrders")
 }

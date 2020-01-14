@@ -3,6 +3,7 @@ package processor
 import (
 	"errors"
 	"fmt"
+	"github.com/grupokindynos/common/plutus"
 	"log"
 	"strings"
 	"sync"
@@ -19,6 +20,7 @@ import (
 type Processor struct {
 	Hestia services.HestiaService
 	Obol   obol.ObolService
+	Plutus services.PlutusRequests
 }
 
 var (
@@ -60,9 +62,23 @@ func (p *Processor) handleCreatedOrders(wg *sync.WaitGroup) {
 	orders := p.getOrders(hestia.AdrestiaStatusCreated)
 	log.Println(orders)
 	for _, order := range orders {
-		order.FirstExAddress
+		txId, err := p.Plutus.WithdrawToAddress(plutus.SendAddressBodyReq{
+			Address: order.FirstExAddress,
+			Coin:    order.FromCoin,
+			Amount:  order.Amount,
+		})
+		if err != nil {
+			log.Println(fmt.Sprintf("error broadcasting order %s of coin %s", order.ID, order.FromCoin))
+			continue
+		}
+		order.HETxId = txId
+		order.Status = hestia.AdrestiaStatusFirstExchange
+		_, err = p.Hestia.UpdateAdrestiaOrder(order)
+		if err != nil {
+			log.Println(fmt.Sprintf("error updating order %s", order.ID))
+			continue
+		}
 	}
-	// 1.  Sends the amount to first exchange
 	fmt.Println("Finished CreatedOrders")
 }
 
@@ -120,7 +136,7 @@ func (p *Processor) handleConversion(wg *sync.WaitGroup) {
 					fmt.Println(err)
 					continue
 				}
-				_, err := exchange.Withdraw(*coin, order.SecondExAddress, currExOrder.Amount)
+				_, err = exchange.Withdraw(*coin, order.SecondExAddress, currExOrder.Amount)
 				if err != nil {
 					fmt.Println(err)
 					continue

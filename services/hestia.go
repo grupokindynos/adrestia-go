@@ -133,11 +133,49 @@ func (h *HestiaRequests) CreateAdrestiaOrder(orderData hestia.AdrestiaOrder) (st
 }
 
 func (h *HestiaRequests) UpdateAdrestiaOrder(orderData hestia.AdrestiaOrder) (string, error) {
-	req, err := mvt.CreateMVTToken("PUT", hestia.ProductionURL+"/adrestia/new", "adrestia", os.Getenv("MASTER_PASSWORD"), orderData, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
+	req, err := mvt.CreateMVTToken("PUT", hestia.ProductionURL+"/adrestia/update", "adrestia", os.Getenv("MASTER_PASSWORD"), orderData, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
 	if err != nil {
 		return "", err
 	}
-	client := http.Client{
+	client := http.Client {
+		Transport:     nil,
+		CheckRedirect: nil,
+		Jar:           nil,
+		Timeout:       time.Second * 30,
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+	tokenResponse, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+	var tokenString string
+	err = json.Unmarshal(tokenResponse, &tokenString)
+	if err != nil {
+		return "", err
+	}
+	headerSignature := res.Header.Get("service")
+	valid, payload := mrt.VerifyMRTToken(headerSignature, tokenString, os.Getenv("HESTIA_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
+	if !valid {
+		return "", err
+	}
+	var response string
+	err = json.Unmarshal(payload, &response)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}
+
+func (h *HestiaRequests) UpdateAdrestiaOrderStatus(orderData hestia.AdrestiaOrderUpdate) (string, error) {
+	req, err := mvt.CreateMVTToken("PUT", hestia.ProductionURL+"/adrestia/update/status", "adrestia", os.Getenv("MASTER_PASSWORD"), orderData, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
+	if err != nil {
+		return "", err
+	}
+	client := http.Client {
 		Transport:     nil,
 		CheckRedirect: nil,
 		Jar:           nil,

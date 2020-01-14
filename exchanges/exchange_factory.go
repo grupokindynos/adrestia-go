@@ -17,7 +17,7 @@ type ExchangeFactory struct {
 
 func NewExchangeFactory(params exchange_models.Params) *ExchangeFactory {
 	if err := godotenv.Load(); err != nil {
-		panic("you need .env at the root of api/")
+		panic("you need .env at the root of adrestia-go/")
 	}
 
 	BinanceInstance := NewBinance(params)

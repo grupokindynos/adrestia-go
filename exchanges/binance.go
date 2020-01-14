@@ -4,10 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/grupokindynos/adrestia-go/models/order"
 	l "log"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -202,33 +200,35 @@ func (b *Binance) GetRateByAmount(sell transaction.ExchangeSell) (float64, error
 	return 0.0, errors.New("func not implemented")
 }
 
-func (b *Binance) GetOrderStatus(order order.Order) (hestia.ExchangeStatus, error) {
-	orderId, err := strconv.ParseInt(order.OrderId, 10, 64)
-	if err != nil {
-		return -1, errors.New("could not parse order id")
-	}
+func (b *Binance) GetOrderStatus(order hestia.AdrestiaOrder) (hestia.ExchangeStatus, error) {
+	// orderId, err := strconv.ParseInt(order.OrderId, 10, 64)
+	// if err != nil {
+	// 	return -1, errors.New("could not parse order id")
+	// }
 
-	res, err := b.binanceApi.QueryOrder(binance.QueryOrderRequest{
-		Symbol:            order.Symbol,
-		OrderID:           orderId,
-		RecvWindow:        5 * time.Second,
-		Timestamp:         time.Time{},
-	})
+	// res, err := b.binanceApi.QueryOrder(binance.QueryOrderRequest{
+	// 	Symbol:     order.Symbol,
+	// 	OrderID:    orderId,
+	// 	RecvWindow: 5 * time.Second,
+	// 	Timestamp:  time.Time{},
+	// })
 
-	if err != nil {
-		return -1, errors.New("could not find order by id")
-	}
+	// if err != nil {
+	// 	return -1, errors.New("could not find order by id")
+	// }
 
-	switch res.Status {
-	case binance.StatusFilled:
-		return hestia.ExchangeStatusCompleted, nil
-	case binance.StatusNew:
-		return hestia.ExchangeStatusOpen, nil
-	case binance.StatusPartiallyFilled:
-		return hestia.ExchangeStatusOpen, nil
-	default:
-		return hestia.ExchangeStatusError, nil
-	}
+	// switch res.Status {
+	// case binance.StatusFilled:
+	// 	return hestia.ExchangeStatusCompleted, nil
+	// case binance.StatusNew:
+	// 	return hestia.ExchangeStatusOpen, nil
+	// case binance.StatusPartiallyFilled:
+	// 	return hestia.ExchangeStatusOpen, nil
+	// default:
+	// 	return hestia.ExchangeStatusError, nil
+	// }
+
+	return hestia.ExchangeStatusError, nil
 }
 
 func GetSettings() config.BinanceAuth {

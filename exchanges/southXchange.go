@@ -3,12 +3,10 @@ package exchanges
 import (
 	"errors"
 	"fmt"
-	"github.com/grupokindynos/adrestia-go/models/order"
 	"log"
 	"os"
 	"strings"
 
-	south "github.com/bitbandi/go-southxchange"
 	"github.com/grupokindynos/adrestia-go/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	"github.com/grupokindynos/adrestia-go/models/exchange_models"
@@ -17,6 +15,7 @@ import (
 	"github.com/grupokindynos/common/coin-factory/coins"
 	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/obol"
+	south "github.com/oedipusK/go-southxchange"
 )
 
 type SouthXchange struct {
@@ -109,8 +108,47 @@ func (s *SouthXchange) GetRateByAmount(sell transaction.ExchangeSell) (float64, 
 	return 0.0, errors.New("func not implemented")
 }
 
-func (s *SouthXchange) GetOrderStatus(order order.Order) (hestia.ExchangeStatus, error) {
-	return -1, errors.New("func not implemented")
+func (s *SouthXchange) GetOrderStatus(order hestia.AdrestiaOrder) (hestia.ExchangeStatus, error) {
+	var orderId string
+	if order.Status == hestia.AdrestiaStatusFirstExchange {
+		orderId = order.FirstOrder.OrderId
+	} else {
+		orderId = order.FinalOrder.OrderId
+	}
+
+	southOrder, err := s.southClient.GetOrder(orderId)
+	if err != nil {
+		return hestia.ExchangeStatusError, err
+	}
+
+	if southOrder.Status == "executed" {
+		return hestia.ExchangeStatusCompleted, nil
+	} else if southOrder.Status == "pending" || southOrder.Status == "booked" {
+		return hestia.ExchangeStatusOpen, nil
+	}
+
+	return hestia.ExchangeStatusError, nil
+}
+
+func (s *SouthXchange) GetListingAmount(order hestia.ExchangeOrder) (float64, error) {
+	txs, err := s.southClient.GetTransactions(0, 0, "", true)
+	if err != nil {
+		return 0, err
+	}
+
+	for _, tx := range txs {
+		if tx.OrderCode != order.OrderId || tx.Type == "tradefee" {
+			continue
+		}
+
+		if tx.Amount > 0.0 {
+			return tx.Amount, nil
+		} else {
+			return tx.OtherAmount, nil
+		}
+	}
+
+	return 0.0, errors.New("tx not found")
 }
 
 func (s *SouthXchange) getSettings() config.SouthXchangeAuth {

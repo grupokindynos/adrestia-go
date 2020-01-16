@@ -88,7 +88,7 @@ func (p *PlutusRequests) WithdrawToAddress(body plutus.SendAddressBodyReq) (txId
 		return txId, err
 	}
 	client := http.Client{
-		Timeout: 10 * time.Second,
+		Timeout: 30 * time.Second,
 	}
 	res, err := client.Do(req)
 	if err != nil {

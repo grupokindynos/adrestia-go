@@ -12,6 +12,7 @@ type HestiaService interface {
 	GetBalancingOrders() ([]hestia.AdrestiaOrder, error)
 	CreateAdrestiaOrder(orderData hestia.AdrestiaOrder) (string, error)
 	UpdateAdrestiaOrder(orderData hestia.AdrestiaOrder) (string, error)
+	UpdateAdrestiaOrderStatus(orderData hestia.AdrestiaOrderUpdate) (string, error)
 	GetAllOrders(adrestiaOrderParams adrestia.OrderParams) ([]hestia.AdrestiaOrder, error)
 }
 

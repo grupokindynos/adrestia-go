@@ -3,6 +3,7 @@ package processor
 import (
 	"errors"
 	"fmt"
+	"github.com/grupokindynos/common/plutus"
 	"log"
 	"strings"
 	"sync"
@@ -19,6 +20,7 @@ import (
 type Processor struct {
 	Hestia services.HestiaService
 	Obol   obol.ObolService
+	Plutus services.PlutusRequests
 }
 
 var (
@@ -59,12 +61,48 @@ func (p *Processor) handleCreatedOrders(wg *sync.WaitGroup) {
 	defer wg.Done()
 	orders := p.getOrders(hestia.AdrestiaStatusCreated)
 	log.Println(orders)
-	// 1.  Sends the amount to first exchange
+	for _, order := range orders {
+		txId, err := p.Plutus.WithdrawToAddress(plutus.SendAddressBodyReq{
+			Address: order.FirstExAddress,
+			Coin:    order.FromCoin,
+			Amount:  order.Amount,
+		})
+		if err != nil {
+			log.Println(fmt.Sprintf("error broadcasting order %s of coin %s", order.ID, order.FromCoin))
+			continue
+		}
+		order.HETxId = txId
+		order.Status = hestia.AdrestiaStatusFirstExchange
+		_, err = p.Hestia.UpdateAdrestiaOrder(order)
+		if err != nil {
+			log.Println(fmt.Sprintf("error updating order %s", order.ID))
+			continue
+		}
+	}
 	fmt.Println("Finished CreatedOrders")
 }
 
 func (p *Processor) handleExchange(wg *sync.WaitGroup) {
 	defer wg.Done()
+	firstExchangeOrders := p.getOrders(hestia.AdrestiaStatusFirstExchange)
+	for _, order := range firstExchangeOrders {
+		coinInfo, err := cf.GetCoin(order.FromCoin)
+		if err != nil {
+			continue
+		}
+		ex, err := exchangeFactory.GetExchangeByCoin(*coinInfo)
+		if err != nil {
+			continue
+		}
+		status, err := ex.GetDepositStatus(order.HETxId, order.FromCoin) // TODO Make sure this works
+		if err != nil {
+			continue
+		}
+		if status {
+			// TODO Create exchange order
+			order.Status = hestia.AdrestiaStatusFirstConversion
+		}
+	}
 	// 1. Verifies deposit in exchange and creates Selling Order always targets BTC
 	fmt.Println("Finished handleExchange")
 }

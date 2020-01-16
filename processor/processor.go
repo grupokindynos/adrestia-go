@@ -54,7 +54,7 @@ func (p *Processor) Start() {
 	go p.handleCompletedExchange(&wg)
 	go p.handleCompleted(&wg)
 	wg.Wait()
-	fmt.Println("Voucher Processor Finished")
+	fmt.Println("Adrestia Order Processor Finished")
 }
 
 func (p *Processor) handleCreatedOrders(wg *sync.WaitGroup) {
@@ -85,6 +85,7 @@ func (p *Processor) handleCreatedOrders(wg *sync.WaitGroup) {
 func (p *Processor) handleExchange(wg *sync.WaitGroup) {
 	defer wg.Done()
 	firstExchangeOrders := p.getOrders(hestia.AdrestiaStatusFirstExchange)
+	secondExchangeOrders := p.getOrders(hestia.AdrestiaStatusSecondExchange)
 	for _, order := range firstExchangeOrders {
 		coinInfo, err := cf.GetCoin(order.FromCoin)
 		if err != nil {
@@ -101,6 +102,25 @@ func (p *Processor) handleExchange(wg *sync.WaitGroup) {
 		if status {
 			// TODO Create exchange order
 			order.Status = hestia.AdrestiaStatusFirstConversion
+		}
+	}
+
+	for _, order := range secondExchangeOrders {
+		coinInfo, err := cf.GetCoin(order.ToCoin)
+		if err != nil {
+			continue
+		}
+		ex, err := exchangeFactory.GetExchangeByCoin(*coinInfo)
+		if err != nil {
+			continue
+		}
+		status, err := ex.GetDepositStatus(order.EETxId, "BTC") // TODO Make sure this works
+		if err != nil {
+			continue
+		}
+		if status {
+			// TODO Create exchange order
+			order.Status = hestia.AdrestiaStatusSecondConversion
 		}
 	}
 	// 1. Verifies deposit in exchange and creates Selling Order always targets BTC

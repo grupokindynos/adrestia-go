@@ -12,25 +12,17 @@ require (
 	github.com/google/go-querystring v1.0.0
 	github.com/gookit/color v1.2.0
 	github.com/gorilla/websocket v1.4.1 // indirect
-	github.com/grupokindynos/common v0.0.0-20200114164323-4e232ce4cd44
+	github.com/grupokindynos/common v0.0.0-20200114182923-2573fb8fd5e3
 	github.com/grupokindynos/go-binance v0.0.0-20200116165034-cdb41b5ff459
-	github.com/grupokindynos/gobitso v0.7.3-0.20200116040214-5f568435ba4c
-	github.com/grupokindynos/olympus-utils v0.0.0-20191114150906-5c358df85e5c // indirect
-	github.com/jessevdk/go-flags v1.4.0 // indirect
+	github.com/grupokindynos/gobitso v0.7.3
 	github.com/joho/godotenv v1.3.0
 	github.com/json-iterator/go v1.1.9 // indirect
-	github.com/kkdai/bstream v1.0.0 // indirect
-	github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/lithammer/shortuuid v3.0.0+incompatible
 	github.com/mattn/go-isatty v0.0.11 // indirect
 	github.com/oedipusK/go-southxchange v0.0.0-20200109172815-60830945dae1
-	github.com/onsi/ginkgo v1.11.0 // indirect
-	github.com/onsi/gomega v1.8.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/sethvargo/go-password v0.1.3 // indirect
-	github.com/smartystreets/goconvey v0.0.0-20190330032615-68dc04aab96a // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
 	golang.org/x/crypto v0.0.0-20191227163750-53104e6ec876 // indirect
 	golang.org/x/sys v0.0.0-20200107162124-548cf772de50 // indirect

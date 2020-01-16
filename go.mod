@@ -13,11 +13,10 @@ require (
 	github.com/gookit/color v1.2.0
 	github.com/gorilla/websocket v1.4.1 // indirect
 	github.com/grupokindynos/common v0.0.0-20200114182923-2573fb8fd5e3
-	github.com/grupokindynos/go-binance v0.0.0-20200116162719-136c32360367
+	github.com/grupokindynos/go-binance v0.0.0-20200116165034-cdb41b5ff459
 	github.com/grupokindynos/gobitso v0.7.3
 	github.com/joho/godotenv v1.3.0
 	github.com/json-iterator/go v1.1.9 // indirect
-	github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/lithammer/shortuuid v3.0.0+incompatible

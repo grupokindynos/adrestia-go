@@ -9,7 +9,7 @@ import (
 
 	"github.com/grupokindynos/adrestia-go/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
-	"github.com/grupokindynos/adrestia-go/models/exchange_models"
+	exModels "github.com/grupokindynos/adrestia-go/models/exchange_models"
 	"github.com/grupokindynos/adrestia-go/models/transaction"
 	"github.com/grupokindynos/adrestia-go/utils"
 	"github.com/grupokindynos/common/coin-factory/coins"
@@ -22,11 +22,12 @@ type SouthXchange struct {
 	Exchange
 	apiKey      string
 	apiSecret   string
+	coinsConfig map[string]exModels.CoinConfig
 	southClient south.SouthXchange
 	Obol        obol.ObolService
 }
 
-func NewSouthXchange(params exchange_models.Params) *SouthXchange {
+func NewSouthXchange(params exModels.Params) *SouthXchange {
 	s := new(SouthXchange)
 	s.Name = "SouthXchange"
 	data := s.getSettings()
@@ -34,6 +35,18 @@ func NewSouthXchange(params exchange_models.Params) *SouthXchange {
 	s.apiSecret = data.ApiSecret
 	s.southClient = *south.New(s.apiKey, s.apiSecret, "user-agent")
 	s.Obol = params.Obol
+	s.coinsConfig = map[string]exModels.CoinConfig{
+		"POLIS": exModels.CoinConfig{WithdrawalFee: 0.01},
+		"BTC":   exModels.CoinConfig{PercentageWithdrawalFee: 0.05, WithdrawalFee: 0.0001},
+		"DASH":  exModels.CoinConfig{WithdrawalFee: 0.0001},
+		"XZC":   exModels.CoinConfig{},
+		"COLX":  exModels.CoinConfig{},
+		"DGB":   exModels.CoinConfig{},
+		"GRS":   exModels.CoinConfig{},
+		"LTC":   exModels.CoinConfig{WithdrawalFee: 0.002},
+		"TELOS": exModels.CoinConfig{},
+		"DIVI":  exModels.CoinConfig{},
+	}
 	return s
 }
 
@@ -108,15 +121,8 @@ func (s *SouthXchange) GetRateByAmount(sell transaction.ExchangeSell) (float64, 
 	return 0.0, errors.New("func not implemented")
 }
 
-func (s *SouthXchange) GetOrderStatus(order hestia.AdrestiaOrder) (hestia.ExchangeStatus, error) {
-	var orderId string
-	if order.Status == hestia.AdrestiaStatusFirstExchange {
-		orderId = order.FirstOrder.OrderId
-	} else {
-		orderId = order.FinalOrder.OrderId
-	}
-
-	southOrder, err := s.southClient.GetOrder(orderId)
+func (s *SouthXchange) GetOrderStatus(order hestia.ExchangeOrder) (hestia.ExchangeStatus, error) {
+	southOrder, err := s.southClient.GetOrder(order.OrderId)
 	if err != nil {
 		return hestia.ExchangeStatusError, err
 	}
@@ -127,7 +133,11 @@ func (s *SouthXchange) GetOrderStatus(order hestia.AdrestiaOrder) (hestia.Exchan
 		return hestia.ExchangeStatusOpen, nil
 	}
 
-	return hestia.ExchangeStatusError, nil
+	return hestia.ExchangeStatusError, errors.New("unkown order status " + southOrder.Status)
+}
+
+func (s *SouthXchange) GetCoinConfig(coin coins.Coin) (exModels.CoinConfig, error) {
+	return exModels.CoinConfig{}, errors.New("func not implemented")
 }
 
 func (s *SouthXchange) GetListingAmount(order hestia.ExchangeOrder) (float64, error) {

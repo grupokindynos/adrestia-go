@@ -79,7 +79,6 @@ func (s *SouthXchange) GetBalances() ([]balance.Balance, error) {
 	log.Println(str)
 	var balances []balance.Balance
 	res, err := s.southClient.GetBalances()
-
 	if err != nil {
 		return balances, err
 	}

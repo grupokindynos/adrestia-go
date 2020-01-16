@@ -154,7 +154,7 @@ func (om *OrderManager) GetOutwardOrders(balanced []balance.Balance, testingAmou
 			if err == nil {
 				var txInfo = plutus.SendAddressBodyReq{
 					Address: exAddress,
-					Coin:    coinInfo.Tag,
+					Coin:    coinInfo.Info.Tag,
 					Amount:  testingAmount, // TODO Replace with actual amount
 				}
 				fmt.Println(txInfo)

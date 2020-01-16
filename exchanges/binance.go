@@ -102,16 +102,16 @@ func (b *Binance) GetAddress(coin coins.Coin) (string, error) {
 
 // TODO Missing
 func (b *Binance) OneCoinToBtc(coin coins.Coin) (float64, error) {
-	l.Println(fmt.Sprintf("[OneCoinToBtc] Calculating for %s using %s", coin.Name, b.Name))
-	if coin.Tag == "BTC" {
+	l.Println(fmt.Sprintf("[OneCoinToBtc] Calculating for %s using %s", coin.Info.Name, b.Name))
+	if coin.Info.Tag == "BTC" {
 		return 1.0, nil
 	}
 	// TODO Missing update on method, not strictly needed though
-	rate, err := b.Obol.GetCoin2CoinRatesWithAmount("btc", coin.Tag, fmt.Sprintf("%f", 1.0))
+	rate, err := b.Obol.GetCoin2CoinRatesWithAmount("btc", coin.Info.Tag, fmt.Sprintf("%f", 1.0))
 	if err != nil {
 		return 0.0, err
 	}
-	l.Println(fmt.Sprintf("[OneCoinToBtc] Calculated rate for %s as %.8f BTC per Coin", coin.Name, rate))
+	l.Println(fmt.Sprintf("[OneCoinToBtc] Calculated rate for %s as %.8f BTC per Coin", coin.Info.Name, rate))
 	return rate.AveragePrice, nil
 }
 
@@ -177,15 +177,15 @@ func (b *Binance) GetCoinConfig(coin coins.Coin) (exModels.CoinConfig, error) {
 }
 
 func (b *Binance) SellAtMarketPrice(sellOrder transaction.ExchangeSell) (bool, string, error) {
-	l.Println(fmt.Sprintf("[SellAtMarketPrice] Selling %.8f %s for %s on %s", sellOrder.Amount, sellOrder.FromCoin.Name, sellOrder.ToCoin.Name, b.Name))
+	l.Println(fmt.Sprintf("[SellAtMarketPrice] Selling %.8f %s for %s on %s", sellOrder.Amount, sellOrder.FromCoin.Info.Name, sellOrder.ToCoin.Info.Name, b.Name))
 	// Gets price from Obol considering the amount to sell
-	rate, err := b.Obol.GetCoin2CoinRatesWithAmount(sellOrder.FromCoin.Tag, sellOrder.ToCoin.Tag, fmt.Sprintf("%f", sellOrder.Amount))
+	rate, err := b.Obol.GetCoin2CoinRatesWithAmount(sellOrder.FromCoin.Info.Tag, sellOrder.ToCoin.Info.Tag, fmt.Sprintf("%f", sellOrder.Amount))
 	if err != nil {
 		return false, "", err
 	}
 
 	// Order creation an Post
-	symbol := sellOrder.FromCoin.Tag + sellOrder.ToCoin.Tag
+	symbol := sellOrder.FromCoin.Info.Tag + sellOrder.ToCoin.Info.Tag
 	fmt.Println(symbol)
 	fmt.Println(rate)
 	// TODO Update to work with new Rate Response models rate.AveragePrice
@@ -216,9 +216,9 @@ func (b *Binance) Withdraw(coin coins.Coin, address string, amount float64) (boo
 		Timestamp:  time.Now(),
 	})*/
 
-	l.Println(fmt.Sprintf("[Withdraw] Performing withdraw request on %s for %s", b.Name, coin.Tag))
+	l.Println(fmt.Sprintf("[Withdraw] Performing withdraw request on %s for %s", b.Name, coin.Info.Tag))
 	withdrawal, err := b.binanceApi.Withdraw(binance.WithdrawRequest{
-		Asset:      strings.ToLower(coin.Tag),
+		Asset:      strings.ToLower(coin.Info.Tag),
 		Address:    address,
 		Amount:     amount,
 		Name:       "Adrestia-go Withdrawal",

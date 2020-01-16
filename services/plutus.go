@@ -28,15 +28,15 @@ func (p *PlutusRequests) GetWalletBalances() []balance.Balance {
 	var rawBalances []balance.Balance
 	availableCoins := coinfactory.Coins
 	for _, coin := range availableCoins {
-		res, err := plutus.GetWalletBalance(os.Getenv("PLUTUS_URL"), strings.ToLower(coin.Tag), os.Getenv("ADRESTIA_PRIV_KEY"), "adrestia", os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
+		res, err := plutus.GetWalletBalance(os.Getenv("PLUTUS_URL"), strings.ToLower(coin.Info.Tag), os.Getenv("ADRESTIA_PRIV_KEY"), "adrestia", os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
 		if err != nil {
-			fmt.Println(fmt.Sprintf("Plutus Service Error for %s: %v", coin.Tag, err))
+			fmt.Println(fmt.Sprintf("Plutus Service Error for %s: %v", coin.Info.Tag, err))
 		} else {
 			// Create Balance Object
 			b := balance.Balance{}
 			b.ConfirmedBalance = res.Confirmed
 			b.UnconfirmedBalance = res.Unconfirmed
-			b.Ticker = coin.Tag
+			b.Ticker = coin.Info.Tag
 			rawBalances = append(rawBalances, b)
 			fmt.Println(fmt.Sprintf("%.8f %s\t of a total of %.8f\t%.2f%%", b.ConfirmedBalance, b.Ticker, b.ConfirmedBalance+b.UnconfirmedBalance, b.GetConfirmedProportion()))
 		}

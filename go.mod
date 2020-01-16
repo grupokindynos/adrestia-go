@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/binance-exchange/go-binance v0.0.0-20180518133450-1af034307da5 // indirect
+	github.com/btcsuite/btcd v0.20.1-beta // indirect
 	github.com/gin-gonic/gin v1.5.0 // indirect
 	github.com/go-kit/kit v0.9.0
 	github.com/go-logfmt/logfmt v0.5.0 // indirect
@@ -12,7 +13,7 @@ require (
 	github.com/google/go-querystring v1.0.0
 	github.com/gookit/color v1.2.0
 	github.com/gorilla/websocket v1.4.1 // indirect
-	github.com/grupokindynos/common v0.0.0-20200114182923-2573fb8fd5e3
+	github.com/grupokindynos/common v0.0.0-20200116184137-b26142d1dccd
 	github.com/grupokindynos/go-binance v0.0.0-20200116165034-cdb41b5ff459
 	github.com/grupokindynos/gobitso v0.7.3
 	github.com/joho/godotenv v1.3.0

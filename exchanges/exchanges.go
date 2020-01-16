@@ -17,6 +17,7 @@ type IExchange interface {
 	GetRateByAmount(sell transaction.ExchangeSell) (float64, error)
 	GetOrderStatus(order hestia.AdrestiaOrder) (hestia.ExchangeStatus, error)
 	GetListingAmount(order hestia.ExchangeOrder) (float64, error)
+	GetDepositStatus(txid string, asset string) (bool, error)
 }
 
 type Exchange struct {

@@ -40,7 +40,7 @@ func main() {
 	}
 
 	proc.Start()
-	// TODO Disable and Enable Shift at star nd ending of the process
+	// TODO Disable and Enable Shift at start and ending of the process
 	color.Info.Tips("Program Started")
 	/*
 		Process Description

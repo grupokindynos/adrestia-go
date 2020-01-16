@@ -101,6 +101,30 @@ func (b *Binance) OneCoinToBtc(coin coins.Coin) (float64, error) {
 	return rate.AveragePrice, nil
 }
 
+func (b *Binance) GetDepositStatus(txid string, asset string) (bool, error) {
+	deposits, err := b.binanceApi.DepositHistory(binance.HistoryRequest{
+		Asset:      asset,
+		RecvWindow: 5 * time.Second,
+		Timestamp:  time.Now(),
+	})
+	if err != nil {
+		return false, err
+	}
+	for _, deposit := range deposits {
+		if deposit.TxID == txid {
+			switch deposit.Status {
+			case 0:
+				return false, nil
+			case 1:
+				return true, nil
+			case 6:
+				return false, nil // credited but cannot withdraw
+			}
+		}
+	}
+	return false, nil
+}
+
 func (b *Binance) GetBalances() ([]balance.Balance, error) {
 	s := fmt.Sprintf("[GetBalances] Retrieving Balances for coins at %s", b.Name)
 	l.Println(s)

@@ -6,12 +6,13 @@ import (
 	"fmt"
 	l "log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/grupokindynos/adrestia-go/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
-	"github.com/grupokindynos/adrestia-go/models/exchange_models"
+	exModels "github.com/grupokindynos/adrestia-go/models/exchange_models"
 	"github.com/grupokindynos/adrestia-go/models/transaction"
 	"github.com/grupokindynos/adrestia-go/utils"
 	"github.com/joho/godotenv"
@@ -27,10 +28,11 @@ type Binance struct {
 	Exchange
 	AccountName string
 	binanceApi  binance.Binance
+	coinsConfig map[string]exModels.CoinConfig
 	Obol        obol.ObolService
 }
 
-func NewBinance(params exchange_models.Params) *Binance {
+func NewBinance(params exModels.Params) *Binance {
 	c := new(Binance)
 	c.Name = "Binance"
 	c.BaseUrl = ""
@@ -54,6 +56,18 @@ func NewBinance(params exchange_models.Params) *Binance {
 		ctx,
 	)
 	c.binanceApi = binance.NewBinance(binanceService)
+	c.coinsConfig = map[string]exModels.CoinConfig{
+		"POLIS": exModels.CoinConfig{},
+		"BTC":   exModels.CoinConfig{MinimumWithdrawal: 0.001, WithdrawalFee: 0.0005},
+		"DASH":  exModels.CoinConfig{MinimumWithdrawal: 0.004, WithdrawalFee: 0.002},
+		"XZC":   exModels.CoinConfig{},
+		"COLX":  exModels.CoinConfig{},
+		"DGB":   exModels.CoinConfig{},
+		"GRS":   exModels.CoinConfig{},
+		"LTC":   exModels.CoinConfig{MinimumWithdrawal: 0.002, WithdrawalFee: 0.001},
+		"TELOS": exModels.CoinConfig{},
+		"DIVI":  exModels.CoinConfig{},
+	}
 	return c
 }
 
@@ -134,6 +148,10 @@ func (b *Binance) GetBalances() ([]balance.Balance, error) {
 	return balances, nil
 }
 
+func (b *Binance) GetCoinConfig(coin coins.Coin) (exModels.CoinConfig, error) {
+	return exModels.CoinConfig{}, errors.New("func not implemented")
+}
+
 func (b *Binance) SellAtMarketPrice(sellOrder transaction.ExchangeSell) (bool, string, error) {
 	l.Println(fmt.Sprintf("[SellAtMarketPrice] Selling %.8f %s for %s on %s", sellOrder.Amount, sellOrder.FromCoin.Name, sellOrder.ToCoin.Name, b.Name))
 	// Gets price from Obol considering the amount to sell
@@ -200,33 +218,33 @@ func (b *Binance) GetRateByAmount(sell transaction.ExchangeSell) (float64, error
 	return 0.0, errors.New("func not implemented")
 }
 
-func (b *Binance) GetOrderStatus(order hestia.AdrestiaOrder) (hestia.ExchangeStatus, error) {
-	// orderId, err := strconv.ParseInt(order.OrderId, 10, 64)
-	// if err != nil {
-	// 	return -1, errors.New("could not parse order id")
-	// }
+func (b *Binance) GetOrderStatus(order hestia.ExchangeOrder) (hestia.ExchangeStatus, error) {
+	orderId, err := strconv.ParseInt(order.OrderId, 10, 64)
+	if err != nil {
+		return -1, errors.New("could not parse order id")
+	}
 
-	// res, err := b.binanceApi.QueryOrder(binance.QueryOrderRequest{
-	// 	Symbol:     order.Symbol,
-	// 	OrderID:    orderId,
-	// 	RecvWindow: 5 * time.Second,
-	// 	Timestamp:  time.Time{},
-	// })
+	res, err := b.binanceApi.QueryOrder(binance.QueryOrderRequest{
+		Symbol:     order.Symbol,
+		OrderID:    orderId,
+		RecvWindow: 5 * time.Second,
+		Timestamp:  time.Time{},
+	})
 
-	// if err != nil {
-	// 	return -1, errors.New("could not find order by id")
-	// }
+	if err != nil {
+		return -1, errors.New("could not find order by id")
+	}
 
-	// switch res.Status {
-	// case binance.StatusFilled:
-	// 	return hestia.ExchangeStatusCompleted, nil
-	// case binance.StatusNew:
-	// 	return hestia.ExchangeStatusOpen, nil
-	// case binance.StatusPartiallyFilled:
-	// 	return hestia.ExchangeStatusOpen, nil
-	// default:
-	// 	return hestia.ExchangeStatusError, nil
-	// }
+	switch res.Status {
+	case binance.StatusFilled:
+		return hestia.ExchangeStatusCompleted, nil
+	case binance.StatusNew:
+		return hestia.ExchangeStatusOpen, nil
+	case binance.StatusPartiallyFilled:
+		return hestia.ExchangeStatusOpen, nil
+	default:
+		return hestia.ExchangeStatusError, nil
+	}
 
 	return hestia.ExchangeStatusError, nil
 }

@@ -9,7 +9,7 @@ import (
 
 	"github.com/grupokindynos/adrestia-go/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
-	"github.com/grupokindynos/adrestia-go/models/exchange_models"
+	exModels "github.com/grupokindynos/adrestia-go/models/exchange_models"
 	"github.com/grupokindynos/adrestia-go/models/transaction"
 	"github.com/grupokindynos/common/coin-factory/coins"
 	"github.com/grupokindynos/common/hestia"
@@ -21,15 +21,29 @@ import (
 type Bitso struct {
 	Exchange
 	bitsoService bitso.Bitso
+	coinsConfig  map[string]exModels.CoinConfig
 	Obol         obol.ObolService
 }
 
-func NewBitso(params exchange_models.Params) *Bitso {
+func NewBitso(params exModels.Params) *Bitso {
 	b := new(Bitso)
 	data := b.getSettings()
 	b.bitsoService = *bitso.NewBitso(data.Url)
 	b.bitsoService.SetAuth(data.ApiKey, data.ApiSecret)
 	b.Obol = params.Obol
+	b.coinsConfig = map[string]exModels.CoinConfig{
+		"POLIS": exModels.CoinConfig{},
+		"BTC":   exModels.CoinConfig{},
+		"DASH":  exModels.CoinConfig{},
+		"XZC":   exModels.CoinConfig{},
+		"COLX":  exModels.CoinConfig{},
+		"DGB":   exModels.CoinConfig{},
+		"GRS":   exModels.CoinConfig{},
+		"LTC":   exModels.CoinConfig{},
+		"TELOS": exModels.CoinConfig{},
+		"DIVI":  exModels.CoinConfig{},
+	}
+	b.loadCoinsConfig()
 	return b
 }
 
@@ -103,7 +117,7 @@ func (b *Bitso) SellAtMarketPrice(sellOrder transaction.ExchangeSell) (bool, str
 	return true, orderId.Payload.Oid, nil
 }
 
-func (b *Bitso) WithDraw(coin coins.Coin, address string, amount float64) (bool, error) {
+func (b *Bitso) Withdraw(coin coins.Coin, address string, amount float64) (bool, error) {
 	return false, errors.New("func not implemented")
 }
 
@@ -111,23 +125,27 @@ func (b *Bitso) GetRateByAmount(sell transaction.ExchangeSell) (float64, error) 
 	return 0.0, errors.New("func not implemented")
 }
 
-func (b *Bitso) GetOrderStatus(order hestia.AdrestiaOrder) (status hestia.ExchangeStatus, err error) {
-	// var wrappedOrder []string
-	// wrappedOrder = append(wrappedOrder, order.OrderId)
-	// res, err := b.bitsoService.LookUpOrders(wrappedOrder)
-	// if err != nil {
-	// 	return
-	// }
-	// if res.Payload[0].Status == "completed" {
-	// 	return hestia.ExchangeStatusCompleted, nil
-	// }
-	// if res.Payload[0].Status == "partial-fill" {
-	// 	return hestia.ExchangeStatusOpen, nil
-	// }
-	// if res.Payload[0].Status == "open" || res.Payload[0].Status == "queued" {
-	// 	return hestia.ExchangeStatusOpen, nil
-	// }
-	//return hestia.ExchangeStatusError, errors.New("unknown order status " + res.Payload[0].Status)
+func (s *Bitso) GetCoinConfig(coin coins.Coin) (exModels.CoinConfig, error) {
+	return exModels.CoinConfig{}, errors.New("func not implemented")
+}
+
+func (b *Bitso) GetOrderStatus(order hestia.ExchangeOrder) (status hestia.ExchangeStatus, err error) {
+	var wrappedOrder []string
+	wrappedOrder = append(wrappedOrder, order.OrderId)
+	res, err := b.bitsoService.LookUpOrders(wrappedOrder)
+	if err != nil {
+		return
+	}
+	if res.Payload[0].Status == "completed" {
+		return hestia.ExchangeStatusCompleted, nil
+	}
+	if res.Payload[0].Status == "partial-fill" {
+		return hestia.ExchangeStatusOpen, nil
+	}
+	if res.Payload[0].Status == "open" || res.Payload[0].Status == "queued" {
+		return hestia.ExchangeStatusOpen, nil
+	}
+	return hestia.ExchangeStatusError, errors.New("unknown order status " + res.Payload[0].Status)
 	return hestia.ExchangeStatusError, nil
 }
 
@@ -163,4 +181,24 @@ func (b *Bitso) getPair(Order transaction.ExchangeSell) (string, models.OrderSid
 		return bookName, models.Buy, nil
 	}
 	return bookName, "unknown", errors.New("could not find a satisfying book")
+}
+
+func (b *Bitso) loadCoinsConfig() (bool, error) {
+	fees, err := b.bitsoService.UserFees()
+	if err != nil {
+		return false, err
+	}
+
+	for key, _ := range b.coinsConfig {
+		value, ok := fees.Payload.WithdrawalFees[strings.ToLower(key)]
+		if ok {
+			amount, err := strconv.ParseFloat(value, 64)
+			if err != nil {
+				return false, err
+			}
+			b.coinsConfig[key] = exModels.CoinConfig{WithdrawalFee: amount}
+		}
+	}
+
+	return true, nil
 }

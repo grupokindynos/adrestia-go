@@ -11,22 +11,23 @@ require (
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/creack/pty v1.1.9 // indirect
 	github.com/gin-gonic/gin v1.5.0 // indirect
-	github.com/go-kit/kit v0.6.0
-	github.com/go-logfmt/logfmt v0.4.0 // indirect
+	github.com/go-kit/kit v0.9.0
+	github.com/go-logfmt/logfmt v0.5.0 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/google/go-querystring v1.0.0
 	github.com/google/pprof v0.0.0-20191218002539-d4f498aebedc // indirect
 	github.com/gookit/color v1.2.0
 	github.com/gorilla/websocket v1.4.1 // indirect
-	github.com/grupokindynos/common v0.0.0-20200109184835-f6654d04d453
-	github.com/grupokindynos/go-binance v0.0.0-20191125182433-9fbba0bf81e1
-	github.com/grupokindynos/gobitso v0.7.1
+	github.com/grupokindynos/common v0.0.0-20200114164323-4e232ce4cd44
+	github.com/grupokindynos/go-binance v0.0.0-20200116165034-cdb41b5ff459
+	github.com/grupokindynos/gobitso v0.7.3-0.20200116040214-5f568435ba4c
 	github.com/grupokindynos/olympus-utils v0.0.0-20191114150906-5c358df85e5c // indirect
 	github.com/jessevdk/go-flags v1.4.0 // indirect
 	github.com/joho/godotenv v1.3.0
 	github.com/json-iterator/go v1.1.9 // indirect
 	github.com/kkdai/bstream v1.0.0 // indirect
+	github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/kr/pty v1.1.8 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
@@ -36,7 +37,7 @@ require (
 	github.com/oedipusK/go-southxchange v0.0.0-20200109172815-60830945dae1
 	github.com/onsi/ginkgo v1.11.0 // indirect
 	github.com/onsi/gomega v1.8.1 // indirect
-	github.com/pkg/errors v0.8.2-0.20190227000051-27936f6d90f9 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/sethvargo/go-password v0.1.3 // indirect
 	github.com/smartystreets/goconvey v0.0.0-20190330032615-68dc04aab96a // indirect
 	github.com/stretchr/objx v0.2.0 // indirect

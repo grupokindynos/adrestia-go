@@ -90,7 +90,7 @@ func (p *Processor) handleConversion(wg *sync.WaitGroup) {
 			continue
 		}
 
-		status, err := exchange.GetOrderStatus(order)
+		status, err := exchange.GetOrderStatus(*currExOrder)
 		if err != nil {
 			fmt.Println(err)
 			continue
@@ -117,11 +117,14 @@ func (p *Processor) handleConversion(wg *sync.WaitGroup) {
 					fmt.Println(err)
 					continue
 				}
-				_, err := exchange.Withdraw(*coin, order.SecondExAddress, currExOrder.Amount)
+				// TODO: substract withdrawal fees from listing amount.
+				_, err = exchange.Withdraw(*coin, order.SecondExAddress, currExOrder.ListingAmount)
 				if err != nil {
 					fmt.Println(err)
 					continue
 				}
+
+				order.DualExchange = true
 				p.changeOrderStatus(order, hestia.AdrestiaStatusSecondExchange)
 			}
 		} else if status == hestia.ExchangeStatusError {

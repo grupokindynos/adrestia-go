@@ -52,7 +52,7 @@ func (b *Bitso) GetName() (string, error) {
 }
 
 func (b *Bitso) GetAddress(coin coins.Coin) (string, error) {
-	address, err := b.bitsoService.FundingDestination(models.DestinationParams{FundCurrency: coin.Tag})
+	address, err := b.bitsoService.FundingDestination(models.DestinationParams{FundCurrency: coin.Info.Tag})
 	if err != nil {
 		return "", err
 	}
@@ -60,10 +60,10 @@ func (b *Bitso) GetAddress(coin coins.Coin) (string, error) {
 }
 
 func (b *Bitso) OneCoinToBtc(coin coins.Coin) (float64, error) {
-	if coin.Tag == "BTC" {
+	if coin.Info.Tag == "BTC" {
 		return 1.0, nil
 	}
-	rate, err := b.Obol.GetCoin2CoinRatesWithAmount("btc", coin.Tag, fmt.Sprintf("%f", 1.0))
+	rate, err := b.Obol.GetCoin2CoinRatesWithAmount("btc", coin.Info.Tag, fmt.Sprintf("%f", 1.0))
 	if err != nil {
 		return 0.0, err
 	}
@@ -158,8 +158,8 @@ func (b *Bitso) getSettings() config.BitsoAuth {
 }
 
 func (b *Bitso) getPair(Order transaction.ExchangeSell) (string, models.OrderSide, error) {
-	fromCoin := strings.ToLower(Order.FromCoin.Tag)
-	toCoin := strings.ToLower(Order.ToCoin.Tag)
+	fromCoin := strings.ToLower(Order.FromCoin.Info.Tag)
+	toCoin := strings.ToLower(Order.ToCoin.Info.Tag)
 	books, err := b.bitsoService.AvailableBooks()
 	if err != nil {
 		return "", "", err

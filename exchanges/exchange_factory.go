@@ -36,10 +36,10 @@ func NewExchangeFactory(params exchange_models.Params) *ExchangeFactory {
 }
 
 func (e *ExchangeFactory) GetExchangeByCoin(coin coins.Coin) (IExchange, error) {
-	coinInfo, _ := coinfactory.GetCoin(coin.Tag)
+	coinInfo, _ := coinfactory.GetCoin(coin.Info.Tag)
 	exchange, ok := e.exchangesMp[coinInfo.Rates.Exchange]
 	if !ok {
-		return nil, errors.New("exchange not found for " + coin.Tag)
+		return nil, errors.New("exchange not found for " + coin.Info.Tag)
 	}
 	return exchange, nil
 }

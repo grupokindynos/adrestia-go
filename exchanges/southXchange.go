@@ -55,7 +55,7 @@ func (s *SouthXchange) GetName() (string, error) {
 }
 
 func (s *SouthXchange) GetAddress(coin coins.Coin) (string, error) {
-	address, err := s.southClient.GetDepositAddress(strings.ToLower(coin.Tag))
+	address, err := s.southClient.GetDepositAddress(strings.ToLower(coin.Info.Tag))
 	str := string(address)
 	str = strings.Replace(str, "\\", "", -1)
 	str = strings.Replace(str, "\"", "", -1)
@@ -64,10 +64,10 @@ func (s *SouthXchange) GetAddress(coin coins.Coin) (string, error) {
 }
 
 func (s *SouthXchange) OneCoinToBtc(coin coins.Coin) (float64, error) {
-	if coin.Tag == "BTC" {
+	if coin.Info.Tag == "BTC" {
 		return 1.0, nil
 	}
-	rate, err := s.Obol.GetCoin2CoinRatesWithAmount("btc", coin.Tag, fmt.Sprintf("%f", 1.0))
+	rate, err := s.Obol.GetCoin2CoinRatesWithAmount("btc", coin.Info.Tag, fmt.Sprintf("%f", 1.0))
 	if err != nil {
 		return 0.0, err
 	}
@@ -79,7 +79,6 @@ func (s *SouthXchange) GetBalances() ([]balance.Balance, error) {
 	log.Println(str)
 	var balances []balance.Balance
 	res, err := s.southClient.GetBalances()
-
 	if err != nil {
 		return balances, err
 	}
@@ -108,7 +107,7 @@ func (s *SouthXchange) SellAtMarketPrice(sellOrder transaction.ExchangeSell) (bo
 }
 
 func (s *SouthXchange) Withdraw(coin coins.Coin, address string, amount float64) (bool, error) {
-	res, err := s.southClient.Withdraw(address, strings.ToUpper(coin.Tag), amount)
+	res, err := s.southClient.Withdraw(address, strings.ToUpper(coin.Info.Tag), amount)
 	fmt.Println(res, err)
 	if err != nil {
 		return false, err

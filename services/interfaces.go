@@ -8,7 +8,7 @@ import (
 )
 
 type HestiaService interface {
-	GetCoinConfiguration() ([]hestia.Coin, error)
+	GetAdrestiaCoins() ([]hestia.Coin, error)
 	GetBalancingOrders() ([]hestia.AdrestiaOrder, error)
 	CreateAdrestiaOrder(orderData hestia.AdrestiaOrder) (string, error)
 	UpdateAdrestiaOrder(orderData hestia.AdrestiaOrder) (string, error)
@@ -17,7 +17,7 @@ type HestiaService interface {
 }
 
 type PlutusService interface {
-	GetWalletBalances() []balance.Balance
+	GetWalletBalances([]hestia.Coin) []balance.Balance
 	GetBtcAddress() (string, error)
 	GetAddress(coin string) (string, error)
 	WithdrawToAddress(body plutus.SendAddressBodyReq) (txId string, err error)

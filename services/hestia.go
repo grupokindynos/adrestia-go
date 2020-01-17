@@ -16,7 +16,7 @@ import (
 
 type HestiaRequests struct{}
 
-func (h *HestiaRequests) GetCoinConfiguration() ([]hestia.Coin, error) {
+func (h *HestiaRequests) GetAdrestiaCoins() (availableCoins []hestia.Coin, err error) {
 	req, err := mvt.CreateMVTToken("GET", os.Getenv("HESTIA_URL")+"/coins", "adrestia", os.Getenv("MASTER_PASSWORD"), nil, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
 	if err != nil {
 		return []hestia.Coin{}, err
@@ -52,7 +52,12 @@ func (h *HestiaRequests) GetCoinConfiguration() ([]hestia.Coin, error) {
 		return []hestia.Coin{}, err
 	}
 	// fmt.Println("Hestia Conf: ", response)
-	return response, nil
+	for _, coin := range response {
+		if coin.Adrestia {
+			availableCoins = append(availableCoins, coin)
+		}
+	}
+	return availableCoins, nil
 }
 
 func (h *HestiaRequests) GetBalancingOrders() ([]hestia.AdrestiaOrder, error) {

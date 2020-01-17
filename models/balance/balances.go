@@ -72,13 +72,26 @@ func (b *Balance) SetRate(rate float64){
 type ByDiff []Balance
 
 func (a ByDiff) Len() int           { return len(a) }
-func (a ByDiff) Less(i, j int) bool { return a[i].DiffBTC < a[j].DiffBTC }
+func (a ByDiff) Less(i, j int) bool {
+	if a[i].Ticker == "BTC" {
+		return true
+	} else {
+		return a[i].DiffBTC < a[j].DiffBTC
+	}
+}
 func (a ByDiff) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 
 type ByDiffInverse []Balance
 
 func (a ByDiffInverse) Len() int           { return len(a) }
-func (a ByDiffInverse) Less(i, j int) bool { return a[i].DiffBTC > a[j].DiffBTC }
+func (a ByDiffInverse) Less(i, j int) bool {
+	if a[i].Ticker == "BTC" {
+		return false
+	} else {
+		return a[i].DiffBTC > a[j].DiffBTC
+	}
+
+}
 func (a ByDiffInverse) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 
 func (b HotWalletBalances) PrintBalances() {

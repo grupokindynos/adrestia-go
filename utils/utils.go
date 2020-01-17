@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"sort"
 
@@ -16,7 +17,8 @@ func NormalizeWallets(balances []balance.Balance, hestiaConf []hestia.Coin) (map
 	activeCoins["BTC"] = true
 	activeCoins["POLIS"] = true
 	activeCoins["DASH"] = true
-
+	fmt.Println("balances" , balances)
+	fmt.Println("hestiaConf" , hestiaConf)
 	/*
 		This function normalizes the wallets that were detected in Plutus and those with configuration in Hestia.
 		Returns a map of the coins' ticker as key containing a wrapper with both the actual balance of the wallet and
@@ -60,12 +62,10 @@ func NormalizeWallets(balances []balance.Balance, hestiaConf []hestia.Coin) (map
 	return availableCoins, missingCoins
 }
 
-func SortBalances(data map[string]balance.WalletInfoWrapper) ([]balance.Balance, []balance.Balance) {
+func SortBalances(data map[string]balance.WalletInfoWrapper) (balancedWallets []balance.Balance, unbalancedWallets []balance.Balance) {
 	/*
 		Sorts Balances given their diff, so that topped wallets are used to fill the missing ones
 	*/
-	var balancedWallets []balance.Balance
-	var unbalancedWallets []balance.Balance
 
 	for _, obj := range data {
 		x := obj.HotWalletBalance // Curreny Wallet Info Wrapper
@@ -79,6 +79,8 @@ func SortBalances(data map[string]balance.WalletInfoWrapper) ([]balance.Balance,
 
 	sort.Sort(balance.ByDiffInverse(balancedWallets))
 	sort.Sort(balance.ByDiff(unbalancedWallets))
+
+	log.Printf("Sorted Wallets")
 	for _, wallet := range unbalancedWallets {
 		fmt.Printf("%s has a deficit of %.8f BTC\n", wallet.Ticker, wallet.DiffBTC)
 	}

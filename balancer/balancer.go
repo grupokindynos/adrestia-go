@@ -1,4 +1,4 @@
-package balancer
+package main
 
 import (
 	"fmt"
@@ -6,12 +6,17 @@ import (
 	"github.com/grupokindynos/adrestia-go/services"
 	"github.com/grupokindynos/adrestia-go/utils"
 	"github.com/grupokindynos/common/obol"
+	"github.com/joho/godotenv"
 	"log"
 	"os"
 )
 
-func main() {
+func init() {
+	_ = godotenv.Load()
+}
 
+func main() {
+	fmt.Println("OBOL URL", os.Getenv("OBOL_URL"))
 	hestiaService := services.HestiaRequests{}
 	obolService := obol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
 	plutusService := services.PlutusRequests{Obol: &obolService}
@@ -25,12 +30,17 @@ func main() {
 	// TODO Disable and Enable Shift at start and re-enable ending of the process
 
 	// TODO This should be the last process, accounting for moved orders
-	var balances = plutusService.GetWalletBalances()        // Gets balance from Hot Wallets
-	confHestia, err := hestiaService.GetCoinConfiguration() // Firebase Wallet Configuration
+	confHestia, err := hestiaService.GetAdrestiaCoins()
+	fmt.Println(confHestia)
+	var balances = plutusService.GetWalletBalances(confHestia)        // Gets balance from Hot Wallets
+	 // Firebase Wallet Configuration
 	if err != nil {
 		log.Fatalln(err)
 	}
 	availableWallets, _ := utils.NormalizeWallets(balances, confHestia) // Verifies wallets in firebase are the same as in plutus and creates a map
+
+	fmt.Println("Available Wallets", availableWallets)
+
 	balanced, unbalanced := utils.SortBalances(availableWallets)
 
 	fmt.Println(balanced, unbalanced)

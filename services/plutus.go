@@ -6,6 +6,7 @@ import (
 	"github.com/gookit/color"
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	coinfactory "github.com/grupokindynos/common/coin-factory"
+	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/obol"
 	"github.com/grupokindynos/common/plutus"
 	"github.com/grupokindynos/common/tokens/mrt"
@@ -22,7 +23,7 @@ type PlutusRequests struct {
 	Obol obol.ObolService
 }
 
-func (p *PlutusRequests) GetWalletBalances() []balance.Balance {
+func (p *PlutusRequests) GetWalletBalances([]hestia.Coin ) []balance.Balance {
 	flagAllRates := false
 	log.Println("Retrieving Wallet Balances...")
 	var rawBalances []balance.Balance

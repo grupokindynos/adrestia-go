@@ -160,7 +160,7 @@ func (p *Processor) handleConversion(wg *sync.WaitGroup) {
 			continue
 		}
 
-		if status == hestia.ExchangeStatusCompleted {
+		if status.Status == hestia.ExchangeStatusCompleted {
 			currExOrder.ListingAmount, err = exchange.GetListingAmount(*currExOrder)
 			if err != nil {
 				fmt.Println(err)
@@ -185,7 +185,7 @@ func (p *Processor) handleConversion(wg *sync.WaitGroup) {
 				order.DualExchange = true
 				p.changeOrderStatus(order, hestia.AdrestiaStatusSecondExchange)
 			}
-		} else if status == hestia.ExchangeStatusError {
+		} else if status.Status == hestia.ExchangeStatusError {
 			p.changeOrderStatus(order, hestia.AdrestiaStatusError)
 		}
 	}

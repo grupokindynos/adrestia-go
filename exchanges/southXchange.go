@@ -120,19 +120,25 @@ func (s *SouthXchange) GetRateByAmount(sell transaction.ExchangeSell) (float64, 
 	return 0.0, errors.New("func not implemented")
 }
 
-func (s *SouthXchange) GetOrderStatus(order hestia.ExchangeOrder) (hestia.ExchangeStatus, error) {
+func (s *SouthXchange) GetOrderStatus(order hestia.ExchangeOrder) (status hestia.OrderStatus, err error) {
 	southOrder, err := s.southClient.GetOrder(order.OrderId)
 	if err != nil {
-		return hestia.ExchangeStatusError, err
+		return
 	}
 
 	if southOrder.Status == "executed" {
-		return hestia.ExchangeStatusCompleted, nil
+		status.Status = hestia.ExchangeStatusCompleted
+		status.AvailableAmount = 10 // TODO Change for order value
+		return
 	} else if southOrder.Status == "pending" || southOrder.Status == "booked" {
-		return hestia.ExchangeStatusOpen, nil
+		status.Status = hestia.ExchangeStatusOpen
+		status.AvailableAmount = 0.0
+		return
 	}
-
-	return hestia.ExchangeStatusError, errors.New("unkown order status " + southOrder.Status)
+	status.Status = hestia.ExchangeStatusError
+	status.AvailableAmount = 0
+	err = errors.New("unkown order status " + southOrder.Status)
+	return
 }
 
 func (s *SouthXchange) GetCoinConfig(coin coins.Coin) (exModels.CoinConfig, error) {

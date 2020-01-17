@@ -129,7 +129,7 @@ func (s *Bitso) GetCoinConfig(coin coins.Coin) (exModels.CoinConfig, error) {
 	return exModels.CoinConfig{}, errors.New("func not implemented")
 }
 
-func (b *Bitso) GetOrderStatus(order hestia.ExchangeOrder) (status hestia.ExchangeStatus, err error) {
+func (b *Bitso) GetOrderStatus(order hestia.ExchangeOrder) (status hestia.OrderStatus, err error) {
 	var wrappedOrder []string
 	wrappedOrder = append(wrappedOrder, order.OrderId)
 	res, err := b.bitsoService.LookUpOrders(wrappedOrder)
@@ -137,16 +137,28 @@ func (b *Bitso) GetOrderStatus(order hestia.ExchangeOrder) (status hestia.Exchan
 		return
 	}
 	if res.Payload[0].Status == "completed" {
-		return hestia.ExchangeStatusCompleted, nil
+		amount, _ := strconv.ParseFloat(res.Payload[0].OriginalValue, 64) // TODO Verify this is correct in API
+		return hestia.OrderStatus{
+			Status:          hestia.ExchangeStatusCompleted,
+			AvailableAmount: amount,
+		}, nil
 	}
 	if res.Payload[0].Status == "partial-fill" {
-		return hestia.ExchangeStatusOpen, nil
+		return hestia.OrderStatus{
+			Status:          hestia.ExchangeStatusOpen,
+			AvailableAmount: 0,
+		}, nil
 	}
 	if res.Payload[0].Status == "open" || res.Payload[0].Status == "queued" {
-		return hestia.ExchangeStatusOpen, nil
+		return hestia.OrderStatus{
+			Status:          hestia.ExchangeStatusOpen,
+			AvailableAmount: 0,
+		}, nil
 	}
-	return hestia.ExchangeStatusError, errors.New("unknown order status " + res.Payload[0].Status)
-	return hestia.ExchangeStatusError, nil
+	return hestia.OrderStatus{
+		Status:          hestia.ExchangeStatusError,
+		AvailableAmount: 0,
+	}, errors.New("unknown order status " + res.Payload[0].Status)
 }
 
 func (b *Bitso) getSettings() config.BitsoAuth {

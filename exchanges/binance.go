@@ -242,10 +242,13 @@ func (b *Binance) GetRateByAmount(sell transaction.ExchangeSell) (float64, error
 	return 0.0, errors.New("func not implemented")
 }
 
-func (b *Binance) GetOrderStatus(order hestia.ExchangeOrder) (hestia.ExchangeStatus, error) {
+func (b *Binance) GetOrderStatus(order hestia.ExchangeOrder) (hestia.OrderStatus, error) {
 	orderId, err := strconv.ParseInt(order.OrderId, 10, 64)
 	if err != nil {
-		return -1, errors.New("could not parse order id")
+		return hestia.OrderStatus{
+			Status:          hestia.ExchangeStatusError,
+			AvailableAmount: 0,
+		}, errors.New("could not parse order id")
 	}
 
 	res, err := b.binanceApi.QueryOrder(binance.QueryOrderRequest{
@@ -256,21 +259,34 @@ func (b *Binance) GetOrderStatus(order hestia.ExchangeOrder) (hestia.ExchangeSta
 	})
 
 	if err != nil {
-		return -1, errors.New("could not find order by id")
+		return hestia.OrderStatus{
+			Status:          hestia.ExchangeStatusError,
+			AvailableAmount: 0,
+		}, errors.New("could not find order by id")
 	}
 
 	switch res.Status {
 	case binance.StatusFilled:
-		return hestia.ExchangeStatusCompleted, nil
+		return hestia.OrderStatus{
+			Status:          hestia.ExchangeStatusCompleted,
+			AvailableAmount: res.ExecutedQty,
+		}, nil
 	case binance.StatusNew:
-		return hestia.ExchangeStatusOpen, nil
+		return hestia.OrderStatus{
+			Status:          hestia.ExchangeStatusOpen,
+			AvailableAmount: 0,
+		}, nil
 	case binance.StatusPartiallyFilled:
-		return hestia.ExchangeStatusOpen, nil
+		return hestia.OrderStatus{
+			Status:          hestia.ExchangeStatusOpen,
+			AvailableAmount: 0,
+		}, nil
 	default:
-		return hestia.ExchangeStatusError, nil
+		return hestia.OrderStatus{
+			Status:          hestia.ExchangeStatusOpen,
+			AvailableAmount: 0,
+		}, errors.New(fmt.Sprintf("unknown/unhandled order status: %s", res.Status))
 	}
-
-	return hestia.ExchangeStatusError, nil
 }
 
 func GetSettings() config.BinanceAuth {

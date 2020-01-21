@@ -21,6 +21,11 @@ type IExchange interface {
 	GetDepositStatus(txid string, asset string) (bool, error)
 }
 
+type IExchangeFactory interface {
+	GetExchangeByCoin(coin coins.Coin) (IExchange, error)
+	GetExchangeByName(name string) (IExchange, error)
+}
+
 type Exchange struct {
 	IExchange
 	Name    string

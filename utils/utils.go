@@ -113,7 +113,6 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 				filledAmount += balanced[i].DiffBTC
 				balanced[i].DiffBTC = 0.0
 				i++
-				fmt.Println("Type I tx: ", newTx)
 				pendingTransactions = append(pendingTransactions, newTx)
 			} else {
 				newTx.Amount = initialDiff - filledAmount
@@ -122,7 +121,6 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 				newTx.ToCoin = wallet.Ticker
 				newTx.FromCoin = balanced[i].Ticker
 				newTx.Rate = balanced[i].RateBTC
-				fmt.Println("Type II tx: ", newTx)
 				pendingTransactions = append(pendingTransactions, newTx)
 			}
 		}

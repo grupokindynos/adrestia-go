@@ -2,13 +2,20 @@ package main
 
 import (
 	"fmt"
-	"github.com/gookit/color"
-	"github.com/grupokindynos/adrestia-go/services"
-	"github.com/grupokindynos/adrestia-go/utils"
-	"github.com/grupokindynos/common/obol"
-	"github.com/joho/godotenv"
 	"log"
 	"os"
+	"time"
+
+	"github.com/gookit/color"
+	"github.com/grupokindynos/adrestia-go/exchanges"
+	"github.com/grupokindynos/adrestia-go/models/exchange_models"
+	"github.com/grupokindynos/adrestia-go/services"
+	"github.com/grupokindynos/adrestia-go/utils"
+	cf "github.com/grupokindynos/common/coin-factory"
+	"github.com/grupokindynos/common/hestia"
+	"github.com/grupokindynos/common/obol"
+	"github.com/grupokindynos/common/utils"
+	"github.com/joho/godotenv"
 )
 
 func init() {
@@ -20,6 +27,7 @@ func main() {
 	hestiaService := services.HestiaRequests{}
 	obolService := obol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
 	plutusService := services.PlutusRequests{Obol: &obolService}
+	exFactory := exchanges.NewExchangeFactory(exchange_models.Params{Obol: &obolService})
 	color.Info.Tips("Program Started")
 	/*
 		Process Description
@@ -32,8 +40,8 @@ func main() {
 	// TODO This should be the last process, accounting for moved orders
 	confHestia, err := hestiaService.GetAdrestiaCoins()
 	fmt.Println(confHestia)
-	var balances = plutusService.GetWalletBalances(confHestia)        // Gets balance from Hot Wallets
-	 // Firebase Wallet Configuration
+	var balances = plutusService.GetWalletBalances(confHestia) // Gets balance from Hot Wallets
+	// Firebase Wallet Configuration
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -44,13 +52,71 @@ func main() {
 	balanced, unbalanced := utils.SortBalances(availableWallets)
 
 	fmt.Println(balanced, unbalanced)
-	/* var superavitOrders = om.GetOutwardOrders(balanced, testingAmount)
-	var deficitOrders = om.GetInwardOrders(unbalanced, testingAmount)
+	txs := utils.BalanceHW(balanced, unbalanced)
 
-	log.Println(superavitOrders)
-	log.Println(deficitOrders) */
+	for _, tx := range txs {
+		var firstAddress string
+		var secondAddress string
+		dualExchange := false
 
-	// Stores orders in Firestore for further processing
-	//utils.StoreOrders(superavitOrders)
-	//utils.StoreOrders(deficitOrders)
+		coin, err := cf.GetCoin(tx.FromCoin)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		exchange, err := exFactory.GetExchangeByCoin(*coin)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		firstAddress, err = exchange.GetAddress(*coin)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		if tx.ToCoin != "BTC" {
+			coin, err = cf.GetCoin(tx.ToCoin)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			exchange, err = exFactory.GetExchangeByCoin(*coin)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			secondAddress, err = exchange.GetAddress(*coin)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			dualExchange = true
+		}
+		hwAddress, err := plutusService.GetAddress(tx.ToCoin)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		order := hestia.AdrestiaOrder{
+			ID:              utils.RandomString(),
+			DualExchange:    dualExchange,
+			Time:            time.Now().Unix(),
+			Status:          hestia.AdrestiaStatusCreated,
+			Amount:          tx.Amount,
+			BtcRate:         tx.BtcRate,
+			FromCoin:        tx.FromCoin,
+			ToCoin:          tx.ToCoin,
+			FirstExAddress:  firstAddress,
+			SecondExAddress: secondAddress,
+			WithdrawAddress: hwAddress,
+		}
+
+		_, err = hestiaService.CreateAdrestiaOrder(order)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+	}
 }

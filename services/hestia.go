@@ -14,10 +14,12 @@ import (
 	"time"
 )
 
-type HestiaRequests struct{}
+type HestiaRequests struct {
+	HestiaURL string
+}
 
 func (h *HestiaRequests) GetAdrestiaCoins() (availableCoins []hestia.Coin, err error) {
-	req, err := mvt.CreateMVTToken("GET", os.Getenv("HESTIA_URL")+"/coins", "adrestia", os.Getenv("MASTER_PASSWORD"), nil, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
+	req, err := mvt.CreateMVTToken("GET", h.HestiaURL+"/coins", "adrestia", os.Getenv("MASTER_PASSWORD"), nil, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
 	if err != nil {
 		return []hestia.Coin{}, err
 	}
@@ -61,7 +63,7 @@ func (h *HestiaRequests) GetAdrestiaCoins() (availableCoins []hestia.Coin, err e
 }
 
 func (h *HestiaRequests) GetBalancingOrders() ([]hestia.AdrestiaOrder, error) {
-	req, err := mvt.CreateMVTToken("GET", os.Getenv("HESTIA_URL")+"/adrestia/orders", "adrestia", os.Getenv("MASTER_PASSWORD"), nil, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
+	req, err := mvt.CreateMVTToken("GET", h.HestiaURL+"/adrestia/orders", "adrestia", os.Getenv("MASTER_PASSWORD"), nil, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
 	if err != nil {
 		return []hestia.AdrestiaOrder{}, err
 	}
@@ -100,7 +102,7 @@ func (h *HestiaRequests) GetBalancingOrders() ([]hestia.AdrestiaOrder, error) {
 }
 
 func (h *HestiaRequests) CreateAdrestiaOrder(orderData hestia.AdrestiaOrder) (string, error) {
-	req, err := mvt.CreateMVTToken("POST", hestia.ProductionURL+"/adrestia/new", "adrestia", os.Getenv("MASTER_PASSWORD"), orderData, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
+	req, err := mvt.CreateMVTToken("POST", h.HestiaURL+"/adrestia/new", "adrestia", os.Getenv("MASTER_PASSWORD"), orderData, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
 	if err != nil {
 		return "", err
 	}
@@ -138,11 +140,11 @@ func (h *HestiaRequests) CreateAdrestiaOrder(orderData hestia.AdrestiaOrder) (st
 }
 
 func (h *HestiaRequests) UpdateAdrestiaOrder(orderData hestia.AdrestiaOrder) (string, error) {
-	req, err := mvt.CreateMVTToken("PUT", hestia.ProductionURL+"/adrestia/update", "adrestia", os.Getenv("MASTER_PASSWORD"), orderData, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
+	req, err := mvt.CreateMVTToken("PUT", h.HestiaURL+"/adrestia/update", "adrestia", os.Getenv("MASTER_PASSWORD"), orderData, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
 	if err != nil {
 		return "", err
 	}
-	client := http.Client {
+	client := http.Client{
 		Transport:     nil,
 		CheckRedirect: nil,
 		Jar:           nil,
@@ -176,11 +178,11 @@ func (h *HestiaRequests) UpdateAdrestiaOrder(orderData hestia.AdrestiaOrder) (st
 }
 
 func (h *HestiaRequests) UpdateAdrestiaOrderStatus(orderData hestia.AdrestiaOrderUpdate) (string, error) {
-	req, err := mvt.CreateMVTToken("PUT", hestia.ProductionURL+"/adrestia/update/status", "adrestia", os.Getenv("MASTER_PASSWORD"), orderData, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
+	req, err := mvt.CreateMVTToken("PUT", h.HestiaURL+"/adrestia/update/status", "adrestia", os.Getenv("MASTER_PASSWORD"), orderData, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
 	if err != nil {
 		return "", err
 	}
-	client := http.Client {
+	client := http.Client{
 		Transport:     nil,
 		CheckRedirect: nil,
 		Jar:           nil,
@@ -214,7 +216,7 @@ func (h *HestiaRequests) UpdateAdrestiaOrderStatus(orderData hestia.AdrestiaOrde
 }
 
 func (h *HestiaRequests) GetAllOrders(adrestiaOrderParams adrestia.OrderParams) ([]hestia.AdrestiaOrder, error) {
-	req, err := mvt.CreateMVTToken(http.MethodGet, os.Getenv("HESTIA_URL")+"/adrestia/orders", "adrestia", os.Getenv("MASTER_PASSWORD"), nil, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
+	req, err := mvt.CreateMVTToken(http.MethodGet, h.HestiaURL+"/adrestia/orders", "adrestia", os.Getenv("MASTER_PASSWORD"), nil, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
 	if err != nil {
 		return nil, err
 	}

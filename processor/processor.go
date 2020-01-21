@@ -3,14 +3,14 @@ package processor
 import (
 	"errors"
 	"fmt"
-	"github.com/grupokindynos/common/plutus"
 	"log"
 	"strings"
 	"sync"
 
+	"github.com/grupokindynos/common/plutus"
+
 	"github.com/grupokindynos/adrestia-go/exchanges"
 	"github.com/grupokindynos/adrestia-go/models/adrestia"
-	"github.com/grupokindynos/adrestia-go/models/exchange_models"
 	"github.com/grupokindynos/adrestia-go/services"
 	cf "github.com/grupokindynos/common/coin-factory"
 	"github.com/grupokindynos/common/hestia"
@@ -18,29 +18,20 @@ import (
 )
 
 type Processor struct {
-	Hestia services.HestiaService
-	Obol   obol.ObolService
-	Plutus services.PlutusRequests
+	Plutus          services.PlutusService
+	Hestia          services.HestiaService
+	Obol            obol.ObolService
+	ExchangeFactory exchanges.IExchangeFactory
 }
 
 var (
-	adrestiaOrders  []hestia.AdrestiaOrder
-	exchangeFactory *exchanges.ExchangeFactory
+	filledOrders   bool
+	adrestiaOrders []hestia.AdrestiaOrder
 )
 
 func (p *Processor) Start() {
 	const adrestiaStatus = true // TODO Replace with Hestia conf variable
 	log.Println("Starting Adrestia Order Processor")
-	adrestiaOrders, err := p.Hestia.GetAllOrders(adrestia.OrderParams{
-		IncludeComplete: false,
-	})
-
-	exchangeFactory = exchanges.NewExchangeFactory(exchange_models.Params{Obol: p.Obol})
-
-	if err != nil {
-		log.Fatal("Could not retrieve adrestiaOrders form Hestia", err)
-	}
-	log.Println(fmt.Sprintf("Received a total of %d AdrestiaOrders", len(adrestiaOrders)))
 
 	if !adrestiaStatus {
 		return
@@ -54,6 +45,7 @@ func (p *Processor) Start() {
 	go p.handleCompletedExchange(&wg)
 	go p.handleCompleted(&wg)
 	wg.Wait()
+
 	fmt.Println("Adrestia Order Processor Finished")
 }
 
@@ -91,7 +83,7 @@ func (p *Processor) handleExchange(wg *sync.WaitGroup) {
 		if err != nil {
 			continue
 		}
-		ex, err := exchangeFactory.GetExchangeByCoin(*coinInfo)
+		ex, err := p.ExchangeFactory.GetExchangeByCoin(*coinInfo)
 		if err != nil {
 			continue
 		}
@@ -110,7 +102,7 @@ func (p *Processor) handleExchange(wg *sync.WaitGroup) {
 		if err != nil {
 			continue
 		}
-		ex, err := exchangeFactory.GetExchangeByCoin(*coinInfo)
+		ex, err := p.ExchangeFactory.GetExchangeByCoin(*coinInfo)
 		if err != nil {
 			continue
 		}
@@ -142,7 +134,7 @@ func (p *Processor) handleConversion(wg *sync.WaitGroup) {
 		} else {
 			currExOrder = &order.FinalOrder
 		}
-		exchange, err := exchangeFactory.GetExchangeByName(currExOrder.Exchange)
+		exchange, err := p.ExchangeFactory.GetExchangeByName(currExOrder.Exchange)
 		if err != nil {
 			fmt.Println(err)
 			continue
@@ -161,29 +153,26 @@ func (p *Processor) handleConversion(wg *sync.WaitGroup) {
 		}
 
 		if status.Status == hestia.ExchangeStatusCompleted {
-			currExOrder.ListingAmount, err = exchange.GetListingAmount(*currExOrder)
+			currExOrder.ListingAmount = status.AvailableAmount
 			if err != nil {
 				fmt.Println(err)
 				continue
 			}
 
-			if order.ToCoin == obtainedCurrency {
-				p.changeOrderStatus(order, hestia.AdrestiaStatusCompleted)
-			} else {
+			if order.DualExchange {
 				coin, err := cf.GetCoin(obtainedCurrency)
 				if err != nil {
 					fmt.Println(err)
 					continue
 				}
-				// TODO: substract withdrawal fees from listing amount.
 				_, err = exchange.Withdraw(*coin, order.SecondExAddress, currExOrder.ListingAmount)
 				if err != nil {
 					fmt.Println(err)
 					continue
 				}
-
-				order.DualExchange = true
 				p.changeOrderStatus(order, hestia.AdrestiaStatusSecondExchange)
+			} else {
+				p.changeOrderStatus(order, hestia.AdrestiaStatusCompleted)
 			}
 		} else if status.Status == hestia.ExchangeStatusError {
 			p.changeOrderStatus(order, hestia.AdrestiaStatusError)
@@ -206,7 +195,7 @@ func (p *Processor) handleCompletedExchange(wg *sync.WaitGroup) {
 		} else {
 			exchangeOrder = order.FirstOrder
 		}
-		exchange, err := exchangeFactory.GetExchangeByName(exchangeOrder.Exchange)
+		exchange, err := p.ExchangeFactory.GetExchangeByName(exchangeOrder.Exchange)
 		if err != nil {
 			fmt.Println(err)
 			continue
@@ -263,6 +252,15 @@ func (p *Processor) storeOrders(orders []hestia.AdrestiaOrder) {
 }
 
 func (p *Processor) getOrders(status hestia.AdrestiaStatus) (filteredOrders []hestia.AdrestiaOrder) {
+	if !filledOrders {
+		status, err := p.fillOrders()
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+		filledOrders = status
+	}
+
 	for _, order := range adrestiaOrders {
 		fmt.Println(order)
 		if order.Status == status {
@@ -270,6 +268,19 @@ func (p *Processor) getOrders(status hestia.AdrestiaStatus) (filteredOrders []he
 		}
 	}
 	return
+}
+
+func (p *Processor) fillOrders() (bool, error) {
+	adrestiaOrders, err := p.Hestia.GetAllOrders(adrestia.OrderParams{
+		IncludeComplete: false,
+	})
+
+	if err != nil {
+		log.Fatal("Could not retrieve adrestiaOrders form Hestia", err)
+		return false, err
+	}
+	log.Println(fmt.Sprintf("Received a total of %d AdrestiaOrders", len(adrestiaOrders)))
+	return true, nil
 }
 
 func (p *Processor) getObtainedCurrency(order hestia.ExchangeOrder) (string, error) {

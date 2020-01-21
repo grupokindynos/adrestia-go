@@ -18,8 +18,12 @@ type IExchange interface {
 	Withdraw(coin coins.Coin, address string, amount float64) (bool, error)
 	GetRateByAmount(sell transaction.ExchangeSell) (float64, error)
 	GetOrderStatus(order hestia.ExchangeOrder) (hestia.OrderStatus, error)
-	GetListingAmount(order hestia.ExchangeOrder) (float64, error)
 	GetDepositStatus(txid string, asset string) (bool, error)
+}
+
+type IExchangeFactory interface {
+	GetExchangeByCoin(coin coins.Coin) (IExchange, error)
+	GetExchangeByName(name string) (IExchange, error)
 }
 
 type Exchange struct {

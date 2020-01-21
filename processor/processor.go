@@ -18,9 +18,9 @@ import (
 )
 
 type Processor struct {
+	Plutus services.PlutusService
 	Hestia services.HestiaService
 	Obol   obol.ObolService
-	Plutus services.PlutusRequests
 }
 
 var (
@@ -161,29 +161,26 @@ func (p *Processor) handleConversion(wg *sync.WaitGroup) {
 		}
 
 		if status.Status == hestia.ExchangeStatusCompleted {
-			currExOrder.ListingAmount, err = exchange.GetListingAmount(*currExOrder)
+			currExOrder.ListingAmount = status.AvailableAmount
 			if err != nil {
 				fmt.Println(err)
 				continue
 			}
 
-			if order.ToCoin == obtainedCurrency {
-				p.changeOrderStatus(order, hestia.AdrestiaStatusCompleted)
-			} else {
+			if order.DualExchange {
 				coin, err := cf.GetCoin(obtainedCurrency)
 				if err != nil {
 					fmt.Println(err)
 					continue
 				}
-				// TODO: substract withdrawal fees from listing amount.
 				_, err = exchange.Withdraw(*coin, order.SecondExAddress, currExOrder.ListingAmount)
 				if err != nil {
 					fmt.Println(err)
 					continue
 				}
-
-				order.DualExchange = true
 				p.changeOrderStatus(order, hestia.AdrestiaStatusSecondExchange)
+			} else {
+				p.changeOrderStatus(order, hestia.AdrestiaStatusCompleted)
 			}
 		} else if status.Status == hestia.ExchangeStatusError {
 			p.changeOrderStatus(order, hestia.AdrestiaStatusError)

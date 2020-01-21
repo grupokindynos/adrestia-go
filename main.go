@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/grupokindynos/adrestia-go/processor"
@@ -17,6 +18,15 @@ const exConfirmationThreshold = 10
 const walletConfirmationThreshold = 3
 const testingAmount = 0.00001
 
+type CurrentTime struct {
+	Hour   int
+	Day    int
+	Minute int
+	Second int
+}
+
+var currTime CurrentTime
+
 func init() {
 	if err := godotenv.Load(); err != nil {
 		log.Print("No .env file found")
@@ -24,15 +34,53 @@ func init() {
 }
 
 func main() {
-	hestiaService := services.HestiaRequests{}
-	obolService := obol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
-	plutusService := services.PlutusRequests{Obol: &obolService}
+	go timer()
+}
 
+func timer() {
+	for {
+		time.Sleep(1 * time.Second)
+		currTime = CurrentTime{
+			Hour:   time.Now().Hour(),
+			Day:    time.Now().Day(),
+			Minute: time.Now().Minute(),
+			Second: time.Now().Second(),
+		}
+		if currTime.Second == 0 {
+			var wg sync.WaitGroup
+			wg.Add(1)
+			runCrons(&wg)
+			wg.Wait()
+		}
+	}
+}
+
+func runCrons(mainWg *sync.WaitGroup) {
+	defer func() {
+		mainWg.Done()
+	}()
+	var wg sync.WaitGroup
+	wg.Add(1)
+	obolService := obol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
 	proc := processor.Processor{
-		Hestia: &hestiaService,
-		Plutus: plutusService,
-		Obol: &obolService,
+		Plutus: &services.PlutusRequests{Obol: &obolService},
+		Hestia: &services.HestiaRequests{HestiaURL: os.Getenv("HESTIA_URL")},
+		Obol:   &obolService,
 	}
 
-	proc.Start()
+	go runCronMinutes(1440, proc.Start, &wg) // 24 hrs
+	wg.Wait()
+}
+
+func runCronMinutes(schedule int, function func(), wg *sync.WaitGroup) {
+	go func() {
+		defer func() {
+			wg.Done()
+		}()
+		remainder := currTime.Minute % schedule
+		if remainder == 0 {
+			function()
+		}
+		return
+	}()
 }

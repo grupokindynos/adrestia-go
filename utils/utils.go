@@ -17,8 +17,8 @@ func NormalizeWallets(balances []balance.Balance, hestiaConf []hestia.Coin) (map
 	activeCoins["BTC"] = true
 	activeCoins["POLIS"] = true
 	activeCoins["DASH"] = true
-	fmt.Println("balances" , balances)
-	fmt.Println("hestiaConf" , hestiaConf)
+	fmt.Println("balances", balances)
+	fmt.Println("hestiaConf", hestiaConf)
 	/*
 		This function normalizes the wallets that were detected in Plutus and those with configuration in Hestia.
 		Returns a map of the coins' ticker as key containing a wrapper with both the actual balance of the wallet and
@@ -108,7 +108,7 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 				newTx.ToCoin = wallet.Ticker
 				newTx.FromCoin = balanced[i].Ticker
 				newTx.Amount = balanced[i].DiffBTC
-				newTx.Rate = balanced[i].RateBTC
+				newTx.BtcRate = balanced[i].RateBTC
 
 				filledAmount += balanced[i].DiffBTC
 				balanced[i].DiffBTC = 0.0
@@ -121,7 +121,7 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 				balanced[i].DiffBTC -= initialDiff - filledAmount
 				newTx.ToCoin = wallet.Ticker
 				newTx.FromCoin = balanced[i].Ticker
-				newTx.Rate = balanced[i].RateBTC
+				newTx.BtcRate = balanced[i].RateBTC
 				fmt.Println("Type II tx: ", newTx)
 				pendingTransactions = append(pendingTransactions, newTx)
 			}

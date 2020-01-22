@@ -12,7 +12,6 @@ import (
 
 	"github.com/grupokindynos/adrestia-go/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
-	exModels "github.com/grupokindynos/adrestia-go/models/exchange_models"
 	"github.com/grupokindynos/adrestia-go/models/transaction"
 	"github.com/grupokindynos/adrestia-go/utils"
 	"github.com/joho/godotenv"
@@ -28,11 +27,10 @@ type Binance struct {
 	Exchange
 	AccountName string
 	binanceApi  binance.Binance
-	coinsConfig map[string]exModels.CoinConfig
 	Obol        obol.ObolService
 }
 
-func NewBinance(params exModels.Params) *Binance {
+func NewBinance(params Params) *Binance {
 	c := new(Binance)
 	c.Name = "Binance"
 	c.BaseUrl = ""
@@ -56,18 +54,6 @@ func NewBinance(params exModels.Params) *Binance {
 		ctx,
 	)
 	c.binanceApi = binance.NewBinance(binanceService)
-	c.coinsConfig = map[string]exModels.CoinConfig{
-		"POLIS": exModels.CoinConfig{},
-		"BTC":   exModels.CoinConfig{MinimumWithdrawal: 0.001, WithdrawalFee: 0.0005},
-		"DASH":  exModels.CoinConfig{MinimumWithdrawal: 0.004, WithdrawalFee: 0.002},
-		"XZC":   exModels.CoinConfig{},
-		"COLX":  exModels.CoinConfig{},
-		"DGB":   exModels.CoinConfig{},
-		"GRS":   exModels.CoinConfig{},
-		"LTC":   exModels.CoinConfig{MinimumWithdrawal: 0.002, WithdrawalFee: 0.001},
-		"TELOS": exModels.CoinConfig{},
-		"DIVI":  exModels.CoinConfig{},
-	}
 	return c
 }
 
@@ -170,10 +156,6 @@ func (b *Binance) GetBalances() ([]balance.Balance, error) {
 	s = utils.GetBalanceLog(balances, b.Name)
 	l.Println(s)
 	return balances, nil
-}
-
-func (b *Binance) GetCoinConfig(coin coins.Coin) (exModels.CoinConfig, error) {
-	return exModels.CoinConfig{}, errors.New("func not implemented")
 }
 
 func (b *Binance) SellAtMarketPrice(sellOrder transaction.ExchangeSell) (bool, string, error) {

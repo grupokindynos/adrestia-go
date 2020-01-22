@@ -9,7 +9,6 @@ import (
 
 	"github.com/grupokindynos/adrestia-go/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
-	exModels "github.com/grupokindynos/adrestia-go/models/exchange_models"
 	"github.com/grupokindynos/adrestia-go/models/transaction"
 	"github.com/grupokindynos/adrestia-go/utils"
 	"github.com/grupokindynos/common/coin-factory/coins"
@@ -22,12 +21,11 @@ type SouthXchange struct {
 	Exchange
 	apiKey      string
 	apiSecret   string
-	coinsConfig map[string]exModels.CoinConfig
 	southClient south.SouthXchange
 	Obol        obol.ObolService
 }
 
-func NewSouthXchange(params exModels.Params) *SouthXchange {
+func NewSouthXchange(params Params) *SouthXchange {
 	s := new(SouthXchange)
 	s.Name = "SouthXchange"
 	data := s.getSettings()
@@ -35,18 +33,6 @@ func NewSouthXchange(params exModels.Params) *SouthXchange {
 	s.apiSecret = data.ApiSecret
 	s.southClient = *south.New(s.apiKey, s.apiSecret, "user-agent")
 	s.Obol = params.Obol
-	s.coinsConfig = map[string]exModels.CoinConfig{
-		"POLIS": exModels.CoinConfig{WithdrawalFee: 0.01},
-		"BTC":   exModels.CoinConfig{PercentageWithdrawalFee: 0.05, WithdrawalFee: 0.0001},
-		"DASH":  exModels.CoinConfig{WithdrawalFee: 0.0001},
-		"XZC":   exModels.CoinConfig{},
-		"COLX":  exModels.CoinConfig{},
-		"DGB":   exModels.CoinConfig{},
-		"GRS":   exModels.CoinConfig{},
-		"LTC":   exModels.CoinConfig{WithdrawalFee: 0.002},
-		"TELOS": exModels.CoinConfig{},
-		"DIVI":  exModels.CoinConfig{},
-	}
 	return s
 }
 
@@ -143,10 +129,6 @@ func (s *SouthXchange) GetOrderStatus(order hestia.ExchangeOrder) (hestia.OrderS
 		err = errors.New("unkown order status " + southOrder.Status)
 	}
 	return status, err
-}
-
-func (s *SouthXchange) GetCoinConfig(coin coins.Coin) (exModels.CoinConfig, error) {
-	return exModels.CoinConfig{}, errors.New("func not implemented")
 }
 
 func (s *SouthXchange) getAvailableAmount(order hestia.ExchangeOrder) (float64, error) {

@@ -8,7 +8,6 @@ import (
 
 	"github.com/gookit/color"
 	"github.com/grupokindynos/adrestia-go/exchanges"
-	"github.com/grupokindynos/adrestia-go/models/exchange_models"
 	"github.com/grupokindynos/adrestia-go/services"
 	"github.com/grupokindynos/adrestia-go/utils"
 	cf "github.com/grupokindynos/common/coin-factory"
@@ -27,7 +26,7 @@ func main() {
 	hestiaService := services.HestiaRequests{}
 	obolService := obol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
 	plutusService := services.PlutusRequests{Obol: &obolService}
-	exFactory := exchanges.NewExchangeFactory(exchange_models.Params{Obol: &obolService})
+	exFactory := exchanges.NewExchangeFactory(exchanges.Params{Obol: &obolService})
 	color.Info.Tips("Program Started")
 	/*
 		Process Description

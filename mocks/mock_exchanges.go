@@ -8,7 +8,6 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	exchanges "github.com/grupokindynos/adrestia-go/exchanges"
 	balance "github.com/grupokindynos/adrestia-go/models/balance"
-	exchange_models "github.com/grupokindynos/adrestia-go/models/exchange_models"
 	transaction "github.com/grupokindynos/adrestia-go/models/transaction"
 	coins "github.com/grupokindynos/common/coin-factory/coins"
 	hestia "github.com/grupokindynos/common/hestia"
@@ -66,21 +65,6 @@ func (m *MockIExchange) GetBalances() ([]balance.Balance, error) {
 func (mr *MockIExchangeMockRecorder) GetBalances() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBalances", reflect.TypeOf((*MockIExchange)(nil).GetBalances))
-}
-
-// GetCoinConfig mocks base method
-func (m *MockIExchange) GetCoinConfig(arg0 coins.Coin) (exchange_models.CoinConfig, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCoinConfig", arg0)
-	ret0, _ := ret[0].(exchange_models.CoinConfig)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetCoinConfig indicates an expected call of GetCoinConfig
-func (mr *MockIExchangeMockRecorder) GetCoinConfig(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCoinConfig", reflect.TypeOf((*MockIExchange)(nil).GetCoinConfig), arg0)
 }
 
 // GetDepositStatus mocks base method

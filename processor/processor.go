@@ -25,11 +25,26 @@ type Processor struct {
 }
 
 var (
+	proc           Processor
 	filledOrders   bool
+	initialized    bool
 	adrestiaOrders []hestia.AdrestiaOrder
 )
 
-func (p *Processor) Start() {
+func InitProcessor(params exchanges.Params) {
+	proc.Plutus = params.Plutus
+	proc.Hestia = params.Hestia
+	proc.Obol = params.Obol
+	proc.ExchangeFactory = params.ExchangeFactory
+
+	initialized = true
+}
+
+func Start() {
+	if !initialized {
+		log.Println("error - Processor not initialized")
+		return
+	}
 	const adrestiaStatus = true // TODO Replace with Hestia conf variable
 	log.Println("Starting Adrestia Order Processor")
 
@@ -39,22 +54,22 @@ func (p *Processor) Start() {
 
 	var wg sync.WaitGroup
 	wg.Add(5)
-	go p.handleCreatedOrders(&wg)
-	go p.handleExchange(&wg)
-	go p.handleConversion(&wg)
-	go p.handleCompletedExchange(&wg)
-	go p.handleCompleted(&wg)
+	go handleCreatedOrders(&wg)
+	go handleExchange(&wg)
+	go handleConversion(&wg)
+	go handleCompletedExchange(&wg)
+	go handleCompleted(&wg)
 	wg.Wait()
 
 	fmt.Println("Adrestia Order Processor Finished")
 }
 
-func (p *Processor) handleCreatedOrders(wg *sync.WaitGroup) {
+func handleCreatedOrders(wg *sync.WaitGroup) {
 	defer wg.Done()
-	orders := p.getOrders(hestia.AdrestiaStatusCreated)
+	orders := getOrders(hestia.AdrestiaStatusCreated)
 	log.Println(orders)
 	for _, order := range orders {
-		txId, err := p.Plutus.WithdrawToAddress(plutus.SendAddressBodyReq{
+		txId, err := proc.Plutus.WithdrawToAddress(plutus.SendAddressBodyReq{
 			Address: order.FirstExAddress,
 			Coin:    order.FromCoin,
 			Amount:  order.Amount,
@@ -65,7 +80,7 @@ func (p *Processor) handleCreatedOrders(wg *sync.WaitGroup) {
 		}
 		order.HETxId = txId
 		order.Status = hestia.AdrestiaStatusFirstExchange
-		_, err = p.Hestia.UpdateAdrestiaOrder(order)
+		_, err = proc.Hestia.UpdateAdrestiaOrder(order)
 		if err != nil {
 			log.Println(fmt.Sprintf("error updating order %s", order.ID))
 			continue
@@ -74,16 +89,16 @@ func (p *Processor) handleCreatedOrders(wg *sync.WaitGroup) {
 	fmt.Println("Finished CreatedOrders")
 }
 
-func (p *Processor) handleExchange(wg *sync.WaitGroup) {
+func handleExchange(wg *sync.WaitGroup) {
 	defer wg.Done()
-	firstExchangeOrders := p.getOrders(hestia.AdrestiaStatusFirstExchange)
-	secondExchangeOrders := p.getOrders(hestia.AdrestiaStatusSecondExchange)
+	firstExchangeOrders := getOrders(hestia.AdrestiaStatusFirstExchange)
+	secondExchangeOrders := getOrders(hestia.AdrestiaStatusSecondExchange)
 	for _, order := range firstExchangeOrders {
 		coinInfo, err := cf.GetCoin(order.FromCoin)
 		if err != nil {
 			continue
 		}
-		ex, err := p.ExchangeFactory.GetExchangeByCoin(*coinInfo)
+		ex, err := proc.ExchangeFactory.GetExchangeByCoin(*coinInfo)
 		if err != nil {
 			continue
 		}
@@ -102,7 +117,7 @@ func (p *Processor) handleExchange(wg *sync.WaitGroup) {
 		if err != nil {
 			continue
 		}
-		ex, err := p.ExchangeFactory.GetExchangeByCoin(*coinInfo)
+		ex, err := proc.ExchangeFactory.GetExchangeByCoin(*coinInfo)
 		if err != nil {
 			continue
 		}
@@ -119,11 +134,11 @@ func (p *Processor) handleExchange(wg *sync.WaitGroup) {
 	fmt.Println("Finished handleExchange")
 }
 
-func (p *Processor) handleConversion(wg *sync.WaitGroup) {
+func handleConversion(wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	ordersFirst := p.getOrders(hestia.AdrestiaStatusFirstConversion)
-	ordersSecond := p.getOrders(hestia.AdrestiaStatusSecondConversion)
+	ordersFirst := getOrders(hestia.AdrestiaStatusFirstConversion)
+	ordersSecond := getOrders(hestia.AdrestiaStatusSecondConversion)
 
 	orders := append(ordersFirst, ordersSecond...)
 	var currExOrder *hestia.ExchangeOrder
@@ -134,7 +149,7 @@ func (p *Processor) handleConversion(wg *sync.WaitGroup) {
 		} else {
 			currExOrder = &order.FinalOrder
 		}
-		exchange, err := p.ExchangeFactory.GetExchangeByName(currExOrder.Exchange)
+		exchange, err := proc.ExchangeFactory.GetExchangeByName(currExOrder.Exchange)
 		if err != nil {
 			fmt.Println(err)
 			continue
@@ -146,7 +161,7 @@ func (p *Processor) handleConversion(wg *sync.WaitGroup) {
 			continue
 		}
 
-		obtainedCurrency, err := p.getObtainedCurrency(*currExOrder)
+		obtainedCurrency, err := getObtainedCurrency(*currExOrder)
 		if err != nil {
 			fmt.Println(err)
 			continue
@@ -170,12 +185,12 @@ func (p *Processor) handleConversion(wg *sync.WaitGroup) {
 					fmt.Println(err)
 					continue
 				}
-				p.changeOrderStatus(order, hestia.AdrestiaStatusSecondExchange)
+				changeOrderStatus(order, hestia.AdrestiaStatusSecondExchange)
 			} else {
-				p.changeOrderStatus(order, hestia.AdrestiaStatusCompleted)
+				changeOrderStatus(order, hestia.AdrestiaStatusCompleted)
 			}
 		} else if status.Status == hestia.ExchangeStatusError {
-			p.changeOrderStatus(order, hestia.AdrestiaStatusError)
+			changeOrderStatus(order, hestia.AdrestiaStatusError)
 		}
 	}
 
@@ -184,9 +199,9 @@ func (p *Processor) handleConversion(wg *sync.WaitGroup) {
 	fmt.Println("Finished handleConversion")
 }
 
-func (p *Processor) handleCompletedExchange(wg *sync.WaitGroup) {
+func handleCompletedExchange(wg *sync.WaitGroup) {
 	defer wg.Done()
-	orders := p.getOrders(hestia.AdrestiaStatusCompleted)
+	orders := getOrders(hestia.AdrestiaStatusCompleted)
 	var exchangeOrder hestia.ExchangeOrder
 
 	for _, order := range orders {
@@ -195,12 +210,12 @@ func (p *Processor) handleCompletedExchange(wg *sync.WaitGroup) {
 		} else {
 			exchangeOrder = order.FirstOrder
 		}
-		exchange, err := p.ExchangeFactory.GetExchangeByName(exchangeOrder.Exchange)
+		exchange, err := proc.ExchangeFactory.GetExchangeByName(exchangeOrder.Exchange)
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
-		obtainedCurrency, err := p.getObtainedCurrency(exchangeOrder)
+		obtainedCurrency, err := getObtainedCurrency(exchangeOrder)
 		if err != nil {
 			fmt.Println(err)
 			continue
@@ -221,28 +236,28 @@ func (p *Processor) handleCompletedExchange(wg *sync.WaitGroup) {
 	fmt.Println("Finished handleCompletedExchange")
 }
 
-func (p *Processor) handleCompleted(wg *sync.WaitGroup) {
+func handleCompleted(wg *sync.WaitGroup) {
 	defer wg.Done()
 	// Sends a telegram message and deletes order from CurrentOrders. Moves it to legacy table
 	fmt.Println("Finished handleCompleted")
 }
 
-func (p *Processor) changeOrderStatus(order hestia.AdrestiaOrder, status hestia.AdrestiaStatus) {
+func changeOrderStatus(order hestia.AdrestiaOrder, status hestia.AdrestiaStatus) {
 	fallbackStatus := order.Status
 	order.Status = status
-	resp, err := p.Hestia.UpdateAdrestiaOrder(order)
+	resp, err := proc.Hestia.UpdateAdrestiaOrder(order)
 	// TODO Move in map (if concurrency on maps allows for it)
 	if err != nil {
 		order.Status = fallbackStatus
 		fmt.Println(err)
 	} else {
-		log.Println(fmt.Sprintf("order %s in %s has been updated to %s\t%s", order.FirstOrder.OrderId, order.FirstOrder.Exchange, order.Status, resp))
+		log.Println(fmt.Sprintf("order %s in %s has been updated to %d\t%s", order.FirstOrder.OrderId, order.FirstOrder.Exchange, order.Status, resp))
 	}
 }
 
-func (p *Processor) storeOrders(orders []hestia.AdrestiaOrder) {
+func storeOrders(orders []hestia.AdrestiaOrder) {
 	for _, order := range orders {
-		res, err := p.Hestia.CreateAdrestiaOrder(order)
+		res, err := proc.Hestia.CreateAdrestiaOrder(order)
 		if err != nil {
 			fmt.Println("error posting order to hestia: ", err)
 		} else {
@@ -251,18 +266,17 @@ func (p *Processor) storeOrders(orders []hestia.AdrestiaOrder) {
 	}
 }
 
-func (p *Processor) getOrders(status hestia.AdrestiaStatus) (filteredOrders []hestia.AdrestiaOrder) {
+func getOrders(status hestia.AdrestiaStatus) (filteredOrders []hestia.AdrestiaOrder) {
 	if !filledOrders {
-		status, err := p.fillOrders()
+		res, err := fillOrders()
 		if err != nil {
 			log.Fatal(err)
 			return
 		}
-		filledOrders = status
+		filledOrders = res
 	}
 
 	for _, order := range adrestiaOrders {
-		fmt.Println(order)
 		if order.Status == status {
 			filteredOrders = append(filteredOrders, order)
 		}
@@ -270,8 +284,9 @@ func (p *Processor) getOrders(status hestia.AdrestiaStatus) (filteredOrders []he
 	return
 }
 
-func (p *Processor) fillOrders() (bool, error) {
-	adrestiaOrders, err := p.Hestia.GetAllOrders(adrestia.OrderParams{
+func fillOrders() (bool, error) {
+	var err error
+	adrestiaOrders, err = proc.Hestia.GetAllOrders(adrestia.OrderParams{
 		IncludeComplete: false,
 	})
 
@@ -283,7 +298,7 @@ func (p *Processor) fillOrders() (bool, error) {
 	return true, nil
 }
 
-func (p *Processor) getObtainedCurrency(order hestia.ExchangeOrder) (string, error) {
+func getObtainedCurrency(order hestia.ExchangeOrder) (string, error) {
 	orderType := strings.ToLower(order.Side)
 
 	if orderType == "buy" {

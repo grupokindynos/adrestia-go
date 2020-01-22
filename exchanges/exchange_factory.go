@@ -4,9 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/grupokindynos/adrestia-go/models/exchange_models"
 	coinfactory "github.com/grupokindynos/common/coin-factory"
-
 	"github.com/grupokindynos/common/coin-factory/coins"
 	"github.com/joho/godotenv"
 )
@@ -15,7 +13,7 @@ type ExchangeFactory struct {
 	exchangesMp map[string]IExchange
 }
 
-func NewExchangeFactory(params exchange_models.Params) *ExchangeFactory {
+func NewExchangeFactory(params Params) *ExchangeFactory {
 	if err := godotenv.Load(); err != nil {
 		panic("you need .env at the root of adrestia-go/")
 	}

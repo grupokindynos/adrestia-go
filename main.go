@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/grupokindynos/adrestia-go/exchanges"
 	"github.com/grupokindynos/adrestia-go/processor"
 	"github.com/grupokindynos/adrestia-go/services"
 	"github.com/grupokindynos/common/obol"
@@ -34,6 +35,18 @@ func init() {
 }
 
 func main() {
+	obolService := obol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
+	factoryParams := exchanges.Params{
+		Obol: &obolService,
+	}
+	params := exchanges.Params{
+		Plutus:          &services.PlutusRequests{Obol: &obolService},
+		Hestia:          &services.HestiaRequests{HestiaURL: os.Getenv("HESTIA_URL")},
+		Obol:            &obolService,
+		ExchangeFactory: exchanges.NewExchangeFactory(factoryParams),
+	}
+	processor.InitProcessor(params)
+
 	go timer()
 }
 
@@ -61,14 +74,7 @@ func runCrons(mainWg *sync.WaitGroup) {
 	}()
 	var wg sync.WaitGroup
 	wg.Add(1)
-	obolService := obol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
-	proc := processor.Processor{
-		Plutus: &services.PlutusRequests{Obol: &obolService},
-		Hestia: &services.HestiaRequests{HestiaURL: os.Getenv("HESTIA_URL")},
-		Obol:   &obolService,
-	}
-
-	go runCronMinutes(1440, proc.Start, &wg) // 24 hrs
+	go runCronMinutes(1440, processor.Start, &wg) // 24 hrs
 	wg.Wait()
 }
 

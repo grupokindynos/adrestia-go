@@ -120,7 +120,7 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 				balanced[i].DiffBTC -= initialDiff - filledAmount
 				newTx.ToCoin = wallet.Ticker
 				newTx.FromCoin = balanced[i].Ticker
-				newTx.Rate = balanced[i].RateBTC
+				newTx.BtcRate = balanced[i].RateBTC
 				pendingTransactions = append(pendingTransactions, newTx)
 			}
 		}

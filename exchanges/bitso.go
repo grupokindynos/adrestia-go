@@ -9,7 +9,6 @@ import (
 
 	"github.com/grupokindynos/adrestia-go/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
-	exModels "github.com/grupokindynos/adrestia-go/models/exchange_models"
 	"github.com/grupokindynos/adrestia-go/models/transaction"
 	"github.com/grupokindynos/common/coin-factory/coins"
 	"github.com/grupokindynos/common/hestia"
@@ -21,29 +20,15 @@ import (
 type Bitso struct {
 	Exchange
 	bitsoService bitso.Bitso
-	coinsConfig  map[string]exModels.CoinConfig
 	Obol         obol.ObolService
 }
 
-func NewBitso(params exModels.Params) *Bitso {
+func NewBitso(params Params) *Bitso {
 	b := new(Bitso)
 	data := b.getSettings()
 	b.bitsoService = *bitso.NewBitso(data.Url)
 	b.bitsoService.SetAuth(data.ApiKey, data.ApiSecret)
 	b.Obol = params.Obol
-	b.coinsConfig = map[string]exModels.CoinConfig{
-		"POLIS": exModels.CoinConfig{},
-		"BTC":   exModels.CoinConfig{},
-		"DASH":  exModels.CoinConfig{},
-		"XZC":   exModels.CoinConfig{},
-		"COLX":  exModels.CoinConfig{},
-		"DGB":   exModels.CoinConfig{},
-		"GRS":   exModels.CoinConfig{},
-		"LTC":   exModels.CoinConfig{},
-		"TELOS": exModels.CoinConfig{},
-		"DIVI":  exModels.CoinConfig{},
-	}
-	b.loadCoinsConfig()
 	return b
 }
 
@@ -125,10 +110,6 @@ func (b *Bitso) GetRateByAmount(sell transaction.ExchangeSell) (float64, error) 
 	return 0.0, errors.New("func not implemented")
 }
 
-func (s *Bitso) GetCoinConfig(coin coins.Coin) (exModels.CoinConfig, error) {
-	return exModels.CoinConfig{}, errors.New("func not implemented")
-}
-
 func (b *Bitso) GetOrderStatus(order hestia.ExchangeOrder) (status hestia.OrderStatus, err error) {
 	var wrappedOrder []string
 	wrappedOrder = append(wrappedOrder, order.OrderId)
@@ -193,24 +174,4 @@ func (b *Bitso) getPair(Order transaction.ExchangeSell) (string, models.OrderSid
 		return bookName, models.Buy, nil
 	}
 	return bookName, "unknown", errors.New("could not find a satisfying book")
-}
-
-func (b *Bitso) loadCoinsConfig() (bool, error) {
-	fees, err := b.bitsoService.UserFees()
-	if err != nil {
-		return false, err
-	}
-
-	for key, _ := range b.coinsConfig {
-		value, ok := fees.Payload.WithdrawalFees[strings.ToLower(key)]
-		if ok {
-			amount, err := strconv.ParseFloat(value, 64)
-			if err != nil {
-				return false, err
-			}
-			b.coinsConfig[key] = exModels.CoinConfig{WithdrawalFee: amount}
-		}
-	}
-
-	return true, nil
 }

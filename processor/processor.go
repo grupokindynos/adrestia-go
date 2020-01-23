@@ -1,10 +1,8 @@
 package processor
 
 import (
-	"errors"
 	"fmt"
 	"log"
-	"strings"
 	"sync"
 
 	"github.com/grupokindynos/common/plutus"
@@ -161,26 +159,20 @@ func handleConversion(wg *sync.WaitGroup) {
 			continue
 		}
 
-		obtainedCurrency, err := getObtainedCurrency(*currExOrder)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-
 		if status.Status == hestia.ExchangeStatusCompleted {
-			currExOrder.ListingAmount = status.AvailableAmount
+			currExOrder.ReceivedAmount = status.AvailableAmount
 			if err != nil {
 				fmt.Println(err)
 				continue
 			}
 
 			if order.DualExchange {
-				coin, err := cf.GetCoin(obtainedCurrency)
+				coin, err := cf.GetCoin(currExOrder.ReceivedCurrency)
 				if err != nil {
 					fmt.Println(err)
 					continue
 				}
-				_, err = exchange.Withdraw(*coin, order.SecondExAddress, currExOrder.ListingAmount)
+				_, err = exchange.Withdraw(*coin, order.SecondExAddress, currExOrder.ReceivedAmount)
 				if err != nil {
 					fmt.Println(err)
 					continue
@@ -215,18 +207,13 @@ func handleCompletedExchange(wg *sync.WaitGroup) {
 			fmt.Println(err)
 			continue
 		}
-		obtainedCurrency, err := getObtainedCurrency(exchangeOrder)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-		coin, err := cf.GetCoin(obtainedCurrency)
+		coin, err := cf.GetCoin(exchangeOrder.ReceivedCurrency)
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
 
-		_, err = exchange.Withdraw(*coin, order.WithdrawAddress, exchangeOrder.ListingAmount)
+		_, err = exchange.Withdraw(*coin, order.WithdrawAddress, exchangeOrder.ReceivedAmount)
 		if err != nil {
 			fmt.Println(err)
 			continue
@@ -296,16 +283,4 @@ func fillOrders() (bool, error) {
 	}
 	log.Println(fmt.Sprintf("Received a total of %d AdrestiaOrders", len(adrestiaOrders)))
 	return true, nil
-}
-
-func getObtainedCurrency(order hestia.ExchangeOrder) (string, error) {
-	orderType := strings.ToLower(order.Side)
-
-	if orderType == "buy" {
-		return order.ReferenceCurrency, nil
-	} else if orderType == "sell" {
-		return order.ListingCurrency, nil
-	} else {
-		return "", errors.New("side not recognized " + orderType)
-	}
 }

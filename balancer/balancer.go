@@ -13,12 +13,34 @@ import (
 	cf "github.com/grupokindynos/common/coin-factory"
 	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/obol"
-	"github.com/grupokindynos/common/utils"
+	cutils "github.com/grupokindynos/common/utils"
 	"github.com/joho/godotenv"
 )
 
 func init() {
 	_ = godotenv.Load()
+}
+
+func getExchangeOrder(exchange exchanges.IExchange, fromCoin string, toCoin string) (hestia.ExchangeOrder, error) {
+	var exchangeOrder hestia.ExchangeOrder
+	var err error
+	exchangeOrder.Exchange, err = exchange.GetName()
+	if err != nil {
+		fmt.Println(err)
+		return exchangeOrder, err
+	}
+
+	orderSide, err := exchange.GetPair(fromCoin, toCoin)
+	if err != nil {
+		fmt.Println(err)
+		return exchangeOrder, err
+	}
+	exchangeOrder.Symbol = orderSide.Book
+	exchangeOrder.Side = orderSide.Type
+	exchangeOrder.ReceivedCurrency = toCoin
+	exchangeOrder.SoldCurrency = fromCoin
+
+	return exchangeOrder, nil
 }
 
 func main() {
@@ -56,6 +78,8 @@ func main() {
 	for _, tx := range txs {
 		var firstAddress string
 		var secondAddress string
+		var firstExchangeOrder hestia.ExchangeOrder
+		var secondExchangeOrder hestia.ExchangeOrder
 		dualExchange := false
 
 		coin, err := cf.GetCoin(tx.FromCoin)
@@ -69,6 +93,12 @@ func main() {
 			continue
 		}
 		firstAddress, err = exchange.GetAddress(*coin)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		firstExchangeOrder, err = getExchangeOrder(exchange, tx.FromCoin, "BTC")
 		if err != nil {
 			fmt.Println(err)
 			continue
@@ -90,8 +120,14 @@ func main() {
 				fmt.Println(err)
 				continue
 			}
+			secondExchangeOrder, err = getExchangeOrder(exchange, "BTC", tx.ToCoin)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
 			dualExchange = true
 		}
+
 		hwAddress, err := plutusService.GetAddress(tx.ToCoin)
 		if err != nil {
 			fmt.Println(err)
@@ -99,7 +135,7 @@ func main() {
 		}
 
 		order := hestia.AdrestiaOrder{
-			ID:              utils.RandomString(),
+			ID:              cutils.RandomString(),
 			DualExchange:    dualExchange,
 			Time:            time.Now().Unix(),
 			Status:          hestia.AdrestiaStatusCreated,
@@ -107,11 +143,14 @@ func main() {
 			BtcRate:         tx.BtcRate,
 			FromCoin:        tx.FromCoin,
 			ToCoin:          tx.ToCoin,
+			FirstOrder:      firstExchangeOrder,
+			FinalOrder:      secondExchangeOrder,
 			FirstExAddress:  firstAddress,
 			SecondExAddress: secondAddress,
 			WithdrawAddress: hwAddress,
 		}
 
+		// symbol side exchange name ReferenceCurrency listingCurrency
 		_, err = hestiaService.CreateAdrestiaOrder(order)
 		if err != nil {
 			fmt.Println(err)

@@ -125,6 +125,37 @@ func (b *Binance) GetDepositStatus(txid string, asset string) (bool, error) {
 	return false, nil
 }
 
+func (b *Binance) GetPair(fromCoin string, toCoin string) (OrderSide, error) {
+	var orderSide OrderSide
+	fromCoin = strings.ToUpper(fromCoin)
+	toCoin = strings.ToUpper(toCoin)
+
+	books, err := b.binanceApi.TickerAllBooks()
+	if err != nil {
+		return orderSide, err
+	}
+	var bookName string
+	for _, book := range books {
+		if strings.Contains(book.Symbol, fromCoin) && strings.Contains(book.Symbol, toCoin) {
+			bookName = book.Symbol
+			break
+		}
+	}
+
+	fromIndex := strings.Index(bookName, fromCoin)
+	toIndex := strings.Index(bookName, toCoin)
+
+	orderSide.Book = bookName
+	// check binance convention
+	if fromIndex < toIndex {
+		orderSide.Type = "sell"
+	} else {
+		orderSide.Type = "buy"
+	}
+
+	return orderSide, nil
+}
+
 func (b *Binance) GetBalances() ([]balance.Balance, error) {
 	s := fmt.Sprintf("[GetBalances] Retrieving Balances for coins at %s", b.Name)
 	l.Println(s)

@@ -14,9 +14,10 @@ require (
 	github.com/google/go-querystring v1.0.0
 	github.com/gookit/color v1.2.0
 	github.com/gorilla/websocket v1.4.1 // indirect
-	github.com/grupokindynos/common v0.0.0-20200120175750-e77c2d8e0f05
+	github.com/grupokindynos/common v0.0.0-20200123180558-a3093d706836
 	github.com/grupokindynos/go-binance v0.0.0-20200116165034-cdb41b5ff459
 	github.com/grupokindynos/gobitso v0.7.3
+	github.com/grupokindynos/ogen-utils v0.0.0-20191231185057-013d602e50bd // indirect
 	github.com/joho/godotenv v1.3.0
 	github.com/json-iterator/go v1.1.9 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
@@ -26,7 +27,6 @@ require (
 	github.com/oedipusK/go-southxchange v0.0.0-20200109172815-60830945dae1
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
-	golang.org/x/crypto v0.0.0-20191227163750-53104e6ec876 // indirect
 	golang.org/x/sys v0.0.0-20200107162124-548cf772de50 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0 // indirect

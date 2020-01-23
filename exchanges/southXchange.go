@@ -131,6 +131,32 @@ func (s *SouthXchange) GetOrderStatus(order hestia.ExchangeOrder) (hestia.OrderS
 	return status, err
 }
 
+func (s *SouthXchange) GetPair(fromCoin string, toCoin string) (OrderSide, error) {
+	var orderSide OrderSide
+	fromCoin = strings.ToUpper(fromCoin)
+	toCoin = strings.ToUpper(toCoin)
+	books, err := s.southClient.GetMarketSummaries()
+	if err != nil {
+		return orderSide, err
+	}
+	var bookName south.MarketSummary
+	for _, book := range books {
+		if (book.Coin == fromCoin || book.Base == fromCoin) && (book.Coin == toCoin || book.Base == toCoin) {
+			bookName = book
+			break
+		}
+	}
+
+	orderSide.Book = bookName.Coin + bookName.Base
+	if bookName.Base == fromCoin {
+		orderSide.Type = "sell"
+	} else {
+		orderSide.Type = "buy"
+	}
+
+	return orderSide, nil
+}
+
 func (s *SouthXchange) getAvailableAmount(order hestia.ExchangeOrder) (float64, error) {
 	txs, err := s.southClient.GetTransactions(0, 0, "", true)
 	if err != nil {

@@ -16,6 +16,7 @@ type IExchange interface {
 	Withdraw(coin coins.Coin, address string, amount float64) (bool, error)
 	GetRateByAmount(sell transaction.ExchangeSell) (float64, error)
 	GetOrderStatus(order hestia.ExchangeOrder) (hestia.OrderStatus, error)
+	GetPair(fromCoin string, toCoin string) (OrderSide, error)
 	GetDepositStatus(txid string, asset string) (bool, error)
 }
 

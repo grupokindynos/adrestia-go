@@ -122,3 +122,13 @@ func TestHandleExchange(t *testing.T) {
 		t.Fatal("TestHandleExchange - Adrestia status didn't change")
 	}
 }
+
+func TestHandleConversion(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	InitParams(mockCtrl)
+	InitProcessor(params)
+
+	
+}

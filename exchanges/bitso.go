@@ -87,12 +87,20 @@ func (b *Bitso) GetBalances() ([]balance.Balance, error) {
 
 func (b *Bitso) SellAtMarketPrice(sellOrder transaction.ExchangeSell) (bool, string, error) {
 	// TODO Elaborate tests
-	bookName, side, err := b.getPair(sellOrder)
+	var side models.OrderSide
+	orderSide, err := b.GetPair(sellOrder.FromCoin.Info.Tag, sellOrder.FromCoin.Info.Tag)
 	if err != nil {
 		return false, "", err
 	}
+
+	if orderSide.Type == "buy" {
+		side = models.Buy
+	} else {
+		side = models.Sell
+	}
+
 	orderId, err := b.bitsoService.PlaceOrder(models.PlaceOrderParams{
-		Book: bookName,
+		Book: orderSide.Book,
 		Side: side,
 		Type: "market",
 	})
@@ -150,28 +158,32 @@ func (b *Bitso) getSettings() config.BitsoAuth {
 	return data
 }
 
-func (b *Bitso) getPair(Order transaction.ExchangeSell) (string, models.OrderSide, error) {
-	fromCoin := strings.ToLower(Order.FromCoin.Info.Tag)
-	toCoin := strings.ToLower(Order.ToCoin.Info.Tag)
+func (b *Bitso) GetPair(fromCoin string, toCoin string) (OrderSide, error) {
+	var orderSide OrderSide
+	fromCoin = strings.ToLower(fromCoin)
+	toCoin = strings.ToLower(toCoin)
 	books, err := b.bitsoService.AvailableBooks()
 	if err != nil {
-		return "", "", err
+		return orderSide, err
 	}
 	var bookName string
 	for _, book := range books.Payload {
 		if strings.Contains(book.Book, fromCoin) && strings.Contains(book.Book, toCoin) {
 			bookName = book.Book
+			break
 		}
 	}
 	// ltc_btc
 	fromIndex := strings.Index(bookName, fromCoin)
 	toIndex := strings.Index(bookName, toCoin)
 
+	orderSide.Book = bookName
+	// check bitso convention
 	if fromIndex < toIndex {
-		return bookName, models.Sell, nil
+		orderSide.Type = "sell"
+	} else {
+		orderSide.Type = "buy"
 	}
-	if toIndex > fromIndex {
-		return bookName, models.Buy, nil
-	}
-	return bookName, "unknown", errors.New("could not find a satisfying book")
+
+	return orderSide, nil
 }

@@ -11,3 +11,8 @@ type Params struct {
 	Hestia          services.HestiaService
 	ExchangeFactory IExchangeFactory
 }
+
+type OrderSide struct {
+	Book string
+	Type string
+}

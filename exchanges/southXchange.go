@@ -147,7 +147,7 @@ func (s *SouthXchange) GetPair(fromCoin string, toCoin string) (OrderSide, error
 		}
 	}
 
-	orderSide.Book = bookName.Coin + bookName.Base
+	orderSide.Book = bookName.Base + bookName.Coin
 	if bookName.Base == fromCoin {
 		orderSide.Type = "sell"
 	} else {

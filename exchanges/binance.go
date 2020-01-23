@@ -235,7 +235,7 @@ func (b *Binance) Withdraw(coin coins.Coin, address string, amount float64) (boo
 		Address:    address,
 		Amount:     amount,
 		Name:       "Adrestia-go Withdrawal",
-		RecvWindow: 5 * time.Second,
+		RecvWindow: 6 * time.Second,
 		Timestamp:  time.Now(),
 	})
 

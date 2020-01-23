@@ -137,7 +137,7 @@ func main() {
 		order := hestia.AdrestiaOrder{
 			ID:              cutils.RandomString(),
 			DualExchange:    dualExchange,
-			Time:            time.Now().Unix(),
+			CreatedTime:     time.Now().Unix(),
 			Status:          hestia.AdrestiaStatusCreated,
 			Amount:          tx.Amount,
 			BtcRate:         tx.BtcRate,

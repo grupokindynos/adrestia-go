@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"sync"
+	"time"
 
 	"github.com/grupokindynos/common/plutus"
 
@@ -78,6 +79,7 @@ func handleCreatedOrders(wg *sync.WaitGroup) {
 		}
 		order.HETxId = txId
 		order.Status = hestia.AdrestiaStatusFirstExchange
+		order.FirstOrder.CreatedTime = time.Now().Unix()
 		_, err = proc.Hestia.UpdateAdrestiaOrder(order)
 		if err != nil {
 			log.Println(fmt.Sprintf("error updating order %s", order.ID))
@@ -160,13 +162,14 @@ func handleConversion(wg *sync.WaitGroup) {
 		}
 
 		if status.Status == hestia.ExchangeStatusCompleted {
+			currExOrder.FulfilledTime = time.Now().Unix()
 			currExOrder.ReceivedAmount = status.AvailableAmount
 			if err != nil {
 				fmt.Println(err)
 				continue
 			}
 
-			if order.DualExchange {
+			if order.DualExchange && order.Status == hestia.AdrestiaStatusFirstConversion {
 				coin, err := cf.GetCoin(currExOrder.ReceivedCurrency)
 				if err != nil {
 					fmt.Println(err)
@@ -177,9 +180,10 @@ func handleConversion(wg *sync.WaitGroup) {
 					fmt.Println(err)
 					continue
 				}
+				order.FinalOrder.CreatedTime = time.Now().Unix()
 				changeOrderStatus(order, hestia.AdrestiaStatusSecondExchange)
 			} else {
-				changeOrderStatus(order, hestia.AdrestiaStatusCompleted)
+				changeOrderStatus(order, hestia.AdrestiaStatusExchangeComplete)
 			}
 		} else if status.Status == hestia.ExchangeStatusError {
 			changeOrderStatus(order, hestia.AdrestiaStatusError)
@@ -193,7 +197,7 @@ func handleConversion(wg *sync.WaitGroup) {
 
 func handleCompletedExchange(wg *sync.WaitGroup) {
 	defer wg.Done()
-	orders := getOrders(hestia.AdrestiaStatusCompleted)
+	orders := getOrders(hestia.AdrestiaStatusExchangeComplete)
 	var exchangeOrder hestia.ExchangeOrder
 
 	for _, order := range orders {
@@ -218,6 +222,8 @@ func handleCompletedExchange(wg *sync.WaitGroup) {
 			fmt.Println(err)
 			continue
 		}
+		order.FulfilledTime = time.Now().Unix()
+		changeOrderStatus(order, hestia.AdrestiaStatusCompleted)
 	}
 
 	fmt.Println("Finished handleCompletedExchange")

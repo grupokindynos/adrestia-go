@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
 	"sync"
@@ -27,6 +28,7 @@ type CurrentTime struct {
 }
 
 var currTime CurrentTime
+var hestiaEnv string
 
 func init() {
 	if err := godotenv.Load(); err != nil {
@@ -35,13 +37,24 @@ func init() {
 }
 
 func main() {
+	// Read input flag
+	localRun := flag.Bool("local", false, "set this flag to run adrestia with local db")
+	flag.Parse()
+
+	// If flag was set, change the hestia request url to be local
+	if *localRun {
+		hestiaEnv = "HESTIA_LOCAL_URL"
+	} else {
+		hestiaEnv = "HESTIA_PRODUCTION_URL"
+	}
+
 	obolService := obol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
 	factoryParams := exchanges.Params{
 		Obol: &obolService,
 	}
 	params := exchanges.Params{
 		Plutus:          &services.PlutusRequests{Obol: &obolService},
-		Hestia:          &services.HestiaRequests{HestiaURL: os.Getenv("HESTIA_URL")},
+		Hestia:          &services.HestiaRequests{HestiaURL: os.Getenv(hestiaEnv)},
 		Obol:            &obolService,
 		ExchangeFactory: exchanges.NewExchangeFactory(factoryParams),
 	}

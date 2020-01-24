@@ -13,11 +13,34 @@ import (
 )
 
 var (
+	testOrderExchange = []hestia.ExchangeOrder{
+		hestia.ExchangeOrder{
+			OrderId:          "133",
+			Symbol:           "POLIS_BTC",
+			Side:             "buy",
+			Amount:           23.4,
+			ReceivedAmount:   3.5,
+			Exchange:         "testExchange",
+			ReceivedCurrency: "POLIS",
+			SoldCurrency:     "BTC",
+		},
+		hestia.ExchangeOrder{
+			OrderId:          "133",
+			Symbol:           "POLIS_BTC",
+			Side:             "buy",
+			Amount:           23.4,
+			ReceivedAmount:   3.5,
+			Exchange:         "testExchange",
+			ReceivedCurrency: "POLIS",
+			SoldCurrency:     "BTC",
+		},
+	}
+
 	testOrders = []hestia.AdrestiaOrder{
 		hestia.AdrestiaOrder{
 			ID:              "123",
 			DualExchange:    true,
-			Time:            time.Now().Unix(),
+			CreatedTime:     time.Now().Unix(),
 			Status:          hestia.AdrestiaStatusCreated,
 			Amount:          15.32343345,
 			BtcRate:         0.0034,
@@ -30,7 +53,7 @@ var (
 		hestia.AdrestiaOrder{
 			ID:              "12345",
 			DualExchange:    false,
-			Time:            time.Now().Unix(),
+			CreatedTime:     time.Now().Unix(),
 			Status:          hestia.AdrestiaStatusFirstExchange,
 			Amount:          12.32343345,
 			BtcRate:         0.0034,
@@ -43,12 +66,42 @@ var (
 		hestia.AdrestiaOrder{
 			ID:              "111111",
 			DualExchange:    true,
-			Time:            time.Now().Unix(),
+			CreatedTime:     time.Now().Unix(),
 			Status:          hestia.AdrestiaStatusSecondExchange,
 			Amount:          13.32343345,
 			BtcRate:         0.0034,
 			FromCoin:        "POLIS",
 			ToCoin:          "BTC",
+			FirstExAddress:  "123456payhere1",
+			SecondExAddress: "123456payhere2",
+			WithdrawAddress: "123345payhere3",
+		},
+		hestia.AdrestiaOrder{
+			ID:              "111111",
+			DualExchange:    true,
+			CreatedTime:     time.Now().Unix(),
+			Status:          hestia.AdrestiaStatusFirstConversion,
+			Amount:          123.32343345,
+			BtcRate:         0.0034,
+			FromCoin:        "POLIS",
+			ToCoin:          "BTC",
+			FirstOrder:      testOrderExchange[0],
+			FinalOrder:      testOrderExchange[1],
+			FirstExAddress:  "123456payhere1",
+			SecondExAddress: "123456payhere2",
+			WithdrawAddress: "123345payhere3",
+		},
+		hestia.AdrestiaOrder{
+			ID:              "111111",
+			DualExchange:    true,
+			CreatedTime:     time.Now().Unix(),
+			Status:          hestia.AdrestiaStatusSecondConversion,
+			Amount:          513.32343345,
+			BtcRate:         0.0034,
+			FromCoin:        "POLIS",
+			ToCoin:          "BTC",
+			FirstOrder:      testOrderExchange[1],
+			FinalOrder:      testOrderExchange[0],
 			FirstExAddress:  "123456payhere1",
 			SecondExAddress: "123456payhere2",
 			WithdrawAddress: "123345payhere3",
@@ -130,5 +183,4 @@ func TestHandleConversion(t *testing.T) {
 	InitParams(mockCtrl)
 	InitProcessor(params)
 
-	
 }

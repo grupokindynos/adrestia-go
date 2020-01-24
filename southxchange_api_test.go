@@ -28,12 +28,25 @@ func TestSouthAPI(t *testing.T) {
 	// 	return
 	// }
 
-	txs, err := southClient.GetTransactions(0, 500, "", true)
+	// txs, err := southClient.GetTransactions(0, 500, "", true)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return
+	// }
+	// for _, tx := range txs {
+	// 	fmt.Printf("%+v\n", tx)
+	// }
+
+	addr, err := southClient.GetDepositAddress("BTC")
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Error " + err.Error())
 		return
 	}
-	for _, tx := range txs {
-		fmt.Printf("%+v\n", tx)
+	fmt.Println(addr)
+	addr, err = southClient.GetDepositAddress("BTC")
+	if err != nil {
+		fmt.Println("Error " + err.Error())
+		return
 	}
+	fmt.Println(addr)
 }

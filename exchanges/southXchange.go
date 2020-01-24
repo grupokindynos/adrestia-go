@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/grupokindynos/adrestia-go/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
@@ -41,7 +42,28 @@ func (s *SouthXchange) GetName() (string, error) {
 }
 
 func (s *SouthXchange) GetAddress(coin coins.Coin) (string, error) {
-	address, err := s.southClient.GetDepositAddress(strings.ToLower(coin.Info.Tag))
+	var address string
+	var err error
+
+	for i := 0; i < 3; i++ { // try to get an address just 3 times
+		address, err = s.southClient.GetDepositAddress(strings.ToLower(coin.Info.Tag))
+		envTag := "SOUTH_ADDRESS_" + coin.Info.Tag
+		if err != nil {
+			if !strings.Contains(err.Error(), "400") {
+				address = "request error"
+				break
+			}
+
+			if os.Getenv(envTag) != "" {
+				address = os.Getenv(envTag)
+				break
+			}
+			time.Sleep(90 * 1000 * time.Millisecond) // wait 90 seconds to generate a new address
+			continue
+		}
+		os.Setenv(envTag, address)
+		break
+	}
 	str := string(address)
 	str = strings.Replace(str, "\\", "", -1)
 	str = strings.Replace(str, "\"", "", -1)

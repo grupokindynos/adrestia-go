@@ -35,7 +35,6 @@ func InitProcessor(params exchanges.Params) {
 	proc.Hestia = params.Hestia
 	proc.Obol = params.Obol
 	proc.ExchangeFactory = params.ExchangeFactory
-
 	initialized = true
 }
 
@@ -66,7 +65,7 @@ func Start() {
 func handleCreatedOrders(wg *sync.WaitGroup) {
 	defer wg.Done()
 	orders := getOrders(hestia.AdrestiaStatusCreated)
-	log.Println(orders)
+	log.Println("CREATED_ORDERS", orders)
 	for _, order := range orders {
 		txId, err := proc.Plutus.WithdrawToAddress(plutus.SendAddressBodyReq{
 			Address: order.FirstExAddress,
@@ -74,7 +73,7 @@ func handleCreatedOrders(wg *sync.WaitGroup) {
 			Amount:  order.Amount,
 		})
 		if err != nil {
-			log.Println(fmt.Sprintf("error broadcasting order %s of coin %s", order.ID, order.FromCoin))
+			log.Println(fmt.Sprintf("error broadcasting order %s of coin %s: %v", order.ID, order.FromCoin, err))
 			continue
 		}
 		order.HETxId = txId
@@ -82,7 +81,7 @@ func handleCreatedOrders(wg *sync.WaitGroup) {
 		order.FirstOrder.CreatedTime = time.Now().Unix()
 		_, err = proc.Hestia.UpdateAdrestiaOrder(order)
 		if err != nil {
-			log.Println(fmt.Sprintf("error updating order %s", order.ID))
+			log.Println(fmt.Sprintf("error updating order %s: %s", order.ID, err))
 			continue
 		}
 	}

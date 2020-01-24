@@ -9,6 +9,7 @@ import (
 	"github.com/grupokindynos/common/tokens/mrt"
 	"github.com/grupokindynos/common/tokens/mvt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -216,6 +217,7 @@ func (h *HestiaRequests) UpdateAdrestiaOrderStatus(orderData hestia.AdrestiaOrde
 }
 
 func (h *HestiaRequests) GetAllOrders(adrestiaOrderParams adrestia.OrderParams) ([]hestia.AdrestiaOrder, error) {
+	log.Println("hesturl", h.HestiaURL)
 	req, err := mvt.CreateMVTToken(http.MethodGet, h.HestiaURL+"/adrestia/orders", "adrestia", os.Getenv("MASTER_PASSWORD"), nil, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
 	if err != nil {
 		return nil, err

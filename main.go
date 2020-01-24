@@ -4,7 +4,6 @@ import (
 	"flag"
 	"log"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/grupokindynos/adrestia-go/exchanges"
@@ -59,47 +58,23 @@ func main() {
 		ExchangeFactory: exchanges.NewExchangeFactory(factoryParams),
 	}
 	processor.InitProcessor(params)
-	processor.Start()
-	// go timer()
+
+	timer()
 }
 
 func timer() {
-	for {
-		time.Sleep(1 * time.Second)
-		currTime = CurrentTime{
-			Hour:   time.Now().Hour(),
-			Day:    time.Now().Day(),
-			Minute: time.Now().Minute(),
-			Second: time.Now().Second(),
-		}
-		if currTime.Second == 0 {
-			var wg sync.WaitGroup
-			wg.Add(1)
-			runCrons(&wg)
-			wg.Wait()
-		}
-	}
-}
-
-func runCrons(mainWg *sync.WaitGroup) {
-	defer func() {
-		mainWg.Done()
-	}()
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go runCronMinutes(1440, processor.Start, &wg) // 24 hrs
-	wg.Wait()
-}
-
-func runCronMinutes(schedule int, function func(), wg *sync.WaitGroup) {
+	ticker := time.NewTicker(10 * time.Millisecond)
 	go func() {
-		defer func() {
-			wg.Done()
-		}()
-		remainder := currTime.Minute % schedule
-		if remainder == 0 {
-			function()
+		for _ = range ticker.C {
+			processor.Start()
 		}
-		return
 	}()
+
+	forever()
+}
+
+func forever() {
+	for {
+		time.Sleep(24 * time.Hour)
+	}
 }

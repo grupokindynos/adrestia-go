@@ -52,7 +52,7 @@ func main() {
 		Obol: &obolService,
 	}
 	params := exchanges.Params{
-		Plutus:          &services.PlutusRequests{Obol: &obolService},
+		Plutus:          &services.PlutusRequests{Obol: &obolService, PlutusURL: os.Getenv("PLUTUS_URL")},
 		Hestia:          &services.HestiaRequests{HestiaURL: os.Getenv(hestiaEnv)},
 		Obol:            &obolService,
 		ExchangeFactory: exchanges.NewExchangeFactory(factoryParams),

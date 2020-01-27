@@ -128,6 +128,27 @@ func (s *SouthXchange) GetRateByAmount(sell transaction.ExchangeSell) (float64, 
 	return 0.0, errors.New("func not implemented")
 }
 
+func (s *SouthXchange) GetDepositStatus(txid string, asset string) (bool, error) {
+	txs, err := s.southClient.GetTransactions(1, 1000, "", true)
+	if err != nil {
+		return false, err
+	}
+	var deposit south.Transaction
+	found := false
+	for _, tx := range txs {
+		if tx.Hash == txid {
+			if tx.Status == "executed" {
+				return true, nil
+			} else if tx.Status == "pending" || tx.Status == "booked" {
+				return false, nil
+			} else {
+				return false, errors.New("Unkown status " + deposit.Status)
+			}
+		}
+	}
+	return false, errors.New("Transaction not found")
+}
+
 func (s *SouthXchange) GetOrderStatus(order hestia.ExchangeOrder) (hestia.OrderStatus, error) {
 	var status hestia.OrderStatus
 	southOrder, err := s.southClient.GetOrder(order.OrderId)

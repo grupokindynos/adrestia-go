@@ -59,11 +59,12 @@ func main() {
 	}
 	processor.InitProcessor(params)
 
-	timer()
+	//timer()
+	processor.Start()
 }
 
 func timer() {
-	ticker := time.NewTicker(10 * time.Millisecond)
+	ticker := time.NewTicker(10 * time.Minute)
 	go func() {
 		for _ = range ticker.C {
 			processor.Start()

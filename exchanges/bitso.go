@@ -118,6 +118,30 @@ func (b *Bitso) GetRateByAmount(sell transaction.ExchangeSell) (float64, error) 
 	return 0.0, errors.New("func not implemented")
 }
 
+func (b *Bitso) GetDepositStatus(txId string, asset string) (bool, error) {
+	deposits, err := b.bitsoService.Fundings(models.FundingParams{})
+	if err != nil {
+		return false, err
+	}
+	if deposits.Success != true {
+		return false, errors.New("Response not succesful")
+	}
+
+	for _, deposit := range deposits.Payload {
+		if deposit.Details.TxHash == txId {
+			if deposit.Status == "completed" {
+				return true, nil
+			} else if deposit.Status == "partial-fill" || deposit.Status == "open" || deposit.Status == "queued" {
+				return false, nil
+			} else {
+				return false, errors.New("unkown deposit status " + deposit.Status)
+			}
+		}
+	}
+
+	return false, errors.New("deposit not found")
+}
+
 func (b *Bitso) GetOrderStatus(order hestia.ExchangeOrder) (status hestia.OrderStatus, err error) {
 	var wrappedOrder []string
 	wrappedOrder = append(wrappedOrder, order.OrderId)

@@ -70,6 +70,20 @@ func (p *PlutusRequests) GetWalletBalances(availableCoins []hestia.Coin ) []bala
 	return updatedBalances
 }
 
+func (p *PlutusRequests) GetWalletBalance(ticker string ) (res plutus.Balance, err error) {
+	log.Println("Retrieving Wallet Balances...")
+	coinInfo, err := coinfactory.GetCoin(ticker)
+	if err != nil {
+		fmt.Println("error jasdbsaisd")
+		return
+	}
+	res, err = plutus.GetWalletBalance(os.Getenv("PLUTUS_URL"), strings.ToLower(coinInfo.Info.Tag), os.Getenv("ADRESTIA_PRIV_KEY"), "adrestia", os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
+	if err != nil {
+		fmt.Println(fmt.Sprintf("Plutus Service Error for %s: %v", coinInfo.Info.Tag, err))
+	}
+	return
+}
+
 func (p *PlutusRequests) GetBtcAddress() (string, error) {
 	address, err := plutus.GetWalletAddress(os.Getenv("PLUTUS_URL"), "btc", os.Getenv("ADRESTIA_PRIV_KEY"), "adrestia", os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
 	if err != nil {

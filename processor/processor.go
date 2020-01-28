@@ -2,7 +2,6 @@ package processor
 
 import (
 	"fmt"
-	"github.com/grupokindynos/common/coin-factory/coins"
 	"log"
 	"sync"
 	"time"
@@ -94,24 +93,13 @@ func handleExchange(wg *sync.WaitGroup) {
 	defer wg.Done()
 	firstExchangeOrders := getOrders(hestia.AdrestiaStatusFirstExchange)
 	secondExchangeOrders := getOrders(hestia.AdrestiaStatusSecondExchange)
-	var coinInfo *coins.Coin
-	var err error
 	for _, order := range firstExchangeOrders {
-		if order.DualExchange {
-			coinInfo, err = cf.GetCoin("BTC")
-		} else {
-			coinInfo, err = cf.GetCoin(order.ToCoin)
-		}
-
+		ex, err := proc.ExchangeFactory.GetExchangeByName(order.FirstOrder.Exchange)
 		if err != nil {
 			log.Println(err)
 			continue
 		}
-		ex, err := proc.ExchangeFactory.GetExchangeByCoin(*coinInfo)
-		if err != nil {
-			log.Println(err)
-			continue
-		}
+		log.Println(order.FirstOrder.Exchange)
 		status, err := ex.GetDepositStatus(order.HETxId, order.FromCoin) // TODO Make sure this works
 		if err != nil {
 			log.Println("117 " + err.Error())
@@ -126,12 +114,7 @@ func handleExchange(wg *sync.WaitGroup) {
 	}
 
 	for _, order := range secondExchangeOrders {
-		coinInfo, err := cf.GetCoin(order.ToCoin)
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-		ex, err := proc.ExchangeFactory.GetExchangeByCoin(*coinInfo)
+		ex, err := proc.ExchangeFactory.GetExchangeByName(order.FinalOrder.Exchange)
 		if err != nil {
 			log.Println(err)
 			continue

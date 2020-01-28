@@ -133,8 +133,6 @@ func (s *SouthXchange) GetDepositStatus(txid string, asset string) (bool, error)
 	if err != nil {
 		return false, err
 	}
-	var deposit south.Transaction
-	found := false
 	for _, tx := range txs {
 		if tx.Hash == txid {
 			if tx.Status == "executed" {
@@ -142,7 +140,7 @@ func (s *SouthXchange) GetDepositStatus(txid string, asset string) (bool, error)
 			} else if tx.Status == "pending" || tx.Status == "booked" {
 				return false, nil
 			} else {
-				return false, errors.New("Unkown status " + deposit.Status)
+				return false, errors.New("Unkown status " + tx.Status)
 			}
 		}
 	}

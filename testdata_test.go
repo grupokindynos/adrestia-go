@@ -126,6 +126,16 @@ func TestSendToExchange(t *testing.T) {
 	}))
 }
 
+func TestBalance(t *testing.T) {
+	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
+	plutus := services.PlutusRequests{Obol: &oboli}
+	bal, err := plutus.GetWalletBalance("DGB")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(bal)
+}
 
 func TestTestData(t *testing.T) {
 	id, err := utils.CreateTestOrder(orderBTCPOLIS)

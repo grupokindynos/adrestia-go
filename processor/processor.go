@@ -53,11 +53,11 @@ func Start() {
 
 	var wg sync.WaitGroup
 	wg.Add(5)
-	go handleCreatedOrders(&wg)
+	//go handleCreatedOrders(&wg)
 	go handleExchange(&wg)
-	go handleConversion(&wg)
-	go handleCompletedExchange(&wg)
-	go handleCompleted(&wg)
+	//go handleConversion(&wg)
+	//go handleCompletedExchange(&wg)
+	//go handleCompleted(&wg)
 	wg.Wait()
 
 	fmt.Println("Adrestia Order Processor Finished")
@@ -96,16 +96,7 @@ func handleExchange(wg *sync.WaitGroup) {
 	var coinInfo *coins.Coin
 	var err error
 	for _, order := range firstExchangeOrders {
-		if order.DualExchange {
-			coinInfo, err = cf.GetCoin("BTC")
-		} else {
-			coinInfo, err = cf.GetCoin(order.ToCoin)
-		}
-
-		if err != nil {
-			continue
-		}
-		ex, err := proc.ExchangeFactory.GetExchangeByCoin(*coinInfo)
+		ex, err := proc.ExchangeFactory.GetExchangeByName(order.FirstOrder.Exchange)
 		if err != nil {
 			continue
 		}
@@ -120,11 +111,7 @@ func handleExchange(wg *sync.WaitGroup) {
 	}
 
 	for _, order := range secondExchangeOrders {
-		coinInfo, err := cf.GetCoin(order.ToCoin)
-		if err != nil {
-			continue
-		}
-		ex, err := proc.ExchangeFactory.GetExchangeByCoin(*coinInfo)
+		ex, err := proc.ExchangeFactory.GetExchangeByName(order.FinalOrder.Exchange)
 		if err != nil {
 			continue
 		}

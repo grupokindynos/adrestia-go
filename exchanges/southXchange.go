@@ -140,11 +140,11 @@ func (s *SouthXchange) GetDepositStatus(txid string, asset string) (bool, error)
 			} else if tx.Status == "pending" || tx.Status == "booked" {
 				return false, nil
 			} else {
-				return false, errors.New("Unkown status " + tx.Status)
+				return false, errors.New("unknown status " + tx.Status)
 			}
 		}
 	}
-	return false, errors.New("Transaction not found")
+	return false, errors.New("transaction not found")
 }
 
 func (s *SouthXchange) GetOrderStatus(order hestia.ExchangeOrder) (hestia.OrderStatus, error) {

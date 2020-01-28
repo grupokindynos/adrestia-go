@@ -129,13 +129,13 @@ func (s *SouthXchange) GetRateByAmount(sell transaction.ExchangeSell) (float64, 
 }
 
 func (s *SouthXchange) GetDepositStatus(txid string, asset string) (bool, error) {
-	txs, err := s.southClient.GetTransactions(1, 1000, "", true)
+	txs, err := s.southClient.GetTransactions("deposits", 0, 1000, "", false)
 	if err != nil {
 		return false, err
 	}
 	for _, tx := range txs {
 		if tx.Hash == txid {
-			if tx.Status == "executed" {
+			if tx.Status == "confirmed" {
 				return true, nil
 			} else if tx.Status == "pending" || tx.Status == "booked" {
 				return false, nil
@@ -199,7 +199,7 @@ func (s *SouthXchange) GetPair(fromCoin string, toCoin string) (OrderSide, error
 }
 
 func (s *SouthXchange) getAvailableAmount(order hestia.ExchangeOrder) (float64, error) {
-	txs, err := s.southClient.GetTransactions(0, 0, "", true)
+	txs, err := s.southClient.GetTransactions("", 0, 1000, "", false)
 	if err != nil {
 		return 0, err
 	}

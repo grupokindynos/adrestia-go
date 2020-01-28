@@ -2,7 +2,6 @@ package processor
 
 import (
 	"fmt"
-	"github.com/grupokindynos/common/coin-factory/coins"
 	"log"
 	"sync"
 	"time"
@@ -93,8 +92,6 @@ func handleExchange(wg *sync.WaitGroup) {
 	defer wg.Done()
 	firstExchangeOrders := getOrders(hestia.AdrestiaStatusFirstExchange)
 	secondExchangeOrders := getOrders(hestia.AdrestiaStatusSecondExchange)
-	var coinInfo *coins.Coin
-	var err error
 	for _, order := range firstExchangeOrders {
 		ex, err := proc.ExchangeFactory.GetExchangeByName(order.FirstOrder.Exchange)
 		if err != nil {

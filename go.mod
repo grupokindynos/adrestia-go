@@ -15,7 +15,7 @@ require (
 	github.com/gookit/color v1.2.0
 	github.com/gorilla/websocket v1.4.1 // indirect
 	github.com/grupokindynos/common v0.0.0-20200124193829-bdaa5874d002
-	github.com/grupokindynos/go-binance v0.0.0-20200128192505-090f7cc134f8
+	github.com/grupokindynos/go-binance v0.0.0-20200128194211-634cae2a8241
 	github.com/grupokindynos/gobitso v0.7.3
 	github.com/joho/godotenv v1.3.0
 	github.com/json-iterator/go v1.1.9 // indirect

@@ -133,6 +133,8 @@ github.com/modern-go/reflect2 v1.0.1 h1:9f412s+6RmYXLWZSEzVVgPGK7C2PphHj5RJrvfx9
 github.com/modern-go/reflect2 v1.0.1/go.mod h1:bx2lNnkwVCuqBIxFjflWJWanXIb3RllmbCylyMrvgv0=
 github.com/oedipusK/go-southxchange v0.0.0-20200109172815-60830945dae1 h1:5aXjx1oIneyz8sK/nVY4nMC9E88dz8m1ljTer5MWohM=
 github.com/oedipusK/go-southxchange v0.0.0-20200109172815-60830945dae1/go.mod h1:F3maalQptou4ZKoLp7LPX7NG2TF1RTP2q8P2ENweXvo=
+github.com/oedipusK/go-southxchange v0.0.0-20200128174146-c1f09d8e726b h1:bWylGUMBZhZKv8fO0srptkKT3d4Dr3UpOOKVVmhPx6s=
+github.com/oedipusK/go-southxchange v0.0.0-20200128174146-c1f09d8e726b/go.mod h1:F3maalQptou4ZKoLp7LPX7NG2TF1RTP2q8P2ENweXvo=
 github.com/olympus-protocol/ogen v0.0.0-20200122020117-3da99bac25aa h1:/Py7o+BDQjlcH4VLvEUwPCASkJeSAhjmrgPIlTXdX4I=
 github.com/olympus-protocol/ogen v0.0.0-20200122020117-3da99bac25aa/go.mod h1:qJpayilJyS8fqpeAMbedyeDj6/rCGdB9FMvxEh7TaKY=
 github.com/olympus-protocol/ogen v0.0.0-20200122021631-c3b68757d5f7 h1:xFM1Yk3KTj4tvmMmtZ8AkGvQCAU/nRH9vhpJ3of7zyk=

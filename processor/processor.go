@@ -52,12 +52,13 @@ func Start() {
 	}
 
 	var wg sync.WaitGroup
-	wg.Add(5)
-	go handleCreatedOrders(&wg)
+	//wg.Add(5)
+	wg.Add(1)
+	//go handleCreatedOrders(&wg)
 	go handleExchange(&wg)
-	go handleConversion(&wg)
-	go handleCompletedExchange(&wg)
-	go handleCompleted(&wg)
+	//go handleConversion(&wg)
+	//go handleCompletedExchange(&wg)
+	//go handleCompleted(&wg)
 	wg.Wait()
 
 	fmt.Println("Adrestia Order Processor Finished")
@@ -103,38 +104,48 @@ func handleExchange(wg *sync.WaitGroup) {
 		}
 
 		if err != nil {
+			log.Println(err)
 			continue
 		}
 		ex, err := proc.ExchangeFactory.GetExchangeByCoin(*coinInfo)
 		if err != nil {
+			log.Println(err)
 			continue
 		}
 		status, err := ex.GetDepositStatus(order.HETxId, order.FromCoin) // TODO Make sure this works
 		if err != nil {
+			log.Println("117 " + err.Error())
 			continue
 		}
 		if status {
+			log.Println("Change order first")
 			// TODO Create exchange order
-			order.Status = hestia.AdrestiaStatusFirstConversion
+			//order.Status = hestia.AdrestiaStatusFirstConversion
+			changeOrderStatus(order, hestia.AdrestiaStatusFirstConversion)
 		}
 	}
 
 	for _, order := range secondExchangeOrders {
 		coinInfo, err := cf.GetCoin(order.ToCoin)
 		if err != nil {
+			log.Println(err)
 			continue
 		}
 		ex, err := proc.ExchangeFactory.GetExchangeByCoin(*coinInfo)
 		if err != nil {
+			log.Println(err)
 			continue
 		}
 		status, err := ex.GetDepositStatus(order.EETxId, "BTC") // TODO Make sure this works
 		if err != nil {
+			log.Println("141 " + err.Error())
 			continue
 		}
 		if status {
+			log.Println("Change order second")
 			// TODO Create exchange order
-			order.Status = hestia.AdrestiaStatusSecondConversion
+			changeOrderStatus(order, hestia.AdrestiaStatusSecondConversion)
+			//order.Status = hestia.AdrestiaStatusSecondConversion
 		}
 	}
 	// 1. Verifies deposit in exchange and creates Selling Order always targets BTC

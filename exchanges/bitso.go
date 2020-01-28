@@ -3,6 +3,7 @@ package exchanges
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -132,11 +133,15 @@ func (b *Bitso) GetRateByAmount(sell transaction.ExchangeSell) (float64, error) 
 func (b *Bitso) GetDepositStatus(txId string, asset string) (bool, error) {
 	deposits, err := b.bitsoService.Fundings(models.FundingParams{})
 	if err != nil {
+		log.Println("135")
 		return false, err
 	}
 	if deposits.Success != true {
 		return false, errors.New("Response not succesful")
 	}
+
+	log.Println("Deposits found: " + string(len(deposits.Payload)))
+	log.Println("txId: " + txId)
 
 	for _, deposit := range deposits.Payload {
 		if deposit.Details.TxHash == txId {

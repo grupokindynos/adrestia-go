@@ -118,12 +118,17 @@ func TestBtcAddress(t *testing.T) {
 
 func TestSendToExchange(t *testing.T) {
 	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
-	plutus := services.PlutusRequests{Obol: &oboli}
-	fmt.Println(plutus.WithdrawToAddress(plutus2.SendAddressBodyReq{
-		Address: "DKJ62ngB3b7g1P14a3SzgxT2GzhbtfazrD",
-		Coin:    "DGB",
-		Amount:  200,
-	}))
+	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_URL")}
+	res, err := plutus.WithdrawToAddress(plutus2.SendAddressBodyReq{
+		Address: "XuVmLDmUHZCjaSjm8KfXkGVhRG8fVC3Jis",
+		Coin:    "DASH",
+		Amount:  0.01,
+	})
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(res)
 }
 
 func TestBalance(t *testing.T) {

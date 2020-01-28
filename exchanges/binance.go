@@ -103,7 +103,6 @@ func (b *Binance) OneCoinToBtc(coin coins.Coin) (float64, error) {
 
 func (b *Binance) GetDepositStatus(txid string, asset string) (bool, error) {
 	deposits, err := b.binanceApi.DepositHistory(binance.HistoryRequest{
-		Asset:      asset,
 		RecvWindow: 5 * time.Second,
 		Timestamp:  time.Now(),
 	})

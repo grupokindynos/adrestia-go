@@ -80,6 +80,12 @@ github.com/grupokindynos/common v0.0.0-20200124193829-bdaa5874d002 h1:y/DznsdR/U
 github.com/grupokindynos/common v0.0.0-20200124193829-bdaa5874d002/go.mod h1:GuHK2gA5yF3hD5PjguSHuTf8f2xyEmdxoiFOFviyhng=
 github.com/grupokindynos/go-binance v0.0.0-20200116165034-cdb41b5ff459 h1:3T4l0UfWAD3dbupSAydWYfhcNQHQneDnU378tCLKBFk=
 github.com/grupokindynos/go-binance v0.0.0-20200116165034-cdb41b5ff459/go.mod h1:RgYTB+ZsGwA2qfu4o9ObHcsGijn3F04BdV5Nv0mmMqI=
+github.com/grupokindynos/go-binance v0.0.0-20200128175949-7e4b5ea8e1c5 h1:4lOEml5v9AIuNez9OUbQT7flInPQEEOv1OP2Qu/8zgw=
+github.com/grupokindynos/go-binance v0.0.0-20200128175949-7e4b5ea8e1c5/go.mod h1:RgYTB+ZsGwA2qfu4o9ObHcsGijn3F04BdV5Nv0mmMqI=
+github.com/grupokindynos/go-binance v0.0.0-20200128190112-0b41db0382dd h1:KWnUyaHmWG64v1AgfVs07pCTQRCquINpVsqHPuvBPI0=
+github.com/grupokindynos/go-binance v0.0.0-20200128190112-0b41db0382dd/go.mod h1:RgYTB+ZsGwA2qfu4o9ObHcsGijn3F04BdV5Nv0mmMqI=
+github.com/grupokindynos/go-binance v0.0.0-20200128192505-090f7cc134f8 h1:3nXg+3t9PtU/EqwuQhZHKpDloekml1iJ8FuBKOOZ9mE=
+github.com/grupokindynos/go-binance v0.0.0-20200128192505-090f7cc134f8/go.mod h1:RgYTB+ZsGwA2qfu4o9ObHcsGijn3F04BdV5Nv0mmMqI=
 github.com/grupokindynos/gobitso v0.7.3 h1:JrLwieETT5eyhO1XanRfFh++hinBHBbSHFz6mwDL3/8=
 github.com/grupokindynos/gobitso v0.7.3/go.mod h1:nLa5ih5P0w84yyXmgxQwj5ToOMV4kzxMC3eYDgbI4/M=
 github.com/hashicorp/hcl v1.0.0/go.mod h1:E5yfLk+7swimpb2L/Alb/PJmXilQ/rhwaUYs4T20WEQ=

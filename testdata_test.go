@@ -6,6 +6,7 @@ import (
 	"github.com/grupokindynos/adrestia-go/utils"
 	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/obol"
+	plutus2 "github.com/grupokindynos/common/plutus"
 	"github.com/joho/godotenv"
 	"log"
 	"os"
@@ -113,6 +114,16 @@ func TestBtcAddress(t *testing.T) {
 	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
 	plutus := services.PlutusRequests{Obol: &oboli}
 	fmt.Println(plutus.GetAddress("polis"))
+}
+
+func TestSendToExchange(t *testing.T) {
+	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
+	plutus := services.PlutusRequests{Obol: &oboli}
+	fmt.Println(plutus.WithdrawToAddress(plutus2.SendAddressBodyReq{
+		Address: "add address",
+		Coin:    "DIVI",
+		Amount:  2,
+	}))
 }
 
 

@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/grupokindynos/adrestia-go/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
@@ -111,7 +112,17 @@ func (b *Bitso) SellAtMarketPrice(sellOrder transaction.ExchangeSell) (bool, str
 }
 
 func (b *Bitso) Withdraw(coin coins.Coin, address string, amount float64) (bool, error) {
-	return false, errors.New("func not implemented")
+	res, err := b.bitsoService.CryptoWithdrawal(models.WithdrawParams{
+		Currency: coin.Info.Tag,
+		Amount:   fmt.Sprintf("%f", amount),
+		Address:  address,
+		Tag:      "adrestia balancing - " + time.Now().String(),
+	})
+
+	if err != nil {
+		return false, err
+	}
+	return res.Success, nil
 }
 
 func (b *Bitso) GetRateByAmount(sell transaction.ExchangeSell) (float64, error) {

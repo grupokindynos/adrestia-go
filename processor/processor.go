@@ -132,8 +132,7 @@ func handleExchange(wg *sync.WaitGroup) {
 			log.Println(err)
 			continue
 		}
-		log.Println("134")
-		status, err := ex.GetDepositStatus(order.EETxId, "BTC") // TODO Make sure this works
+		status, err := ex.GetDepositStatus(order.EETxId, "BTC")
 		if err != nil {
 			log.Println("141 " + err.Error())
 			continue

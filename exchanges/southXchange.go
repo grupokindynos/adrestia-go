@@ -110,9 +110,22 @@ func (s *SouthXchange) GetBalances() ([]balance.Balance, error) {
 	return balances, nil
 }
 
-func (s *SouthXchange) SellAtMarketPrice(sellOrder transaction.ExchangeSell) (bool, string, error) {
-	s.southClient.PlaceOrder()
-	return false, "", errors.New("func not implemented")
+func (s *SouthXchange) SellAtMarketPrice(order hestia.ExchangeOrder) (bool, string, error) {
+	l, r := order.GetTradingPair()
+
+	var orderType south.OrderType
+	if order.Side == "buy" {
+		orderType = south.Buy
+	} else {
+		orderType = south.Sell
+	}
+
+	res, err := s.southClient.PlaceOrder(l, r, orderType, order.Amount, 0.0, true)
+	if err != nil {
+		return false, "", err
+	}
+
+	return true, res.OrderCode, nil
 }
 
 func (s *SouthXchange) Withdraw(coin coins.Coin, address string, amount float64) (bool, error) {

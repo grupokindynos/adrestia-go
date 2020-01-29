@@ -14,7 +14,7 @@ require (
 	github.com/google/go-querystring v1.0.0
 	github.com/gookit/color v1.2.0
 	github.com/gorilla/websocket v1.4.1 // indirect
-	github.com/grupokindynos/common v0.0.0-20200124193829-bdaa5874d002
+	github.com/grupokindynos/common v0.0.0-20200129174927-f0ee2ad324df
 	github.com/grupokindynos/go-binance v0.0.0-20200128194211-634cae2a8241
 	github.com/grupokindynos/gobitso v0.7.3
 	github.com/joho/godotenv v1.3.0

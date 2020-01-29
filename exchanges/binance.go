@@ -188,7 +188,7 @@ func (b *Binance) GetBalances() ([]balance.Balance, error) {
 	return balances, nil
 }
 
-func (b *Binance) SellAtMarketPrice(sellOrder transaction.ExchangeSell) (bool, string, error) {
+func (b *Binance) SellAtMarketPrice(sellOrder hestia.ExchangeOrder) (bool, string, error) {
 	l.Println(fmt.Sprintf("[SellAtMarketPrice] Selling %.8f %s for %s on %s", sellOrder.Amount, sellOrder.FromCoin.Info.Name, sellOrder.ToCoin.Info.Name, b.Name))
 	// Gets price from Obol considering the amount to sell
 	rate, err := b.Obol.GetCoin2CoinRatesWithAmount(sellOrder.FromCoin.Info.Tag, sellOrder.ToCoin.Info.Tag, fmt.Sprintf("%f", sellOrder.Amount))

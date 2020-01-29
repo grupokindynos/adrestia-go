@@ -99,7 +99,6 @@ func (b *Bitso) SellAtMarketPrice(sellOrder hestia.ExchangeOrder) (bool, string,
 	} else {
 		side = models.Sell
 	}
-	
 
 	orderId, err := b.bitsoService.PlaceOrder(models.PlaceOrderParams{
 		Book: orderSide.Book,
@@ -107,8 +106,8 @@ func (b *Bitso) SellAtMarketPrice(sellOrder hestia.ExchangeOrder) (bool, string,
 		Type: "market",
 	})
 	if err != nil || !orderId.Success {
-		log.Println()
-		return false, "", errors.New("Bitso:SellAtMarketPrice error on request")
+		log.Println("Error::Bitso::SellAtMarketPrice::", err)
+		return false, "", errors.New("Bitso:SellAtMarketPrice error on request: " )
 	}
 	return true, orderId.Payload.Oid, nil
 }

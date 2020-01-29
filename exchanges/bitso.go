@@ -87,9 +87,9 @@ func (b *Bitso) GetBalances() ([]balance.Balance, error) {
 	return balances, nil
 }
 
-func (b *Bitso) SellAtMarketPrice(sellOrder transaction.ExchangeSell) (bool, string, error) {
+func (b *Bitso) SellAtMarketPrice(sellOrder hestia.ExchangeOrder) (bool, string, error) {
 	var side models.OrderSide
-	orderSide, err := b.GetPair(sellOrder.FromCoin.Info.Tag, sellOrder.FromCoin.Info.Tag)
+	orderSide, err := b.GetPair(sellOrder.SoldCurrency, sellOrder.ReceivedCurrency)
 	if err != nil {
 		return false, "", err
 	}
@@ -99,6 +99,7 @@ func (b *Bitso) SellAtMarketPrice(sellOrder transaction.ExchangeSell) (bool, str
 	} else {
 		side = models.Sell
 	}
+	
 
 	orderId, err := b.bitsoService.PlaceOrder(models.PlaceOrderParams{
 		Book: orderSide.Book,
@@ -106,6 +107,7 @@ func (b *Bitso) SellAtMarketPrice(sellOrder transaction.ExchangeSell) (bool, str
 		Type: "market",
 	})
 	if err != nil || !orderId.Success {
+		log.Println()
 		return false, "", errors.New("Bitso:SellAtMarketPrice error on request")
 	}
 	return true, orderId.Payload.Oid, nil

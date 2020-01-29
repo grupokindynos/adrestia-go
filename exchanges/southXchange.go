@@ -110,8 +110,8 @@ func (s *SouthXchange) GetBalances() ([]balance.Balance, error) {
 	return balances, nil
 }
 
-func (s *SouthXchange) SellAtMarketPrice(sellOrder transaction.ExchangeSell) (bool, string, error) {
-	s.southClient.PlaceOrder()
+func (s *SouthXchange) SellAtMarketPrice(sellOrder hestia.ExchangeOrder) (bool, string, error) {
+
 	return false, "", errors.New("func not implemented")
 }
 

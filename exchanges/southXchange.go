@@ -122,6 +122,7 @@ func (s *SouthXchange) SellAtMarketPrice(order hestia.ExchangeOrder) (bool, stri
 
 	res, err := s.southClient.PlaceOrder(l, r, orderType, order.Amount, 0.0, true)
 	if err != nil {
+		log.Println("Error - southXchange - SellAtMarketPrice - " + err.Error())
 		return false, "", err
 	}
 

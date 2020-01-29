@@ -101,18 +101,25 @@ func handleExchange(wg *sync.WaitGroup) {
 		}
 		log.Println(order.FirstOrder.Exchange)
 		status, err := ex.GetDepositStatus(order.HETxId, order.FromCoin)
-
-
 		if err != nil {
 			log.Println("117 " + err.Error())
 			continue
 		}
 		if status {
-			log.Println("Change order first")
-			// TODO Create exchange order
-			ex.SellAtMarketPrice()
-			//order.Status = hestia.AdrestiaStatusFirstConversion
-			changeOrderStatus(order, hestia.AdrestiaStatusFirstConversion)
+			_, orderId, err := ex.SellAtMarketPrice(order.FirstOrder)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+
+			order.FirstOrder.OrderId = orderId
+			order.Status = hestia.AdrestiaStatusFirstConversion
+			updatedId, err := proc.Hestia.UpdateAdrestiaOrder(order)
+			if err != nil {
+				log.Println("HandleExchange: Failed to update order ", order.ID)
+				continue
+			}
+			log.Println(fmt.Sprintf("HandleExchange: Successfully updated order %s to status %d", updatedId, hestia.AdrestiaStatusFirstConversion))
 		}
 	}
 
@@ -128,10 +135,20 @@ func handleExchange(wg *sync.WaitGroup) {
 			continue
 		}
 		if status {
-			log.Println("Change order second")
-			// TODO Create exchange order
-			changeOrderStatus(order, hestia.AdrestiaStatusSecondConversion)
-			//order.Status = hestia.AdrestiaStatusSecondConversion
+			_, orderId, err := ex.SellAtMarketPrice(order.FinalOrder)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+
+			order.FinalOrder.OrderId = orderId
+			order.Status = hestia.AdrestiaStatusSecondConversion
+			updatedId, err := proc.Hestia.UpdateAdrestiaOrder(order)
+			if err != nil {
+				log.Println("HandleExchange: Failed to update order ", order.ID)
+				continue
+			}
+			log.Println(fmt.Sprintf("HandleExchange: Successfully updated order %s to status %d", updatedId, hestia.AdrestiaStatusFirstConversion))
 		}
 	}
 	// 1. Verifies deposit in exchange and creates Selling Order always targets BTC

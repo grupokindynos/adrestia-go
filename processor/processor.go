@@ -68,6 +68,7 @@ func handleCreatedOrders(wg *sync.WaitGroup) {
 	orders := getOrders(hestia.AdrestiaStatusCreated)
 	log.Println("CREATED_ORDERS", orders)
 	for _, order := range orders {
+		log.Println("entra")
 		txId, err := proc.Plutus.WithdrawToAddress(plutus.SendAddressBodyReq{
 			Address: order.FirstExAddress,
 			Coin:    order.FromCoin,
@@ -105,7 +106,9 @@ func handleExchange(wg *sync.WaitGroup) {
 			log.Println("117 " + err.Error())
 			continue
 		}
-		if status {
+		log.Println("109")
+		if status.Status == hestia.ExchangeStatusCompleted {
+			order.FirstOrder.Amount = status.AvailableAmount
 			_, orderId, err := ex.SellAtMarketPrice(order.FirstOrder)
 			if err != nil {
 				log.Println(err)
@@ -129,12 +132,15 @@ func handleExchange(wg *sync.WaitGroup) {
 			log.Println(err)
 			continue
 		}
+		log.Println("134")
 		status, err := ex.GetDepositStatus(order.EETxId, "BTC") // TODO Make sure this works
 		if err != nil {
 			log.Println("141 " + err.Error())
 			continue
 		}
-		if status {
+		log.Println("140")
+		if status.Status == hestia.ExchangeStatusCompleted {
+			order.FinalOrder.Amount = status.AvailableAmount
 			_, orderId, err := ex.SellAtMarketPrice(order.FinalOrder)
 			if err != nil {
 				log.Println(err)

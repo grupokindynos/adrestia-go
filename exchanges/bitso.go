@@ -107,7 +107,7 @@ func (b *Bitso) SellAtMarketPrice(sellOrder hestia.ExchangeOrder) (bool, string,
 	})
 	if err != nil || !orderId.Success {
 		log.Println("Error::Bitso::SellAtMarketPrice::", err)
-		return false, "", errors.New("Bitso:SellAtMarketPrice error on request: " )
+		return false, "", errors.New("Bitso:SellAtMarketPrice error on request: ")
 	}
 	return true, orderId.Payload.Oid, nil
 }
@@ -130,32 +130,38 @@ func (b *Bitso) GetRateByAmount(sell transaction.ExchangeSell) (float64, error) 
 	return 0.0, errors.New("func not implemented")
 }
 
-func (b *Bitso) GetDepositStatus(txId string, asset string) (bool, error) {
+func (b *Bitso) GetDepositStatus(txId string, asset string) (hestia.OrderStatus, error) {
+	var status hestia.OrderStatus
 	deposits, err := b.bitsoService.Fundings(models.FundingParams{})
 	if err != nil {
 		log.Println("135")
-		return false, err
+		return hestia.OrderStatus{}, err
 	}
 	if deposits.Success != true {
-		return false, errors.New("Response not succesful")
+		return hestia.OrderStatus{}, errors.New("Response not succesful")
 	}
 
-	log.Println("Deposits found: " + string(len(deposits.Payload)))
-	log.Println("txId: " + txId)
-
+	status.Status = hestia.ExchangeStatusError
 	for _, deposit := range deposits.Payload {
 		if deposit.Details.TxHash == txId {
 			if deposit.Status == "completed" {
-				return true, nil
+				status.Status = hestia.ExchangeStatusCompleted
+				amount, err := strconv.ParseFloat(deposit.Amount, 64)
+				if err != nil {
+					return hestia.OrderStatus{}, err
+				}
+				status.AvailableAmount = amount
+				return status, nil
 			} else if deposit.Status == "partial-fill" || deposit.Status == "open" || deposit.Status == "queued" {
-				return false, nil
+				status.Status = hestia.ExchangeStatusOpen
+				return status, nil
 			} else {
-				return false, errors.New("unkown deposit status " + deposit.Status)
+				return status, errors.New("unkown deposit status " + deposit.Status)
 			}
 		}
 	}
 
-	return false, errors.New("deposit not found")
+	return status, errors.New("deposit not found")
 }
 
 func (b *Bitso) GetOrderStatus(order hestia.ExchangeOrder) (status hestia.OrderStatus, err error) {

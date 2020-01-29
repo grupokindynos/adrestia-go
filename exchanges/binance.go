@@ -101,7 +101,7 @@ func (b *Binance) OneCoinToBtc(coin coins.Coin) (float64, error) {
 	return rate.AveragePrice, nil
 }
 
-func (b *Binance) GetDepositStatus(txid string, asset string) (bool, error) {
+func (b *Binance) GetDepositStatus(txid string, asset string) (hestia.OrderStatus, error) {
 	deposits, err := b.binanceApi.DepositHistory(binance.HistoryRequest{
 		RecvWindow: 5 * time.Second,
 		Timestamp:  time.Now(),

@@ -126,7 +126,7 @@ func (s *SouthXchange) SellAtMarketPrice(order hestia.ExchangeOrder) (bool, stri
 		return false, "", err
 	}
 
-	return true, res.OrderCode, nil
+	return true, res, nil
 }
 
 func (s *SouthXchange) Withdraw(coin coins.Coin, address string, amount float64) (bool, error) {
@@ -143,23 +143,29 @@ func (s *SouthXchange) GetRateByAmount(sell transaction.ExchangeSell) (float64, 
 	return 0.0, errors.New("func not implemented")
 }
 
-func (s *SouthXchange) GetDepositStatus(txid string, asset string) (bool, error) {
+func (s *SouthXchange) GetDepositStatus(txid string, asset string) (hestia.OrderStatus, error) {
+	var status hestia.OrderStatus
 	txs, err := s.southClient.GetTransactions("deposits", 0, 1000, "", false)
 	if err != nil {
-		return false, err
+		return status, err
 	}
+	status.Status = hestia.ExchangeStatusError
 	for _, tx := range txs {
 		if tx.Hash == txid {
-			if tx.Status == "confirmed" {
-				return true, nil
+			log.Println(tx)
+			if tx.Status == "confirmed" || tx.Status == "executed" {
+				status.Status = hestia.ExchangeStatusCompleted
+				status.AvailableAmount = tx.Amount
+				return status, nil
 			} else if tx.Status == "pending" || tx.Status == "booked" {
-				return false, nil
+				status.Status = hestia.ExchangeStatusOpen
+				return status, nil
 			} else {
-				return false, errors.New("unknown status " + tx.Status)
+				return status, errors.New("unknown status " + tx.Status)
 			}
 		}
 	}
-	return false, errors.New("transaction not found")
+	return status, errors.New("transaction not found")
 }
 
 func (s *SouthXchange) GetOrderStatus(order hestia.ExchangeOrder) (hestia.OrderStatus, error) {
@@ -168,8 +174,9 @@ func (s *SouthXchange) GetOrderStatus(order hestia.ExchangeOrder) (hestia.OrderS
 	if err != nil {
 		return status, err
 	}
-
-	if southOrder.Status == "executed" {
+	log.Println(order.OrderId)
+	log.Println(southOrder)
+	if southOrder.Status == "executed" || southOrder.Status == "confirmed" {
 		status.Status = hestia.ExchangeStatusCompleted
 		amount, err := s.getAvailableAmount(order)
 		if err != nil {
@@ -182,7 +189,7 @@ func (s *SouthXchange) GetOrderStatus(order hestia.ExchangeOrder) (hestia.OrderS
 	} else {
 		status.Status = hestia.ExchangeStatusError
 		status.AvailableAmount = 0
-		err = errors.New("unkown order status " + southOrder.Status)
+		err = errors.New("unknown order status " + southOrder.Status)
 	}
 	return status, err
 }

@@ -200,25 +200,22 @@ func (b *Binance) SellAtMarketPrice(sellOrder transaction.ExchangeSell) (bool, s
 	symbol := sellOrder.FromCoin.Info.Tag + sellOrder.ToCoin.Info.Tag
 	fmt.Println(symbol)
 	fmt.Println(rate)
-	// TODO Update to work with new Rate Response models rate.AveragePrice
 	// TODO Log for order info
 	// TODO Test Order Post for Binance
-	/*newOrder, err := b.binanceApi.NewOrder(binance.NewOrderRequest{
+	newOrder, err := b.binanceApi.NewOrder(binance.NewOrderRequest{
 		Symbol:      symbol,
-		Quantity:    SellOrder.Amount,
-		Price:       1/rate,
+		Quantity:    sellOrder.Amount,
 		Side:        binance.SideSell,
 		TimeInForce: binance.IOC, // Immediate OR Cancel - orders fills all or part of an order immediately and cancels the remaining part of the order.
-		Type:        binance.TypeLimit,
+		Type:        binance.TypeMarket,
 		Timestamp:   time.Now(),
 	})
 	if err != nil {
 		panic(err)
-		// TODO Save failed order to Hestia DB
 	}
-	fmt.Println(newOrder)*/
+	fmt.Println(newOrder)
 
-	return true, "order id", nil
+	return true, string(newOrder.OrderID), nil
 }
 
 func (b *Binance) Withdraw(coin coins.Coin, address string, amount float64) (bool, error) {

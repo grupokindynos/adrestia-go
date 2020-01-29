@@ -100,7 +100,9 @@ func handleExchange(wg *sync.WaitGroup) {
 			continue
 		}
 		log.Println(order.FirstOrder.Exchange)
-		status, err := ex.GetDepositStatus(order.HETxId, order.FromCoin) // TODO Make sure this works
+		status, err := ex.GetDepositStatus(order.HETxId, order.FromCoin)
+
+
 		if err != nil {
 			log.Println("117 " + err.Error())
 			continue
@@ -108,6 +110,7 @@ func handleExchange(wg *sync.WaitGroup) {
 		if status {
 			log.Println("Change order first")
 			// TODO Create exchange order
+			ex.SellAtMarketPrice()
 			//order.Status = hestia.AdrestiaStatusFirstConversion
 			changeOrderStatus(order, hestia.AdrestiaStatusFirstConversion)
 		}

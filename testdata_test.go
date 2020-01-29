@@ -120,9 +120,9 @@ func TestSendToExchange(t *testing.T) {
 	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
 	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_URL")}
 	res, err := plutus.WithdrawToAddress(plutus2.SendAddressBodyReq{
-		Address: "XuVmLDmUHZCjaSjm8KfXkGVhRG8fVC3Jis",
+		Address: "XeLQqhtB6MwqerQMdDXptcjFf6UHuvVET3",
 		Coin:    "DASH",
-		Amount:  0.01,
+		Amount:  0.1,
 	})
 	if err != nil {
 		fmt.Println(err)

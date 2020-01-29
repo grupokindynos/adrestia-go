@@ -88,7 +88,6 @@ func (b *Bitso) GetBalances() ([]balance.Balance, error) {
 }
 
 func (b *Bitso) SellAtMarketPrice(sellOrder transaction.ExchangeSell) (bool, string, error) {
-	// TODO Elaborate tests
 	var side models.OrderSide
 	orderSide, err := b.GetPair(sellOrder.FromCoin.Info.Tag, sellOrder.FromCoin.Info.Tag)
 	if err != nil {

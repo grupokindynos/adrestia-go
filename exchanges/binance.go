@@ -101,27 +101,32 @@ func (b *Binance) OneCoinToBtc(coin coins.Coin) (float64, error) {
 	return rate.AveragePrice, nil
 }
 
-func (b *Binance) GetDepositStatus(txid string, asset string) (hestia.OrderStatus, error) {
+func (b *Binance) GetDepositStatus(txid string, asset string) (orderStatus hestia.OrderStatus, err error) {
+	orderStatus.AvailableAmount = 0.0
+	orderStatus.Status = hestia.ExchangeStatusOpen
 	deposits, err := b.binanceApi.DepositHistory(binance.HistoryRequest{
 		RecvWindow: 5 * time.Second,
 		Timestamp:  time.Now(),
 	})
 	if err != nil {
-		return false, err
+		orderStatus.Status = hestia.ExchangeStatusError
+		return
 	}
 	for _, deposit := range deposits {
 		if deposit.TxID == txid {
 			switch deposit.Status {
 			case 0:
-				return false, nil
+				return
 			case 1:
-				return true, nil
-			case 6:
-				return false, nil // credited but cannot withdraw
+				orderStatus.Status = hestia.ExchangeStatusCompleted
+				orderStatus.AvailableAmount = deposit.Amount
+				return
+			case 6: // credited but cannot withdraw
+				return
 			}
 		}
 	}
-	return false, nil
+	return
 }
 
 func (b *Binance) GetPair(fromCoin string, toCoin string) (OrderSide, error) {

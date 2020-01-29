@@ -76,8 +76,6 @@ github.com/gorilla/websocket v1.4.1 h1:q7AeDBpnBk8AogcD4DSag/Ukw/KV+YhzLj2bP5HvK
 github.com/gorilla/websocket v1.4.1/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/grupokindynos/common v0.0.0-20191028172931-d01cff9cfbc3 h1:CAbTLrihLSGdJnbpKkswvAVPk2HK2uk/R0fmgHGKoeA=
 github.com/grupokindynos/common v0.0.0-20191028172931-d01cff9cfbc3/go.mod h1:GUdrFqqFWFaecQtHAuQQdS0elR2mqHJAClBW98GIFzI=
-github.com/grupokindynos/common v0.0.0-20200124193829-bdaa5874d002 h1:y/DznsdR/URVmdvR8CZcYBU28bUFDQnhh9x99E8W/tM=
-github.com/grupokindynos/common v0.0.0-20200124193829-bdaa5874d002/go.mod h1:GuHK2gA5yF3hD5PjguSHuTf8f2xyEmdxoiFOFviyhng=
 github.com/grupokindynos/common v0.0.0-20200129174927-f0ee2ad324df h1:VCWkCXz7iZBFceEqFKqdl7XxBlGHCHBjNF0xpSrq1t0=
 github.com/grupokindynos/common v0.0.0-20200129174927-f0ee2ad324df/go.mod h1:GuHK2gA5yF3hD5PjguSHuTf8f2xyEmdxoiFOFviyhng=
 github.com/grupokindynos/go-binance v0.0.0-20200128194211-634cae2a8241 h1:kP5sitDohzF5JvHoTkpNWNR13ZqmwiSUJgzlAnGfFyg=
@@ -133,10 +131,6 @@ github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd/go.mod h1:6dJ
 github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742/go.mod h1:bx2lNnkwVCuqBIxFjflWJWanXIb3RllmbCylyMrvgv0=
 github.com/modern-go/reflect2 v1.0.1 h1:9f412s+6RmYXLWZSEzVVgPGK7C2PphHj5RJrvfx9AWI=
 github.com/modern-go/reflect2 v1.0.1/go.mod h1:bx2lNnkwVCuqBIxFjflWJWanXIb3RllmbCylyMrvgv0=
-github.com/oedipusK/go-southxchange v0.0.0-20200128174146-c1f09d8e726b h1:bWylGUMBZhZKv8fO0srptkKT3d4Dr3UpOOKVVmhPx6s=
-github.com/oedipusK/go-southxchange v0.0.0-20200128174146-c1f09d8e726b/go.mod h1:F3maalQptou4ZKoLp7LPX7NG2TF1RTP2q8P2ENweXvo=
-github.com/oedipusK/go-southxchange v0.0.0-20200129170205-d02b997500a5 h1:SJ2UE0mrCP+sBVqFX8rvdZzHplBK5Xu+bSfLPFctCUM=
-github.com/oedipusK/go-southxchange v0.0.0-20200129170205-d02b997500a5/go.mod h1:F3maalQptou4ZKoLp7LPX7NG2TF1RTP2q8P2ENweXvo=
 github.com/oedipusK/go-southxchange v0.0.0-20200129170703-6751fda36ad4 h1:TAizDs+dWzYaome+zF93WdoK2KkPqmJEH9cjLtHvh94=
 github.com/oedipusK/go-southxchange v0.0.0-20200129170703-6751fda36ad4/go.mod h1:F3maalQptou4ZKoLp7LPX7NG2TF1RTP2q8P2ENweXvo=
 github.com/olympus-protocol/ogen v0.0.0-20200122020117-3da99bac25aa h1:/Py7o+BDQjlcH4VLvEUwPCASkJeSAhjmrgPIlTXdX4I=

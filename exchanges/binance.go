@@ -47,7 +47,7 @@ func NewBinance(params Params) *Binance {
 
 	// l.Println("Binance Service Building...")
 	binanceService := binance.NewAPIService(
-		"https://www.binance.com",
+		"https://api.binance.com",
 		data.PublicApi,
 		hmacSigner,
 		logger,
@@ -200,14 +200,14 @@ func (b *Binance) SellAtMarketPrice(order hestia.ExchangeOrder) (bool, string, e
 	} else {
 		side = binance.SideSell
 	}
+
 	// Order creation an Post
 	newOrder, err := b.binanceApi.NewOrder(binance.NewOrderRequest{
-		Symbol:      order.Symbol,
-		Quantity:    order.Amount,
-		Side:        side,
-		TimeInForce: binance.IOC, // Immediate OR Cancel - orders fills all or part of an order immediately and cancels the remaining part of the order.
-		Type:        binance.TypeMarket,
-		Timestamp:   time.Now(),
+		Symbol:    order.Symbol,
+		Side:      side,
+		Type:      binance.TypeMarket,
+		Quantity:  order.Amount,
+		Timestamp: time.Now(),
 	})
 	if err != nil {
 		l.Println("Error - binance - SellAtMarketPrice - " + err.Error())

@@ -126,6 +126,7 @@ func (s *SouthXchange) SellAtMarketPrice(order hestia.ExchangeOrder) (bool, stri
 		return false, "", err
 	}
 
+	res = strings.ReplaceAll(res, "\"", "")
 	return true, res, nil
 }
 

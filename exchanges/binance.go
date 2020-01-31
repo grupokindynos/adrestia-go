@@ -213,7 +213,8 @@ func (b *Binance) SellAtMarketPrice(order hestia.ExchangeOrder) (bool, string, e
 		l.Println("Error - binance - SellAtMarketPrice - " + err.Error())
 		return false, "", err
 	}
-	return true, string(newOrder.OrderID), nil
+
+	return true, strconv.FormatInt(newOrder.OrderID, 10), nil
 }
 
 func (b *Binance) Withdraw(coin coins.Coin, address string, amount float64) (bool, error) {

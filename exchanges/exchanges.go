@@ -13,7 +13,7 @@ type IExchange interface {
 	OneCoinToBtc(coin coins.Coin) (float64, error)
 	GetBalances() ([]balance.Balance, error)
 	SellAtMarketPrice(sellOrder hestia.ExchangeOrder) (bool, string, error)
-	Withdraw(coin coins.Coin, address string, amount float64) (bool, error)
+	Withdraw(coin coins.Coin, address string, amount float64) (string, error)
 	GetRateByAmount(sell transaction.ExchangeSell) (float64, error)
 	GetOrderStatus(order hestia.ExchangeOrder) (hestia.OrderStatus, error)
 	GetPair(fromCoin string, toCoin string) (OrderSide, error)

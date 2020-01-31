@@ -130,14 +130,14 @@ func (s *SouthXchange) SellAtMarketPrice(order hestia.ExchangeOrder) (bool, stri
 	return true, res, nil
 }
 
-func (s *SouthXchange) Withdraw(coin coins.Coin, address string, amount float64) (bool, error) {
+func (s *SouthXchange) Withdraw(coin coins.Coin, address string, amount float64) (string, error) {
 	res, err := s.southClient.Withdraw(address, strings.ToUpper(coin.Info.Tag), amount)
 	fmt.Println(res, err)
 	if err != nil {
-		return false, err
+		return "", err
 	}
-	fmt.Println("South Client Response: ", res.Status)
-	return true, err
+	// TODO Get txid from ListTransactionsEndpoint
+	return "", err
 }
 
 func (s *SouthXchange) GetRateByAmount(sell transaction.ExchangeSell) (float64, error) {
@@ -222,7 +222,7 @@ func (s *SouthXchange) GetPair(fromCoin string, toCoin string) (OrderSide, error
 }
 
 func (s *SouthXchange) getAvailableAmount(order hestia.ExchangeOrder) (float64, error) {
-	txs, err := s.southClient.GetTransactions("", 0, 1000, "", false)
+	txs, err := s.southClient.GetTransactions("", 0, 1000, "", true)
 	if err != nil {
 		return 0, err
 	}

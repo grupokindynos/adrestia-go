@@ -217,7 +217,7 @@ func (b *Binance) SellAtMarketPrice(order hestia.ExchangeOrder) (bool, string, e
 	return true, strconv.FormatInt(newOrder.OrderID, 10), nil
 }
 
-func (b *Binance) Withdraw(coin coins.Coin, address string, amount float64) (bool, error) {
+func (b *Binance) Withdraw(coin coins.Coin, address string, amount float64) (string, error) {
 	// l.Println(fmt.Sprintf("[Withdraw] Retrieving Account Info for %s", b.Name))
 	/*res, _ := b.binanceApi.Account(binance.AccountRequest{
 		RecvWindow: 5 * time.Second,
@@ -236,13 +236,13 @@ func (b *Binance) Withdraw(coin coins.Coin, address string, amount float64) (boo
 
 	if err != nil {
 		l.Println(fmt.Sprintf("[Withdraw] Binance failed to withdraw %s", err))
-		return false, err
+		return "", err
 	}
 	// TODO Binance go library has an issue signing withdrawals
 	// fmt.Println(withdrawal)
 	// fmt.Println(err)
 
-	return withdrawal.Success, nil
+	return withdrawal.Id, nil
 
 }
 
@@ -263,7 +263,7 @@ func (b *Binance) GetOrderStatus(order hestia.ExchangeOrder) (hestia.OrderStatus
 		Symbol:     order.Symbol,
 		OrderID:    orderId,
 		RecvWindow: 5 * time.Second,
-		Timestamp:  time.Time{},
+		Timestamp:  time.Now(),
 	})
 
 	if err != nil {

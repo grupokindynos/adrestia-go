@@ -54,8 +54,8 @@ func Start() {
 	//wg.Add(5)
 	wg.Add(1)
 	//go handleCreatedOrders(&wg)
-	go handleExchange(&wg)
-	//go handleConversion(&wg)
+	// go handleExchange(&wg)
+	go handleConversion(&wg)
 	//go handleCompletedExchange(&wg)
 	//go handleCompleted(&wg)
 	wg.Wait()
@@ -190,10 +190,6 @@ func handleConversion(wg *sync.WaitGroup) {
 		if status.Status == hestia.ExchangeStatusCompleted {
 			currExOrder.FulfilledTime = time.Now().Unix()
 			currExOrder.ReceivedAmount = status.AvailableAmount
-			if err != nil {
-				fmt.Println(err)
-				continue
-			}
 
 			if order.DualExchange && order.Status == hestia.AdrestiaStatusFirstConversion {
 				coin, err := cf.GetCoin(currExOrder.ReceivedCurrency)
@@ -201,11 +197,12 @@ func handleConversion(wg *sync.WaitGroup) {
 					fmt.Println(err)
 					continue
 				}
-				_, err = exchange.Withdraw(*coin, order.SecondExAddress, currExOrder.ReceivedAmount)
+				txid, err := exchange.Withdraw(*coin, order.SecondExAddress, currExOrder.ReceivedAmount)
 				if err != nil {
 					fmt.Println(err)
 					continue
 				}
+				order.EETxId = txid
 				order.FinalOrder.CreatedTime = time.Now().Unix()
 				changeOrderStatus(order, hestia.AdrestiaStatusSecondExchange)
 			} else {

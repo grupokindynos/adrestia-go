@@ -112,7 +112,7 @@ func (b *Bitso) SellAtMarketPrice(sellOrder hestia.ExchangeOrder) (bool, string,
 	return true, orderId.Payload.Oid, nil
 }
 
-func (b *Bitso) Withdraw(coin coins.Coin, address string, amount float64) (bool, error) {
+func (b *Bitso) Withdraw(coin coins.Coin, address string, amount float64) (string, error) {
 	res, err := b.bitsoService.CryptoWithdrawal(models.WithdrawParams{
 		Currency: coin.Info.Tag,
 		Amount:   fmt.Sprintf("%f", amount),
@@ -121,9 +121,9 @@ func (b *Bitso) Withdraw(coin coins.Coin, address string, amount float64) (bool,
 	})
 
 	if err != nil {
-		return false, err
+		return "", err
 	}
-	return res.Success, nil
+	return fmt.Sprintf("%v", res.Payload.Details.TxHash), nil
 }
 
 func (b *Bitso) GetRateByAmount(sell transaction.ExchangeSell) (float64, error) {

@@ -203,11 +203,12 @@ func (b *Binance) SellAtMarketPrice(order hestia.ExchangeOrder) (bool, string, e
 
 	// Order creation an Post
 	newOrder, err := b.binanceApi.NewOrder(binance.NewOrderRequest{
-		Symbol:    order.Symbol,
-		Side:      side,
-		Type:      binance.TypeMarket,
-		Quantity:  order.Amount,
-		Timestamp: time.Now(),
+		Symbol:           order.Symbol,
+		Side:             side,
+		Type:             binance.TypeMarket,
+		Quantity:         order.Amount,
+		Timestamp:        time.Now(),
+		NewOrderRespType: binance.RespTypeFull,
 	})
 	if err != nil {
 		l.Println("Error - binance - SellAtMarketPrice - " + err.Error())
@@ -277,7 +278,7 @@ func (b *Binance) GetOrderStatus(order hestia.ExchangeOrder) (hestia.OrderStatus
 	case binance.StatusFilled:
 		return hestia.OrderStatus{
 			Status:          hestia.ExchangeStatusCompleted,
-			AvailableAmount: res.ExecutedQty,
+			AvailableAmount: b.getReceivedAmount(*res),
 		}, nil
 	case binance.StatusNew:
 		return hestia.OrderStatus{
@@ -294,6 +295,14 @@ func (b *Binance) GetOrderStatus(order hestia.ExchangeOrder) (hestia.OrderStatus
 			Status:          hestia.ExchangeStatusOpen,
 			AvailableAmount: 0,
 		}, errors.New(fmt.Sprintf("unknown/unhandled order status: %s", res.Status))
+	}
+}
+
+func (b *Binance) getReceivedAmount(order binance.ExecutedOrder) float64 {
+	if order.Side == binance.SideBuy {
+		return order.ExecutedQty
+	} else {
+		return order.CummulativeQuoteQty
 	}
 }
 

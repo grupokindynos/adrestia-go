@@ -232,11 +232,12 @@ func (s *SouthXchange) getAvailableAmount(order hestia.ExchangeOrder) (float64, 
 			continue
 		}
 
-		if tx.Amount > 0.0 {
-			return tx.Amount, nil
-		} else {
-			return tx.OtherAmount, nil
-		}
+		return tx.OtherAmount, nil
+		//if tx.Amount > 0.0 {
+		//	return tx.Amount, nil
+		//} else {
+		//	return tx.OtherAmount, nil
+		//}
 	}
 
 	return 0.0, errors.New("tx not found")

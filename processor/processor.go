@@ -25,7 +25,6 @@ type Processor struct {
 
 var (
 	proc           Processor
-	filledOrders   bool
 	initialized    bool
 	adrestiaOrders []hestia.AdrestiaOrder
 )
@@ -50,14 +49,19 @@ func Start() {
 		return
 	}
 
+	err := fillOrders()
+	if err != nil {
+		return
+	}
+
 	var wg sync.WaitGroup
-	//wg.Add(5)
-	wg.Add(1)
-	//go handleCreatedOrders(&wg)
-	// go handleExchange(&wg)
+	wg.Add(5)
+	//wg.Add(1)
+	go handleCreatedOrders(&wg)
+	go handleExchange(&wg)
 	go handleConversion(&wg)
-	//go handleCompletedExchange(&wg)
-	//go handleCompleted(&wg)
+	go handleCompletedExchange(&wg)
+	go handleCompleted(&wg)
 	wg.Wait()
 
 	fmt.Println("Adrestia Order Processor Finished")
@@ -106,8 +110,8 @@ func handleExchange(wg *sync.WaitGroup) {
 			log.Println("117 " + err.Error())
 			continue
 		}
-		log.Println("109")
 		if status.Status == hestia.ExchangeStatusCompleted {
+			log.Println(status)
 			order.FirstOrder.Amount = status.AvailableAmount
 			_, orderId, err := ex.SellAtMarketPrice(order.FirstOrder)
 			if err != nil {
@@ -137,7 +141,6 @@ func handleExchange(wg *sync.WaitGroup) {
 			log.Println("141 " + err.Error())
 			continue
 		}
-		log.Println("140")
 		if status.Status == hestia.ExchangeStatusCompleted {
 			order.FinalOrder.Amount = status.AvailableAmount
 			_, orderId, err := ex.SellAtMarketPrice(order.FinalOrder)
@@ -153,7 +156,7 @@ func handleExchange(wg *sync.WaitGroup) {
 				log.Println("HandleExchange: Failed to update order ", order.ID)
 				continue
 			}
-			log.Println(fmt.Sprintf("HandleExchange: Successfully updated order %s to status %d", updatedId, hestia.AdrestiaStatusFirstConversion))
+			log.Println(fmt.Sprintf("HandleExchange: Successfully updated order %s to status %d", updatedId, hestia.AdrestiaStatusSecondConversion))
 		}
 	}
 	// 1. Verifies deposit in exchange and creates Selling Order always targets BTC
@@ -202,6 +205,8 @@ func handleConversion(wg *sync.WaitGroup) {
 					fmt.Println(err)
 					continue
 				}
+				log.Println("Withdraw Id")
+				log.Println(txid)
 				order.EETxId = txid
 				order.FinalOrder.CreatedTime = time.Now().Unix()
 				changeOrderStatus(order, hestia.AdrestiaStatusSecondExchange)
@@ -240,11 +245,12 @@ func handleCompletedExchange(wg *sync.WaitGroup) {
 			continue
 		}
 
-		_, err = exchange.Withdraw(*coin, order.WithdrawAddress, exchangeOrder.ReceivedAmount)
+		txId, err := exchange.Withdraw(*coin, order.WithdrawAddress, exchangeOrder.ReceivedAmount)
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
+		order.EHTxId = txId
 		order.FulfilledTime = time.Now().Unix()
 		changeOrderStatus(order, hestia.AdrestiaStatusCompleted)
 	}
@@ -283,15 +289,6 @@ func storeOrders(orders []hestia.AdrestiaOrder) {
 }
 
 func getOrders(status hestia.AdrestiaStatus) (filteredOrders []hestia.AdrestiaOrder) {
-	if !filledOrders {
-		res, err := fillOrders()
-		if err != nil {
-			log.Fatal(err)
-			return
-		}
-		filledOrders = res
-	}
-
 	for _, order := range adrestiaOrders {
 		if order.Status == status {
 			filteredOrders = append(filteredOrders, order)
@@ -300,7 +297,7 @@ func getOrders(status hestia.AdrestiaStatus) (filteredOrders []hestia.AdrestiaOr
 	return
 }
 
-func fillOrders() (bool, error) {
+func fillOrders() error {
 	var err error
 	adrestiaOrders, err = proc.Hestia.GetAllOrders(adrestia.OrderParams{
 		IncludeComplete: false,
@@ -308,8 +305,8 @@ func fillOrders() (bool, error) {
 
 	if err != nil {
 		log.Fatal("Could not retrieve adrestiaOrders form Hestia", err)
-		return false, err
+		return err
 	}
 	log.Println(fmt.Sprintf("Received a total of %d AdrestiaOrders", len(adrestiaOrders)))
-	return true, nil
+	return nil
 }

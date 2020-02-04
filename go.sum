@@ -76,12 +76,10 @@ github.com/gorilla/websocket v1.4.1 h1:q7AeDBpnBk8AogcD4DSag/Ukw/KV+YhzLj2bP5HvK
 github.com/gorilla/websocket v1.4.1/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/grupokindynos/common v0.0.0-20191028172931-d01cff9cfbc3 h1:CAbTLrihLSGdJnbpKkswvAVPk2HK2uk/R0fmgHGKoeA=
 github.com/grupokindynos/common v0.0.0-20191028172931-d01cff9cfbc3/go.mod h1:GUdrFqqFWFaecQtHAuQQdS0elR2mqHJAClBW98GIFzI=
-github.com/grupokindynos/common v0.0.0-20200129174927-f0ee2ad324df h1:VCWkCXz7iZBFceEqFKqdl7XxBlGHCHBjNF0xpSrq1t0=
-github.com/grupokindynos/common v0.0.0-20200129174927-f0ee2ad324df/go.mod h1:GuHK2gA5yF3hD5PjguSHuTf8f2xyEmdxoiFOFviyhng=
 github.com/grupokindynos/common v0.0.0-20200131181444-d381a9d2fad7 h1:Re3M6goHEMpjc6+jWsHEKItErKTKUY5/BYAdt8ZebAM=
 github.com/grupokindynos/common v0.0.0-20200131181444-d381a9d2fad7/go.mod h1:GuHK2gA5yF3hD5PjguSHuTf8f2xyEmdxoiFOFviyhng=
-github.com/grupokindynos/go-binance v0.0.0-20200131182131-a446bbe05cf3 h1:azsN9Dl81E/QSVhtGY7AUFO/e9yIdedbACRGmeWjVIY=
-github.com/grupokindynos/go-binance v0.0.0-20200131182131-a446bbe05cf3/go.mod h1:RgYTB+ZsGwA2qfu4o9ObHcsGijn3F04BdV5Nv0mmMqI=
+github.com/grupokindynos/go-binance v0.0.0-20200204191639-adf37591720e h1:Gm39TDyrnkZtEv2Y+jq4y3cjcxRFqbgqvT2mbv9jNQo=
+github.com/grupokindynos/go-binance v0.0.0-20200204191639-adf37591720e/go.mod h1:RgYTB+ZsGwA2qfu4o9ObHcsGijn3F04BdV5Nv0mmMqI=
 github.com/grupokindynos/gobitso v0.7.3 h1:JrLwieETT5eyhO1XanRfFh++hinBHBbSHFz6mwDL3/8=
 github.com/grupokindynos/gobitso v0.7.3/go.mod h1:nLa5ih5P0w84yyXmgxQwj5ToOMV4kzxMC3eYDgbI4/M=
 github.com/hashicorp/hcl v1.0.0/go.mod h1:E5yfLk+7swimpb2L/Alb/PJmXilQ/rhwaUYs4T20WEQ=

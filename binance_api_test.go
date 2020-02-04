@@ -9,7 +9,6 @@ import (
 	"fmt"
 	l "log"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
@@ -49,13 +48,29 @@ func TestBinanceAPI(t *testing.T) {
 	)
 	binanceApi := binance.NewBinance(binanceService)
 
-	withdrawal, err := binanceApi.Withdraw(binance.WithdrawRequest{
-		Asset:      strings.ToLower("DASH"),
-		Address:    "XtADvr2LwgNYLrkz3GPLddixZWJUFLEfTw",
-		Amount:     0.004,
-		Name:       "Adrestia-go Withdrawal",
+	// withdrawal, err := binanceApi.Withdraw(binance.WithdrawRequest{
+	// 	Asset:      strings.ToLower("DASH"),
+	// 	Address:    "XtADvr2LwgNYLrkz3GPLddixZWJUFLEfTw",
+	// 	Amount:     0.004,
+	// 	Name:       "Adrestia-go Withdrawal",
+	// 	RecvWindow: 5 * time.Second,
+	// 	Timestamp:  time.Now(),
+	// })
+
+	// newOrder, err := binanceApi.NewOrder(binance.NewOrderRequest{
+	// 	Symbol:    "DASHBTC",
+	// 	Side:      binance.SideSell,
+	// 	Type:      binance.TypeMarket,
+	// 	Quantity:  0.2,
+	// 	Timestamp: time.Now(),
+	// })
+	res, err := binanceApi.QueryOrder(binance.QueryOrderRequest{
+		Symbol: "DASHBTC",
+		//OrderID:    126134994, BUY
+		OrderID:    126136561,
 		RecvWindow: 5 * time.Second,
-		Timestamp:  time.Now(),
+		//OrigClientOrderID: "b5JVkV0jQvAMqMuZwt0yp7",
+		Timestamp: time.Now(),
 	})
 
 	if err != nil {
@@ -63,5 +78,7 @@ func TestBinanceAPI(t *testing.T) {
 		return
 	}
 
-	fmt.Printf("%+v\n", withdrawal)
+	//fmt.Println(newOrder)
+
+	fmt.Printf("%+v\n", res)
 }

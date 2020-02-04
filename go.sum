@@ -82,6 +82,8 @@ github.com/grupokindynos/go-binance v0.0.0-20200204191639-adf37591720e h1:Gm39TD
 github.com/grupokindynos/go-binance v0.0.0-20200204191639-adf37591720e/go.mod h1:RgYTB+ZsGwA2qfu4o9ObHcsGijn3F04BdV5Nv0mmMqI=
 github.com/grupokindynos/go-binance v0.0.0-20200204193832-6913d4e24663 h1:UGhnFqYP83iG8YTTxeZx/hBAJ2AkRsCLZ8IOS53w6Wk=
 github.com/grupokindynos/go-binance v0.0.0-20200204193832-6913d4e24663/go.mod h1:RgYTB+ZsGwA2qfu4o9ObHcsGijn3F04BdV5Nv0mmMqI=
+github.com/grupokindynos/go-binance v0.0.0-20200204195921-d37462661caf h1:EbLhhLNqsblm4vMLapJ3KSDf0TRUJRXXIFzgAUZvVWA=
+github.com/grupokindynos/go-binance v0.0.0-20200204195921-d37462661caf/go.mod h1:RgYTB+ZsGwA2qfu4o9ObHcsGijn3F04BdV5Nv0mmMqI=
 github.com/grupokindynos/gobitso v0.7.3 h1:JrLwieETT5eyhO1XanRfFh++hinBHBbSHFz6mwDL3/8=
 github.com/grupokindynos/gobitso v0.7.3/go.mod h1:nLa5ih5P0w84yyXmgxQwj5ToOMV4kzxMC3eYDgbI4/M=
 github.com/hashicorp/hcl v1.0.0/go.mod h1:E5yfLk+7swimpb2L/Alb/PJmXilQ/rhwaUYs4T20WEQ=

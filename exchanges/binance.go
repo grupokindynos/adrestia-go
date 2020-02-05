@@ -129,6 +129,24 @@ func (b *Binance) GetDepositStatus(txid string, asset string) (orderStatus hesti
 	return
 }
 
+func (b *Binance) GetWithdrawalTxHash(txid string, asset string) (string, error) {
+	withdrawals, err := b.binanceApi.WithdrawHistory(binance.HistoryRequest{
+		Asset:     strings.ToLower(asset),
+		Timestamp: time.Now(),
+	})
+	if err != nil {
+		return "", err
+	}
+
+	for _, withdrawal := range withdrawals {
+		if withdrawal.Id == txid {
+			return withdrawal.TxID, nil
+		}
+	}
+
+	return "", errors.New("withdrawal not found")
+}
+
 func (b *Binance) GetPair(fromCoin string, toCoin string) (OrderSide, error) {
 	var orderSide OrderSide
 	fromCoin = strings.ToUpper(fromCoin)
@@ -193,7 +211,7 @@ func (b *Binance) GetBalances() ([]balance.Balance, error) {
 	return balances, nil
 }
 
-func (b *Binance) SellAtMarketPrice(order hestia.ExchangeOrder) (bool, string, error) {
+func (b *Binance) SellAtMarketPrice(order hestia.ExchangeOrder) (string, error) {
 	var side binance.OrderSide
 	if order.Side == "buy" {
 		side = binance.SideBuy
@@ -212,10 +230,10 @@ func (b *Binance) SellAtMarketPrice(order hestia.ExchangeOrder) (bool, string, e
 	})
 	if err != nil {
 		l.Println("Error - binance - SellAtMarketPrice - " + err.Error())
-		return false, "", err
+		return "", err
 	}
 
-	return true, strconv.FormatInt(newOrder.OrderID, 10), nil
+	return strconv.FormatInt(newOrder.OrderID, 10), nil
 }
 
 func (b *Binance) Withdraw(coin coins.Coin, address string, amount float64) (string, error) {
@@ -235,8 +253,9 @@ func (b *Binance) Withdraw(coin coins.Coin, address string, amount float64) (str
 		Timestamp:  time.Now(),
 	})
 
-	if err != nil {
+	if err != nil || !withdrawal.Success {
 		l.Println(fmt.Sprintf("[Withdraw] Binance failed to withdraw %s", err))
+		l.Println(fmt.Sprintf("Msg response: " + withdrawal.Msg))
 		return "", err
 	}
 	// TODO Binance go library has an issue signing withdrawals
@@ -271,7 +290,7 @@ func (b *Binance) GetOrderStatus(order hestia.ExchangeOrder) (hestia.OrderStatus
 		return hestia.OrderStatus{
 			Status:          hestia.ExchangeStatusError,
 			AvailableAmount: 0,
-		}, errors.New("could not find order by id")
+		}, err
 	}
 
 	switch res.Status {

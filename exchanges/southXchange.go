@@ -110,24 +110,35 @@ func (s *SouthXchange) GetBalances() ([]balance.Balance, error) {
 	return balances, nil
 }
 
-func (s *SouthXchange) SellAtMarketPrice(order hestia.ExchangeOrder) (bool, string, error) {
+func (s *SouthXchange) SellAtMarketPrice(order hestia.ExchangeOrder) (string, error) {
 	l, r := order.GetTradingPair()
+	var res string
+	var err error
 
 	var orderType south.OrderType
 	if order.Side == "buy" {
 		orderType = south.Buy
+		price, err := s.southClient.GetMarketPrice(l, r)
+		if err != nil {
+			return "", err
+		}
+		buyAmount := order.Amount / price.Bid
+		log.Println("Buy Amount")
+		log.Println(buyAmount)
+		res, err = s.southClient.PlaceOrder(l, r, orderType, buyAmount, price.Bid, true)
 	} else {
 		orderType = south.Sell
+		res, err = s.southClient.PlaceOrder(l, r, orderType, order.Amount, 0.0, true)
 	}
 
-	res, err := s.southClient.PlaceOrder(l, r, orderType, order.Amount, 0.0, true)
+	res, err = s.southClient.PlaceOrder(l, r, orderType, order.Amount, 0.0, true)
 	if err != nil {
 		log.Println("Error - southXchange - SellAtMarketPrice - " + err.Error())
-		return false, "", err
+		return "", err
 	}
 
 	res = strings.ReplaceAll(res, "\"", "")
-	return true, res, nil
+	return res, nil
 }
 
 func (s *SouthXchange) Withdraw(coin coins.Coin, address string, amount float64) (string, error) {
@@ -195,6 +206,10 @@ func (s *SouthXchange) GetOrderStatus(order hestia.ExchangeOrder) (hestia.OrderS
 	return status, err
 }
 
+func (b *SouthXchange) GetWithdrawalTxHash(txId string, asset string) (string, error) {
+	return "", errors.New("func not implemented")
+}
+
 func (s *SouthXchange) GetPair(fromCoin string, toCoin string) (OrderSide, error) {
 	var orderSide OrderSide
 	fromCoin = strings.ToUpper(fromCoin)
@@ -227,20 +242,25 @@ func (s *SouthXchange) getAvailableAmount(order hestia.ExchangeOrder) (float64, 
 		return 0, err
 	}
 
+	availableAmount := 0.0
+
 	for _, tx := range txs {
 		if tx.OrderCode != order.OrderId || tx.Type == "tradefee" {
 			continue
 		}
 
-		return tx.OtherAmount, nil
-		//if tx.Amount > 0.0 {
-		//	return tx.Amount, nil
-		//} else {
-		//	return tx.OtherAmount, nil
-		//}
+		if order.Side == "buy" {
+			availableAmount += tx.Amount
+		} else {
+			availableAmount += tx.OtherAmount
+		}
 	}
 
-	return 0.0, errors.New("tx not found")
+	if availableAmount == 0.0 {
+		return 0.0, errors.New("tx not found")
+	}
+
+	return availableAmount, nil
 }
 
 func (s *SouthXchange) getSettings() config.SouthXchangeAuth {

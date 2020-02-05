@@ -87,11 +87,11 @@ func (b *Bitso) GetBalances() ([]balance.Balance, error) {
 	return balances, nil
 }
 
-func (b *Bitso) SellAtMarketPrice(sellOrder hestia.ExchangeOrder) (bool, string, error) {
+func (b *Bitso) SellAtMarketPrice(sellOrder hestia.ExchangeOrder) (string, error) {
 	var side models.OrderSide
 	orderSide, err := b.GetPair(sellOrder.SoldCurrency, sellOrder.ReceivedCurrency)
 	if err != nil {
-		return false, "", err
+		return "", err
 	}
 
 	if orderSide.Type == "buy" {
@@ -107,9 +107,9 @@ func (b *Bitso) SellAtMarketPrice(sellOrder hestia.ExchangeOrder) (bool, string,
 	})
 	if err != nil || !orderId.Success {
 		log.Println("Error::Bitso::SellAtMarketPrice::", err)
-		return false, "", errors.New("Bitso:SellAtMarketPrice error on request: ")
+		return "", errors.New("Bitso:SellAtMarketPrice error on request: ")
 	}
-	return true, orderId.Payload.Oid, nil
+	return orderId.Payload.Oid, nil
 }
 
 func (b *Bitso) Withdraw(coin coins.Coin, address string, amount float64) (string, error) {
@@ -128,6 +128,10 @@ func (b *Bitso) Withdraw(coin coins.Coin, address string, amount float64) (strin
 
 func (b *Bitso) GetRateByAmount(sell transaction.ExchangeSell) (float64, error) {
 	return 0.0, errors.New("func not implemented")
+}
+
+func (b *Bitso) GetWithdrawalTxHash(txId string, asset string) (string, error) {
+	return "", errors.New("func not implemented")
 }
 
 func (b *Bitso) GetDepositStatus(txId string, asset string) (hestia.OrderStatus, error) {

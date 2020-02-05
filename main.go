@@ -63,7 +63,7 @@ func main() {
 }
 
 func timer() {
-	ticker := time.NewTicker(2 * time.Minute)
+	ticker := time.NewTicker(time.Minute)
 	go func() {
 		for _ = range ticker.C {
 			processor.Start()

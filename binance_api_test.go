@@ -48,6 +48,11 @@ func TestBinanceAPI(t *testing.T) {
 	)
 	binanceApi := binance.NewBinance(binanceService)
 
+	withdrawals, err := binanceApi.WithdrawHistory(binance.HistoryRequest{
+		Asset:     "btc",
+		Timestamp: time.Now(),
+	})
+
 	// withdrawal, err := binanceApi.Withdraw(binance.WithdrawRequest{
 	// 	Asset:      strings.ToLower("DASH"),
 	// 	Address:    "XtADvr2LwgNYLrkz3GPLddixZWJUFLEfTw",
@@ -56,7 +61,6 @@ func TestBinanceAPI(t *testing.T) {
 	// 	RecvWindow: 5 * time.Second,
 	// 	Timestamp:  time.Now(),
 	// })
-
 	// newOrder, err := binanceApi.NewOrder(binance.NewOrderRequest{
 	// 	Symbol:    "DASHBTC",
 	// 	Side:      binance.SideSell,
@@ -64,21 +68,29 @@ func TestBinanceAPI(t *testing.T) {
 	// 	Quantity:  0.2,
 	// 	Timestamp: time.Now(),
 	// })
-	res, err := binanceApi.QueryOrder(binance.QueryOrderRequest{
-		Symbol: "DASHBTC",
-		//OrderID:    126134994, BUY
-		OrderID:    126136561,
-		RecvWindow: 5 * time.Second,
-		//OrigClientOrderID: "b5JVkV0jQvAMqMuZwt0yp7",
-		Timestamp: time.Now(),
-	})
+	// res, err := binanceApi.QueryOrder(binance.QueryOrderRequest{
+	// 	Symbol: "DASHBTC",
+	// 	//OrderID:    126134994, BUY
+	// 	//OrderID:    126136561,
+	// 	OrderID:    126413548,
+	// 	RecvWindow: 5 * time.Second,
+	// 	//OrigClientOrderID: "b5JVkV0jQvAMqMuZwt0yp7",
+	// 	Timestamp: time.Now(),
+	// })
 
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
+	for _, withdrawal := range withdrawals {
+		fmt.Printf("%+v\n", withdrawal)
+		if withdrawal.Id == "c1c9e3626b874350b2a0a07dfb3d3915" {
+			fmt.Printf("%+v\n", withdrawal)
+		}
+	}
 	//fmt.Println(newOrder)
 
-	fmt.Printf("%+v\n", res)
+	//fmt.Printf("%+v\n", res)
+	//fmt.Printf("%+v\n", withdrawals)
 }

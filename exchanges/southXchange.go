@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"strings"
 	"time"
@@ -20,10 +21,11 @@ import (
 
 type SouthXchange struct {
 	Exchange
-	apiKey      string
-	apiSecret   string
-	southClient south.SouthXchange
-	Obol        obol.ObolService
+	apiKey          string
+	apiSecret       string
+	southClient     south.SouthXchange
+	Obol            obol.ObolService
+	WithdrawConfigs map[string]WithdrawConfig
 }
 
 func NewSouthXchange(params Params) *SouthXchange {
@@ -34,6 +36,11 @@ func NewSouthXchange(params Params) *SouthXchange {
 	s.apiSecret = data.ApiSecret
 	s.southClient = *south.New(s.apiKey, s.apiSecret, "user-agent")
 	s.Obol = params.Obol
+	s.WithdrawConfigs = map[string]WithdrawConfig{
+		"BTC":   WithdrawConfig{PercentageFee: 0.050, MinimumAmount: 0.0001, Precision: 0.000001},
+		"DASH":  WithdrawConfig{MinimumAmount: 0.0001, Precision: 0.0001},
+		"POLIS": WithdrawConfig{MinimumAmount: 0.01, Precision: 0.0001},
+	}
 	return s
 }
 
@@ -131,7 +138,6 @@ func (s *SouthXchange) SellAtMarketPrice(order hestia.ExchangeOrder) (string, er
 		res, err = s.southClient.PlaceOrder(l, r, orderType, order.Amount, 0.0, true)
 	}
 
-	res, err = s.southClient.PlaceOrder(l, r, orderType, order.Amount, 0.0, true)
 	if err != nil {
 		log.Println("Error - southXchange - SellAtMarketPrice - " + err.Error())
 		return "", err
@@ -206,8 +212,21 @@ func (s *SouthXchange) GetOrderStatus(order hestia.ExchangeOrder) (hestia.OrderS
 	return status, err
 }
 
-func (b *SouthXchange) GetWithdrawalTxHash(txId string, asset string) (string, error) {
-	return "", errors.New("func not implemented")
+func (s *SouthXchange) GetWithdrawalTxHash(txId string, asset string, address string, withdrawalAmount float64) (string, error) {
+	txs, err := s.southClient.GetTransactions("withdrawals", 0, 1000, "", true)
+	if err != nil {
+		return "", err
+	}
+	wc := s.WithdrawConfigs[asset]
+	amount := withdrawalAmount - wc.GetWithdrawFeeAmount(withdrawalAmount)
+
+	for _, tx := range txs {
+		if (math.Abs(tx.Amount-amount) < wc.Precision) && tx.Address == address {
+			return tx.Hash, nil
+		}
+	}
+
+	return "", errors.New("withdrawal not found")
 }
 
 func (s *SouthXchange) GetPair(fromCoin string, toCoin string) (OrderSide, error) {
@@ -242,22 +261,28 @@ func (s *SouthXchange) getAvailableAmount(order hestia.ExchangeOrder) (float64, 
 		return 0, err
 	}
 
+	var tradeId int
 	availableAmount := 0.0
 
 	for _, tx := range txs {
-		if tx.OrderCode != order.OrderId || tx.Type == "tradefee" {
-			continue
+		if tx.OrderCode != order.OrderId {
+			tradeId = tx.TradeId
+			break
 		}
+	}
 
-		if order.Side == "buy" {
+	for _, tx := range txs {
+		if tx.TradeId == tradeId {
 			availableAmount += tx.Amount
-		} else {
-			availableAmount += tx.OtherAmount
 		}
 	}
 
 	if availableAmount == 0.0 {
 		return 0.0, errors.New("tx not found")
+	}
+
+	if order.Side == "sell" {
+		availableAmount += order.Amount
 	}
 
 	return availableAmount, nil

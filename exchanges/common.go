@@ -16,3 +16,17 @@ type OrderSide struct {
 	Book string
 	Type string
 }
+
+type WithdrawConfig struct {
+	PercentageFee float64
+	MinimumAmount float64
+	Precision     float64
+}
+
+func (wf *WithdrawConfig) GetWithdrawFeeAmount(amount float64) float64 {
+	amount *= (wf.PercentageFee / 100.0)
+	if amount < wf.MinimumAmount {
+		return wf.MinimumAmount
+	}
+	return amount
+}

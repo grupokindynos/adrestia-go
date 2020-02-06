@@ -88,6 +88,8 @@ github.com/grupokindynos/go-binance v0.0.0-20200205151504-de420594ca1d h1:nb3czw
 github.com/grupokindynos/go-binance v0.0.0-20200205151504-de420594ca1d/go.mod h1:RgYTB+ZsGwA2qfu4o9ObHcsGijn3F04BdV5Nv0mmMqI=
 github.com/grupokindynos/go-binance v0.0.0-20200205163259-47e63296efea h1:LowiYdWbmQwkkDmb1Xj8da1+0xWkIgrbmeuN0XcTIZI=
 github.com/grupokindynos/go-binance v0.0.0-20200205163259-47e63296efea/go.mod h1:RgYTB+ZsGwA2qfu4o9ObHcsGijn3F04BdV5Nv0mmMqI=
+github.com/grupokindynos/go-binance v0.0.0-20200206154953-59ec8f073f32 h1:K5csxJd7EknD/Hq2/s0Nm2ZkyGE3pEq3aiyqFO8KCSs=
+github.com/grupokindynos/go-binance v0.0.0-20200206154953-59ec8f073f32/go.mod h1:RgYTB+ZsGwA2qfu4o9ObHcsGijn3F04BdV5Nv0mmMqI=
 github.com/grupokindynos/gobitso v0.7.3 h1:JrLwieETT5eyhO1XanRfFh++hinBHBbSHFz6mwDL3/8=
 github.com/grupokindynos/gobitso v0.7.3/go.mod h1:nLa5ih5P0w84yyXmgxQwj5ToOMV4kzxMC3eYDgbI4/M=
 github.com/hashicorp/hcl v1.0.0/go.mod h1:E5yfLk+7swimpb2L/Alb/PJmXilQ/rhwaUYs4T20WEQ=
@@ -145,6 +147,10 @@ github.com/oedipusK/go-southxchange v0.0.0-20200205185314-2f0f9ed28170 h1:C0goHf
 github.com/oedipusK/go-southxchange v0.0.0-20200205185314-2f0f9ed28170/go.mod h1:F3maalQptou4ZKoLp7LPX7NG2TF1RTP2q8P2ENweXvo=
 github.com/oedipusK/go-southxchange v0.0.0-20200205185923-0af17c78ea70 h1:fNnelDz1J5u45McUTZBIhRKU0zEXMrmQUe7CV2/212U=
 github.com/oedipusK/go-southxchange v0.0.0-20200205185923-0af17c78ea70/go.mod h1:F3maalQptou4ZKoLp7LPX7NG2TF1RTP2q8P2ENweXvo=
+github.com/oedipusK/go-southxchange v0.0.0-20200206164351-d1df7aada8d9 h1:aMUN82hDKdepbcaBD7yhHL411mfn+z29T9RPTM9iRpE=
+github.com/oedipusK/go-southxchange v0.0.0-20200206164351-d1df7aada8d9/go.mod h1:F3maalQptou4ZKoLp7LPX7NG2TF1RTP2q8P2ENweXvo=
+github.com/oedipusK/go-southxchange v0.0.0-20200206165528-2c1ec4dd4ecf h1:flKcBRZ2eMDvUAPtIjxhDpdprQqhVPf+s4j1Xh0pp/Q=
+github.com/oedipusK/go-southxchange v0.0.0-20200206165528-2c1ec4dd4ecf/go.mod h1:F3maalQptou4ZKoLp7LPX7NG2TF1RTP2q8P2ENweXvo=
 github.com/olympus-protocol/ogen v0.0.0-20200122020117-3da99bac25aa h1:/Py7o+BDQjlcH4VLvEUwPCASkJeSAhjmrgPIlTXdX4I=
 github.com/olympus-protocol/ogen v0.0.0-20200122020117-3da99bac25aa/go.mod h1:qJpayilJyS8fqpeAMbedyeDj6/rCGdB9FMvxEh7TaKY=
 github.com/olympus-protocol/ogen v0.0.0-20200122021631-c3b68757d5f7 h1:xFM1Yk3KTj4tvmMmtZ8AkGvQCAU/nRH9vhpJ3of7zyk=

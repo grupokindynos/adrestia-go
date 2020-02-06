@@ -115,6 +115,7 @@ func handleExchange(wg *sync.WaitGroup) {
 			order.FirstOrder.Amount = status.AvailableAmount
 			orderId, err := ex.SellAtMarketPrice(order.FirstOrder)
 			if err != nil {
+				log.Println(orderId)
 				log.Println(err)
 				continue
 			}
@@ -209,7 +210,7 @@ func handleConversion(wg *sync.WaitGroup) {
 				log.Println(txid)
 				// Give time to the exchange to generate withdraw info.
 				time.Sleep(10 * time.Second)
-				txHash, err := exchange.GetWithdrawalTxHash(txid, coin.Info.Tag)
+				txHash, err := exchange.GetWithdrawalTxHash(txid, coin.Info.Tag, order.SecondExAddress, currExOrder.ReceivedAmount)
 				if err != nil {
 					log.Println(err)
 					return
@@ -257,7 +258,14 @@ func handleCompletedExchange(wg *sync.WaitGroup) {
 			fmt.Println(err)
 			continue
 		}
-		order.EHTxId = txId
+		// Give time to the exchange to generate withdraw info.
+		time.Sleep(10 * time.Second)
+		txHash, err := exchange.GetWithdrawalTxHash(txId, coin.Info.Tag, order.WithdrawAddress, exchangeOrder.ReceivedAmount)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		order.EHTxId = txHash
 		order.FulfilledTime = time.Now().Unix()
 		changeOrderStatus(order, hestia.AdrestiaStatusCompleted)
 	}

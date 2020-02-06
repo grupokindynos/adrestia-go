@@ -15,14 +15,14 @@ require (
 	github.com/gookit/color v1.2.0
 	github.com/gorilla/websocket v1.4.1 // indirect
 	github.com/grupokindynos/common v0.0.0-20200131181444-d381a9d2fad7
-	github.com/grupokindynos/go-binance v0.0.0-20200205163259-47e63296efea
+	github.com/grupokindynos/go-binance v0.0.0-20200206154953-59ec8f073f32
 	github.com/grupokindynos/gobitso v0.7.3
 	github.com/joho/godotenv v1.3.0
 	github.com/json-iterator/go v1.1.9 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
-	github.com/oedipusK/go-southxchange v0.0.0-20200205185923-0af17c78ea70
+	github.com/oedipusK/go-southxchange v0.0.0-20200206165528-2c1ec4dd4ecf
 	github.com/olympus-protocol/ogen v0.0.0-20200122021631-c3b68757d5f7 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect

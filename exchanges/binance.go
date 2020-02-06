@@ -129,7 +129,7 @@ func (b *Binance) GetDepositStatus(txid string, asset string) (orderStatus hesti
 	return
 }
 
-func (b *Binance) GetWithdrawalTxHash(txid string, asset string) (string, error) {
+func (b *Binance) GetWithdrawalTxHash(txId string, asset string, address string, withdrawalAmount float64) (string, error) {
 	withdrawals, err := b.binanceApi.WithdrawHistory(binance.HistoryRequest{
 		Asset:     strings.ToLower(asset),
 		Timestamp: time.Now(),
@@ -139,7 +139,7 @@ func (b *Binance) GetWithdrawalTxHash(txid string, asset string) (string, error)
 	}
 
 	for _, withdrawal := range withdrawals {
-		if withdrawal.Id == txid {
+		if withdrawal.Id == txId {
 			return withdrawal.TxID, nil
 		}
 	}
@@ -213,21 +213,29 @@ func (b *Binance) GetBalances() ([]balance.Balance, error) {
 
 func (b *Binance) SellAtMarketPrice(order hestia.ExchangeOrder) (string, error) {
 	var side binance.OrderSide
+	var newOrder *binance.ProcessedOrder
+	var err error
 	if order.Side == "buy" {
 		side = binance.SideBuy
+		newOrder, err = b.binanceApi.NewOrder(binance.NewOrderRequest{
+			Symbol:           order.Symbol,
+			Side:             side,
+			Type:             binance.TypeMarket,
+			QuoteOrderQty:    order.Amount,
+			Timestamp:        time.Now(),
+			NewOrderRespType: binance.RespTypeFull,
+		})
 	} else {
 		side = binance.SideSell
+		newOrder, err = b.binanceApi.NewOrder(binance.NewOrderRequest{
+			Symbol:           order.Symbol,
+			Side:             side,
+			Type:             binance.TypeMarket,
+			Quantity:         order.Amount,
+			Timestamp:        time.Now(),
+			NewOrderRespType: binance.RespTypeFull,
+		})
 	}
-
-	// Order creation an Post
-	newOrder, err := b.binanceApi.NewOrder(binance.NewOrderRequest{
-		Symbol:           order.Symbol,
-		Side:             side,
-		Type:             binance.TypeMarket,
-		Quantity:         order.Amount,
-		Timestamp:        time.Now(),
-		NewOrderRespType: binance.RespTypeFull,
-	})
 	if err != nil {
 		l.Println("Error - binance - SellAtMarketPrice - " + err.Error())
 		return "", err
@@ -237,12 +245,6 @@ func (b *Binance) SellAtMarketPrice(order hestia.ExchangeOrder) (string, error) 
 }
 
 func (b *Binance) Withdraw(coin coins.Coin, address string, amount float64) (string, error) {
-	// l.Println(fmt.Sprintf("[Withdraw] Retrieving Account Info for %s", b.Name))
-	/*res, _ := b.binanceApi.Account(binance.AccountRequest{
-		RecvWindow: 5 * time.Second,
-		Timestamp:  time.Now(),
-	})*/
-
 	l.Println(fmt.Sprintf("[Withdraw] Performing withdraw request on %s for %s", b.Name, coin.Info.Tag))
 	withdrawal, err := b.binanceApi.Withdraw(binance.WithdrawRequest{
 		Asset:      strings.ToLower(coin.Info.Tag),
@@ -258,12 +260,8 @@ func (b *Binance) Withdraw(coin coins.Coin, address string, amount float64) (str
 		l.Println(fmt.Sprintf("Msg response: " + withdrawal.Msg))
 		return "", err
 	}
-	// TODO Binance go library has an issue signing withdrawals
-	// fmt.Println(withdrawal)
-	// fmt.Println(err)
 
 	return withdrawal.Id, nil
-
 }
 
 func (b *Binance) GetRateByAmount(sell transaction.ExchangeSell) (float64, error) {

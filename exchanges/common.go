@@ -13,8 +13,10 @@ type Params struct {
 }
 
 type OrderSide struct {
-	Book string
-	Type string
+	Book             string
+	Type             string
+	ReceivedCurrency string
+	SoldCurrency     string
 }
 
 type WithdrawConfig struct {

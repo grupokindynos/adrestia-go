@@ -37,8 +37,8 @@ func getExchangeOrder(exchange exchanges.IExchange, fromCoin string, toCoin stri
 	}
 	exchangeOrder.Symbol = orderSide.Book
 	exchangeOrder.Side = orderSide.Type
-	exchangeOrder.ReceivedCurrency = toCoin
-	exchangeOrder.SoldCurrency = fromCoin
+	exchangeOrder.ReceivedCurrency = orderSide.ReceivedCurrency
+	exchangeOrder.SoldCurrency = orderSide.SoldCurrency
 
 	return exchangeOrder, nil
 }

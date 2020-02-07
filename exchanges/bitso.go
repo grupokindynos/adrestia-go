@@ -131,7 +131,7 @@ func (b *Bitso) GetRateByAmount(sell transaction.ExchangeSell) (float64, error) 
 }
 
 func (b *Bitso) GetWithdrawalTxHash(txId string, asset string, address string, withdrawalAmount float64) (string, error) {
-	return "", errors.New("func not implemented")
+	return txId, nil
 }
 
 func (b *Bitso) GetDepositStatus(txId string, asset string) (hestia.OrderStatus, error) {
@@ -231,8 +231,12 @@ func (b *Bitso) GetPair(fromCoin string, toCoin string) (OrderSide, error) {
 	// check bitso convention
 	if fromIndex < toIndex {
 		orderSide.Type = "sell"
+		orderSide.ReceivedCurrency = toCoin
+		orderSide.SoldCurrency = fromCoin
 	} else {
 		orderSide.Type = "buy"
+		orderSide.ReceivedCurrency = fromCoin
+		orderSide.SoldCurrency = toCoin
 	}
 
 	return orderSide, nil

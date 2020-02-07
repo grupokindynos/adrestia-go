@@ -171,8 +171,12 @@ func (b *Binance) GetPair(fromCoin string, toCoin string) (OrderSide, error) {
 	// check binance convention
 	if fromIndex < toIndex {
 		orderSide.Type = "sell"
+		orderSide.ReceivedCurrency = toCoin
+		orderSide.SoldCurrency = fromCoin
 	} else {
 		orderSide.Type = "buy"
+		orderSide.ReceivedCurrency = fromCoin
+		orderSide.SoldCurrency = toCoin
 	}
 
 	return orderSide, nil

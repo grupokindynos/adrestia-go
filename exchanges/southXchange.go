@@ -248,8 +248,12 @@ func (s *SouthXchange) GetPair(fromCoin string, toCoin string) (OrderSide, error
 	orderSide.Book = bookName.Base + bookName.Coin
 	if bookName.Base == fromCoin {
 		orderSide.Type = "sell"
+		orderSide.ReceivedCurrency = bookName.Coin
+		orderSide.SoldCurrency = bookName.Base
 	} else {
 		orderSide.Type = "buy"
+		orderSide.ReceivedCurrency = bookName.Base
+		orderSide.SoldCurrency = bookName.Coin
 	}
 
 	return orderSide, nil

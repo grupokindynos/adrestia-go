@@ -2,32 +2,89 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"testing"
+	"time"
+
 	"github.com/grupokindynos/adrestia-go/services"
 	"github.com/grupokindynos/adrestia-go/utils"
 	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/obol"
 	plutus2 "github.com/grupokindynos/common/plutus"
 	"github.com/joho/godotenv"
-	"log"
-	"os"
-	"testing"
 )
 
 var (
 	testableCoins = [...]string{"BTC", "POLIS", "DASH"}
 
-	orderBTCPOLIS = hestia.AdrestiaOrder{
-		ID:              "adrestia-test-btc-polis",
-		DualExchange:    false,
-		CreatedTime:     1579808853,
-		FulfilledTime:   0,
-		Status:          hestia.AdrestiaStatusCreated,
-		Amount:          0.0001,
-		BtcRate:         9684,
-		FromCoin:        "BTC",
-		ToCoin:          "POLIS",
-		Message:         "",
-		FirstOrder:      hestia.ExchangeOrder{
+	orderPOLISDASH = hestia.AdrestiaOrder{
+		ID:            "adrestia-test-polis-dash",
+		DualExchange:  true,
+		CreatedTime:   time.Now().Unix(),
+		FulfilledTime: 0,
+		Status:        hestia.AdrestiaStatusCreated,
+		Amount:        20,
+		BtcRate:       9684,
+		FromCoin:      "POLIS",
+		ToCoin:        "DASH",
+		Message:       "",
+		FirstOrder: hestia.ExchangeOrder{
+			OrderId:          "",
+			Symbol:           "POLISBTC",
+			Side:             "sell",
+			Amount:           0,
+			ReceivedAmount:   0,
+			CreatedTime:      0,
+			FulfilledTime:    0,
+			Exchange:         "southxchange",
+			ReceivedCurrency: "BTC",
+			SoldCurrency:     "POLIS",
+		},
+		FinalOrder: hestia.ExchangeOrder{
+			OrderId:          "",
+			Symbol:           "DASHBTC",
+			Side:             "buy",
+			Amount:           0,
+			ReceivedAmount:   0,
+			CreatedTime:      0,
+			FulfilledTime:    0,
+			Exchange:         "binance",
+			ReceivedCurrency: "DASH",
+			SoldCurrency:     "BTC",
+		},
+		HETxId:          "",
+		EETxId:          "",
+		EHTxId:          "",
+		FirstExAddress:  "PRjoCA949ZpamrNpt9EU953zgCouC2mH3t",
+		SecondExAddress: "157kMZrgThAmHrvinRLP4RKPC5AU4KdYKt",
+		WithdrawAddress: "XiJ2YWp4SNL6tdrnaxvigHPxK9P2FiLmEy",
+	}
+
+	orderDASHPOLIS = hestia.AdrestiaOrder{
+		ID:            "adrestia-test-dash-polis",
+		DualExchange:  true,
+		CreatedTime:   time.Now().Unix(),
+		FulfilledTime: 0,
+		Status:        hestia.AdrestiaStatusCreated,
+		Amount:        0.1,
+		BtcRate:       9684,
+		FromCoin:      "DASH",
+		ToCoin:        "POLIS",
+		Message:       "",
+		FirstOrder: hestia.ExchangeOrder{
+			OrderId:          "",
+			Symbol:           "DASHBTC",
+			Side:             "sell",
+			Amount:           0,
+			ReceivedAmount:   0,
+			CreatedTime:      0,
+			FulfilledTime:    0,
+			Exchange:         "binance",
+			ReceivedCurrency: "BTC",
+			SoldCurrency:     "DASH",
+		},
+		FinalOrder: hestia.ExchangeOrder{
 			OrderId:          "",
 			Symbol:           "POLISBTC",
 			Side:             "buy",
@@ -39,7 +96,38 @@ var (
 			ReceivedCurrency: "POLIS",
 			SoldCurrency:     "BTC",
 		},
-		FinalOrder:      hestia.ExchangeOrder{
+		HETxId:          "",
+		EETxId:          "",
+		EHTxId:          "",
+		FirstExAddress:  "XuVmLDmUHZCjaSjm8KfXkGVhRG8fVC3Jis",
+		SecondExAddress: "34KSp2gb2BYVLA94u1uogfyP3oRU3jUjfE",
+		WithdrawAddress: "PGXJmgaRKCDFdiFD9hKNaYxJqsz3W1d7Yi",
+	}
+
+	orderBTCDASH = hestia.AdrestiaOrder{
+		ID:            "adrestia-test-btc-dash",
+		DualExchange:  false,
+		CreatedTime:   time.Now().Unix(),
+		FulfilledTime: 0,
+		Status:        hestia.AdrestiaStatusCreated,
+		Amount:        0.01,
+		BtcRate:       9684,
+		FromCoin:      "BTC",
+		ToCoin:        "DASH",
+		Message:       "",
+		FirstOrder: hestia.ExchangeOrder{
+			OrderId:          "",
+			Symbol:           "DASHBTC",
+			Side:             "buy",
+			Amount:           0,
+			ReceivedAmount:   0,
+			CreatedTime:      0,
+			FulfilledTime:    0,
+			Exchange:         "binance",
+			ReceivedCurrency: "DASH",
+			SoldCurrency:     "BTC",
+		},
+		FinalOrder: hestia.ExchangeOrder{
 			OrderId:          "",
 			Symbol:           "",
 			Side:             "",
@@ -54,52 +142,9 @@ var (
 		HETxId:          "",
 		EETxId:          "",
 		EHTxId:          "",
-		FirstExAddress:  "332gbBsyamxGvkxiFnkYdnvQ51bo2iEzHU",
-		SecondExAddress: "",
-		WithdrawAddress: "1FPPTjks4KRGssSi4c4EUZUcZKpMq3a73H",
-	}
-
-	orderDASHPOLIS = hestia.AdrestiaOrder{
-		ID:              "adrestia-test-dash-polis",
-		DualExchange:    true,
-		CreatedTime:     1579809853,
-		FulfilledTime:   0,
-		Status:          hestia.AdrestiaStatusCreated,
-		Amount:          0.01,
-		BtcRate:         9684,
-		FromCoin:        "DASH",
-		ToCoin:          "POLIS",
-		Message:         "",
-		FirstOrder:      hestia.ExchangeOrder{
-			OrderId:          "",
-			Symbol:           "DASHBTC",
-			Side:             "sell",
-			Amount:           0,
-			ReceivedAmount:   0,
-			CreatedTime:      0,
-			FulfilledTime:    0,
-			Exchange:         "binance",
-			ReceivedCurrency: "BTC",
-			SoldCurrency:     "DASH",
-		},
-		FinalOrder:      hestia.ExchangeOrder{
-			OrderId:          "",
-			Symbol:           "POLISBTC",
-			Side:             "",
-			Amount:           0,
-			ReceivedAmount:   0,
-			CreatedTime:      0,
-			FulfilledTime:    0,
-			Exchange:         "southxchange",
-			ReceivedCurrency: "POLIS",
-			SoldCurrency:     "BTC",
-		},
-		HETxId:          "",
-		EETxId:          "",
-		EHTxId:          "",
 		FirstExAddress:  "XuVmLDmUHZCjaSjm8KfXkGVhRG8fVC3Jis",
-		SecondExAddress: "332gbBsyamxGvkxiFnkYdnvQ51bo2iEzHU",
-		WithdrawAddress: "PLauDHWLDMwoFn1TtWDHyw3jvt3V6qBGmw",
+		SecondExAddress: "34KSp2gb2BYVLA94u1uogfyP3oRU3jUjfE",
+		WithdrawAddress: "PGXJmgaRKCDFdiFD9hKNaYxJqsz3W1d7Yi",
 	}
 )
 
@@ -109,11 +154,10 @@ func init() {
 	}
 }
 
-
-func TestBtcAddress(t *testing.T) {
+func TestGetAddress(t *testing.T) {
 	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
-	plutus := services.PlutusRequests{Obol: &oboli}
-	fmt.Println(plutus.GetAddress("polis"))
+	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_URL")}
+	fmt.Println(plutus.GetAddress("DASH"))
 }
 
 func TestSendToExchange(t *testing.T) {
@@ -134,7 +178,7 @@ func TestSendToExchange(t *testing.T) {
 func TestBalance(t *testing.T) {
 	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
 	plutus := services.PlutusRequests{Obol: &oboli}
-	bal, err := plutus.GetWalletBalance("DGB")
+	bal, err := plutus.GetWalletBalance("POLIS")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -143,7 +187,7 @@ func TestBalance(t *testing.T) {
 }
 
 func TestTestData(t *testing.T) {
-	id, err := utils.CreateTestOrder(orderBTCPOLIS)
+	id, err := utils.CreateTestOrder(orderPOLISDASH)
 	if err != nil {
 		fmt.Println(err)
 	}

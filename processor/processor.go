@@ -132,15 +132,23 @@ func handleExchange(wg *sync.WaitGroup) {
 	}
 
 	for _, order := range secondExchangeOrders {
-		ex, err := proc.ExchangeFactory.GetExchangeByName(order.FinalOrder.Exchange)
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-		status, err := ex.GetDepositStatus(order.EETxId, "BTC")
-		if err != nil {
-			log.Println("141 " + err.Error())
-			continue
+		var status hestia.OrderStatus
+		var ex exchanges.IExchange
+		// Check if all the trading process is going to be done on the same exchange
+		if order.FirstOrder.Exchange == order.FinalOrder.Exchange {
+			status.Status = hestia.ExchangeStatusCompleted
+			status.AvailableAmount = order.FirstOrder.ReceivedAmount
+		} else {
+			ex, err := proc.ExchangeFactory.GetExchangeByName(order.FinalOrder.Exchange)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			status, err = ex.GetDepositStatus(order.EETxId, "BTC")
+			if err != nil {
+				log.Println("141 " + err.Error())
+				continue
+			}
 		}
 		if status.Status == hestia.ExchangeStatusCompleted {
 			order.FinalOrder.Amount = status.AvailableAmount
@@ -196,26 +204,29 @@ func handleConversion(wg *sync.WaitGroup) {
 			currExOrder.ReceivedAmount = status.AvailableAmount
 
 			if order.DualExchange && order.Status == hestia.AdrestiaStatusFirstConversion {
-				coin, err := cf.GetCoin(currExOrder.ReceivedCurrency)
-				if err != nil {
-					fmt.Println(err)
-					continue
+				// Check if the second conversion needs to be done on another exchange.
+				if order.FirstOrder.Exchange != order.FinalOrder.Exchange {
+					coin, err := cf.GetCoin(currExOrder.ReceivedCurrency)
+					if err != nil {
+						fmt.Println(err)
+						continue
+					}
+					txid, err := exchange.Withdraw(*coin, order.SecondExAddress, currExOrder.ReceivedAmount)
+					if err != nil {
+						fmt.Println(err)
+						continue
+					}
+					log.Println("Withdraw Id")
+					log.Println(txid)
+					// Give time to the exchange to generate withdraw info.
+					time.Sleep(10 * time.Second)
+					txHash, err := exchange.GetWithdrawalTxHash(txid, coin.Info.Tag, order.SecondExAddress, currExOrder.ReceivedAmount)
+					if err != nil {
+						log.Println(err)
+						return
+					}
+					order.EETxId = txHash
 				}
-				txid, err := exchange.Withdraw(*coin, order.SecondExAddress, currExOrder.ReceivedAmount)
-				if err != nil {
-					fmt.Println(err)
-					continue
-				}
-				log.Println("Withdraw Id")
-				log.Println(txid)
-				// Give time to the exchange to generate withdraw info.
-				time.Sleep(10 * time.Second)
-				txHash, err := exchange.GetWithdrawalTxHash(txid, coin.Info.Tag, order.SecondExAddress, currExOrder.ReceivedAmount)
-				if err != nil {
-					log.Println(err)
-					return
-				}
-				order.EETxId = txHash
 				order.FinalOrder.CreatedTime = time.Now().Unix()
 				changeOrderStatus(order, hestia.AdrestiaStatusSecondExchange)
 			} else {

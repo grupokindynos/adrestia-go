@@ -91,47 +91,37 @@ func SortBalances(data map[string]balance.WalletInfoWrapper) (balancedWallets []
 }
 
 func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []transaction.PTx {
-	/*
-		DEPRECATED Used to balance adrestia. Keeping for reference.
-	*/
 	var pendingTransactions []transaction.PTx
+	var newTx transaction.PTx
+	var amountTx float64
+	var rateBTC float64
 	i := 0 // Balanced wallet index
 	for _, wallet := range unbalanced {
-		// log.Println("BalanceHW:: Balancing ", wallet.Ticker)
-		filledAmount := 0.0 // Amount that stores current fulfillment of a Balancing Transaction.
-		initialDiff := math.Abs(wallet.DiffBTC)
-		// TODO add fields for out addresses
-		for filledAmount < initialDiff {
-			// color.Info.Tips(fmt.Sprintf("BalanceHW::\tUsing %s to balanace %s", balanced[i].Ticker, wallet.Ticker))
-			var newTx transaction.PTx
-			if balanced[i].DiffBTC < initialDiff-filledAmount {
-				newTx.ToCoin = wallet.Ticker
-				newTx.FromCoin = balanced[i].Ticker
-				newTx.Amount = balanced[i].DiffBTC
-				newTx.BtcRate = balanced[i].RateBTC
-
-				filledAmount += balanced[i].DiffBTC
-				balanced[i].DiffBTC = 0.0
-				i++
-				pendingTransactions = append(pendingTransactions, newTx)
+		log.Println("BalanceHW:: Balancing ", wallet.Ticker)
+		diff := math.Abs(wallet.DiffBTC)
+		for diff > 0.0 {
+			if balanced[i].DiffBTC >= diff {
+				amountTx = diff
+				rateBTC = wallet.RateBTC
+				balanced[i].DiffBTC -= diff
 			} else {
-				newTx.Amount = initialDiff - filledAmount
-				filledAmount += initialDiff - filledAmount
-				balanced[i].DiffBTC -= initialDiff - filledAmount
-				newTx.ToCoin = wallet.Ticker
-				newTx.FromCoin = balanced[i].Ticker
-				newTx.BtcRate = balanced[i].RateBTC
-				pendingTransactions = append(pendingTransactions, newTx)
+				amountTx = balanced[i].DiffBTC
+				rateBTC = balanced[i].RateBTC
+				i++
 			}
+
+			newTx.Amount = amountTx / rateBTC
+			newTx.ToCoin = wallet.Ticker
+			newTx.FromCoin = balanced[i].Ticker
+			newTx.BtcRate = rateBTC
+			pendingTransactions = append(pendingTransactions, newTx)
+			diff -= amountTx
 		}
 	}
 	return pendingTransactions
 }
 
 func DetermineBalanceability(balanced []balance.Balance, unbalanced []balance.Balance) (bool, float64) {
-	/*
-		DEPRECATED Used to balance adrestia. Keeping for reference.
-	*/
 	superavit := 0.0 // Exceeding amount in balanced wallets
 	deficit := 0.0   // Missing amount in unbalanced wallets
 	totalBtc := 0.0  // total amount in wallets
@@ -147,5 +137,5 @@ func DetermineBalanceability(balanced []balance.Balance, unbalanced []balance.Ba
 	color.Info.Tips(fmt.Sprintf("Total in Wallets: %.8f", totalBtc))
 	fmt.Println("Superavit: ", superavit)
 	fmt.Println("Deficit: ", deficit)
-	return superavit > math.Abs(deficit), superavit - math.Abs(deficit)
+	return superavit >= math.Abs(deficit), superavit - math.Abs(deficit)
 }

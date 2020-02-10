@@ -219,7 +219,11 @@ func (b *Binance) SellAtMarketPrice(order hestia.ExchangeOrder) (string, error) 
 	var side binance.OrderSide
 	var newOrder *binance.ProcessedOrder
 	var err error
-	if order.Side == "buy" {
+	quoteOrderAvailable, err := b.isQuoteOrderAvailable(order.Symbol)
+	if err != nil {
+		return "", err
+	}
+	if order.Side == "buy" && quoteOrderAvailable {
 		side = binance.SideBuy
 		newOrder, err = b.binanceApi.NewOrder(binance.NewOrderRequest{
 			Symbol:           order.Symbol,
@@ -230,7 +234,12 @@ func (b *Binance) SellAtMarketPrice(order hestia.ExchangeOrder) (string, error) 
 			NewOrderRespType: binance.RespTypeFull,
 		})
 	} else {
-		side = binance.SideSell
+		if order.Side == "sell" {
+			side = binance.SideSell
+		} else { // We know it's a buy but quoteOrders are not available
+			//avgPrice := b.binanceApi.AveragePrice(order.Symbol)
+
+		}
 		newOrder, err = b.binanceApi.NewOrder(binance.NewOrderRequest{
 			Symbol:           order.Symbol,
 			Side:             side,
@@ -319,14 +328,6 @@ func (b *Binance) GetOrderStatus(order hestia.ExchangeOrder) (hestia.OrderStatus
 	}
 }
 
-func (b *Binance) getReceivedAmount(order binance.ExecutedOrder) float64 {
-	if order.Side == binance.SideBuy {
-		return order.ExecutedQty
-	} else {
-		return order.CummulativeQuoteQty
-	}
-}
-
 func GetSettings() config.BinanceAuth {
 	if err := godotenv.Load(); err != nil {
 		l.Println(err)
@@ -338,4 +339,28 @@ func GetSettings() config.BinanceAuth {
 	data.PublicWithdrawKey = os.Getenv("BINANCE_PUB_WITHDRAW")
 	data.PrivateWithdrawKey = os.Getenv("BINANCE_PRIV_WITHDRAW")
 	return data
+}
+
+func (b *Binance) isQuoteOrderAvailable(symbol string) (bool, error) {
+	info, err := b.binanceApi.ExchangeInfo()
+	if err != nil {
+		return false, err
+	}
+	symbol = strings.ToLower(symbol)
+
+	for _, market := range info.Symbols {
+		if strings.ToLower(market.symbol) == symbol {
+			return market.QuoteOrderQtyMarketAllowed, nil
+		}
+	}
+
+	return false, errors.New("symbol not found")
+}
+
+func (b *Binance) getReceivedAmount(order binance.ExecutedOrder) float64 {
+	if order.Side == binance.SideBuy {
+		return order.ExecutedQty
+	} else {
+		return order.CummulativeQuoteQty
+	}
 }

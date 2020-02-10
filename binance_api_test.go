@@ -78,19 +78,20 @@ func TestBinanceAPI(t *testing.T) {
 	// 	Timestamp: time.Now(),
 	// })
 
+	avgPrice, err := binanceApi.AveragePrice("DASHBTC")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	for _, withdrawal := range withdrawals {
-		fmt.Printf("%+v\n", withdrawal)
-		if withdrawal.Id == "c1c9e3626b874350b2a0a07dfb3d3915" {
-			fmt.Printf("%+v\n", withdrawal)
-		}
-	}
+	// for _, withdrawal := range withdrawals {
+	// 	fmt.Printf("%+v\n", withdrawal)
+	// 	if withdrawal.Id == "c1c9e3626b874350b2a0a07dfb3d3915" {
+	// 		fmt.Printf("%+v\n", withdrawal)
+	// 	}
+	// }
 	//fmt.Println(newOrder)
-
+	fmt.Printf("%+v\n", avgPrice)
 	//fmt.Printf("%+v\n", res)
 	//fmt.Printf("%+v\n", withdrawals)
 }

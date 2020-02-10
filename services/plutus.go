@@ -20,11 +20,11 @@ import (
 )
 
 type PlutusRequests struct {
-	Obol obol.ObolService
+	Obol      obol.ObolService
 	PlutusURL string
 }
 
-func (p *PlutusRequests) GetWalletBalances(availableCoins []hestia.Coin ) []balance.Balance {
+func (p *PlutusRequests) GetWalletBalances(availableCoins []hestia.Coin) []balance.Balance {
 	flagAllRates := false
 	log.Println("Retrieving Wallet Balances...")
 	var rawBalances []balance.Balance
@@ -70,7 +70,7 @@ func (p *PlutusRequests) GetWalletBalances(availableCoins []hestia.Coin ) []bala
 	return updatedBalances
 }
 
-func (p *PlutusRequests) GetWalletBalance(ticker string ) (res plutus.Balance, err error) {
+func (p *PlutusRequests) GetWalletBalance(ticker string) (res plutus.Balance, err error) {
 	log.Println("Retrieving Wallet Balances...")
 	coinInfo, err := coinfactory.GetCoin(ticker)
 	if err != nil {
@@ -101,7 +101,7 @@ func (p *PlutusRequests) GetAddress(coin string) (string, error) {
 }
 
 func (p *PlutusRequests) WithdrawToAddress(body plutus.SendAddressBodyReq) (txId string, err error) {
-	req, err := mvt.CreateMVTToken("POST", p.PlutusURL + "/send/address", "adrestia", os.Getenv("MASTER_PASSWORD"), body, os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
+	req, err := mvt.CreateMVTToken("POST", p.PlutusURL+"/send/address", "adrestia", os.Getenv("MASTER_PASSWORD"), body, os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
 	if err != nil {
 		return txId, err
 	}
@@ -117,6 +117,7 @@ func (p *PlutusRequests) WithdrawToAddress(body plutus.SendAddressBodyReq) (txId
 	if err != nil {
 		return txId, err
 	}
+	log.Println(string(tokenResponse))
 	var tokenString string
 	err = json.Unmarshal(tokenResponse, &tokenString)
 	if err != nil {

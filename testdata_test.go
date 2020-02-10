@@ -58,7 +58,7 @@ var (
 		EHTxId:          "",
 		FirstExAddress:  "PRjoCA949ZpamrNpt9EU953zgCouC2mH3t",
 		SecondExAddress: "157kMZrgThAmHrvinRLP4RKPC5AU4KdYKt",
-		WithdrawAddress: "XiJ2YWp4SNL6tdrnaxvigHPxK9P2FiLmEy",
+		WithdrawAddress: "XuXMhik3Q5osBLqcWRj3JrNus3V5Ntnesd",
 	}
 
 	orderDASHPOLIS = hestia.AdrestiaOrder{
@@ -67,7 +67,7 @@ var (
 		CreatedTime:   time.Now().Unix(),
 		FulfilledTime: 0,
 		Status:        hestia.AdrestiaStatusCreated,
-		Amount:        0.1,
+		Amount:        0.5,
 		BtcRate:       9684,
 		FromCoin:      "DASH",
 		ToCoin:        "POLIS",
@@ -100,8 +100,8 @@ var (
 		EETxId:          "",
 		EHTxId:          "",
 		FirstExAddress:  "XuVmLDmUHZCjaSjm8KfXkGVhRG8fVC3Jis",
-		SecondExAddress: "34KSp2gb2BYVLA94u1uogfyP3oRU3jUjfE",
-		WithdrawAddress: "PGXJmgaRKCDFdiFD9hKNaYxJqsz3W1d7Yi",
+		SecondExAddress: "",
+		WithdrawAddress: "PPrZjyLZqUazGaTGjrMmLMLg6FCRHVpypg",
 	}
 
 	orderBTCDASH = hestia.AdrestiaOrder{
@@ -142,9 +142,9 @@ var (
 		HETxId:          "",
 		EETxId:          "",
 		EHTxId:          "",
-		FirstExAddress:  "XuVmLDmUHZCjaSjm8KfXkGVhRG8fVC3Jis",
-		SecondExAddress: "34KSp2gb2BYVLA94u1uogfyP3oRU3jUjfE",
-		WithdrawAddress: "PGXJmgaRKCDFdiFD9hKNaYxJqsz3W1d7Yi",
+		FirstExAddress:  "157kMZrgThAmHrvinRLP4RKPC5AU4KdYKt",
+		SecondExAddress: "",
+		WithdrawAddress: "XuXMhik3Q5osBLqcWRj3JrNus3V5Ntnesd",
 	}
 )
 
@@ -157,7 +157,7 @@ func init() {
 func TestGetAddress(t *testing.T) {
 	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
 	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_URL")}
-	fmt.Println(plutus.GetAddress("DASH"))
+	fmt.Println(plutus.GetAddress("POLIS"))
 }
 
 func TestSendToExchange(t *testing.T) {
@@ -178,7 +178,7 @@ func TestSendToExchange(t *testing.T) {
 func TestBalance(t *testing.T) {
 	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
 	plutus := services.PlutusRequests{Obol: &oboli}
-	bal, err := plutus.GetWalletBalance("POLIS")
+	bal, err := plutus.GetWalletBalance("BTC")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -194,6 +194,11 @@ func TestTestData(t *testing.T) {
 	fmt.Println(id)
 
 	id, err = utils.CreateTestOrder(orderDASHPOLIS)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(id)
+	id, err = utils.CreateTestOrder(orderBTCDASH)
 	if err != nil {
 		fmt.Println(err)
 	}

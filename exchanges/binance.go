@@ -62,16 +62,6 @@ func (b *Binance) GetName() (string, error) {
 }
 
 func (b *Binance) GetAddress(coin coins.Coin) (string, error) {
-	/*var addresses = make(map[string]string)
-	addresses["DASH"] = "XuVmLDmUHZCjaSjm8KfXkGVhRG8fVC3Jis"
-	addresses["XZC"] = "aJUE5rLmGvSu9ThnWzUu4TpYgKPPgfbCAy"
-	addresses["LTC"] = "LPZom4L6oTJ3JkRDJz6EYkdg9Bga9VrFFL"
-	addresses["GRS"] = "FjC2vAtjhdPeWfjsKGxoxrfxEJw5KWNNmR"
-	addresses["BTC"] = "157kMZrgThAmHrvinRLP4RKPC5AU4KdYKt"
-
-	if val, ok := addresses[strings.ToUpper(coin.Tag)]; ok {
-		return val, nil
-	}*/
 	address, err := b.binanceApi.DepositAddress(binance.AddressRequest{
 		Asset: "btc",
 		//RecvWindow: 5 * time.Second,
@@ -234,17 +224,29 @@ func (b *Binance) SellAtMarketPrice(order hestia.ExchangeOrder) (string, error) 
 			NewOrderRespType: binance.RespTypeFull,
 		})
 	} else {
-		if order.Side == "sell" {
+		var amount float64
+		if order.Side == "buy" { // We know that quoteOrders are not available
+			avgPrice, err := b.binanceApi.AveragePrice(order.Symbol)
+			if err != nil {
+				l.Println("Error - binance - SellAtMarketPrice - " + err.Error())
+				return "", err
+			}
+			price, err := strconv.ParseFloat(avgPrice.Price, 64)
+			if err != nil {
+				l.Println("Error - binance - SellAtMarketPrice - " + err.Error())
+				return "", err
+			}
+			side = binance.SideBuy
+			amount = order.Amount / price
+		} else {
 			side = binance.SideSell
-		} else { // We know it's a buy but quoteOrders are not available
-			//avgPrice := b.binanceApi.AveragePrice(order.Symbol)
-
+			amount = order.Amount
 		}
 		newOrder, err = b.binanceApi.NewOrder(binance.NewOrderRequest{
 			Symbol:           order.Symbol,
 			Side:             side,
 			Type:             binance.TypeMarket,
-			Quantity:         order.Amount,
+			Quantity:         amount,
 			Timestamp:        time.Now(),
 			NewOrderRespType: binance.RespTypeFull,
 		})
@@ -349,7 +351,7 @@ func (b *Binance) isQuoteOrderAvailable(symbol string) (bool, error) {
 	symbol = strings.ToLower(symbol)
 
 	for _, market := range info.Symbols {
-		if strings.ToLower(market.symbol) == symbol {
+		if strings.ToLower(market.Symbol) == symbol {
 			return market.QuoteOrderQtyMarketAllowed, nil
 		}
 	}

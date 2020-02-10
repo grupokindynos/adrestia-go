@@ -10,7 +10,7 @@ import (
 	l "log"
 	"os"
 	"testing"
-	"time"
+	//"time"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -48,10 +48,10 @@ func TestBinanceAPI(t *testing.T) {
 	)
 	binanceApi := binance.NewBinance(binanceService)
 
-	withdrawals, err := binanceApi.WithdrawHistory(binance.HistoryRequest{
-		Asset:     "btc",
-		Timestamp: time.Now(),
-	})
+	// withdrawals, err := binanceApi.WithdrawHistory(binance.HistoryRequest{
+	// 	Asset:     "btc",
+	// 	Timestamp: time.Now(),
+	// })
 
 	// withdrawal, err := binanceApi.Withdraw(binance.WithdrawRequest{
 	// 	Asset:      strings.ToLower("DASH"),
@@ -78,7 +78,8 @@ func TestBinanceAPI(t *testing.T) {
 	// 	Timestamp: time.Now(),
 	// })
 
-	avgPrice, err := binanceApi.AveragePrice("DASHBTC")
+	// avgPrice, err := binanceApi.AveragePrice("DASHBTC")
+	res, err := binanceApi.ExchangeInfo()
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -91,7 +92,7 @@ func TestBinanceAPI(t *testing.T) {
 	// 	}
 	// }
 	//fmt.Println(newOrder)
-	fmt.Printf("%+v\n", avgPrice)
+	fmt.Printf("%+v\n", res)
 	//fmt.Printf("%+v\n", res)
 	//fmt.Printf("%+v\n", withdrawals)
 }

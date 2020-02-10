@@ -219,6 +219,7 @@ func handleConversion(wg *sync.WaitGroup) {
 					log.Println("Withdraw Id")
 					log.Println(txid)
 					// Give time to the exchange to generate withdraw info.
+					//time.Sleep(6 * time.Minute)
 					time.Sleep(10 * time.Second)
 					txHash, err := exchange.GetWithdrawalTxHash(txid, coin.Info.Tag, order.SecondExAddress, currExOrder.ReceivedAmount)
 					if err != nil {
@@ -270,6 +271,7 @@ func handleCompletedExchange(wg *sync.WaitGroup) {
 			continue
 		}
 		// Give time to the exchange to generate withdraw info.
+		// time.Sleep(6 * time.Minute)
 		time.Sleep(10 * time.Second)
 		txHash, err := exchange.GetWithdrawalTxHash(txId, coin.Info.Tag, order.WithdrawAddress, exchangeOrder.ReceivedAmount)
 		if err != nil {

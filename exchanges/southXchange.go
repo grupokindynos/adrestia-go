@@ -118,6 +118,7 @@ func (s *SouthXchange) GetBalances() ([]balance.Balance, error) {
 }
 
 func (s *SouthXchange) SellAtMarketPrice(order hestia.ExchangeOrder) (string, error) {
+	log.Println("Entra south sell")
 	l, r := order.GetTradingPair()
 	var res string
 	var err error
@@ -129,6 +130,8 @@ func (s *SouthXchange) SellAtMarketPrice(order hestia.ExchangeOrder) (string, er
 		if err != nil {
 			return "", err
 		}
+		fmt.Printf("%+v\n", price)
+		log.Println(l + r)
 		buyAmount := order.Amount / price.Bid
 		log.Println("Buy Amount")
 		log.Println(buyAmount)

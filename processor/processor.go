@@ -145,15 +145,22 @@ func handleExchange(wg *sync.WaitGroup) {
 				log.Println(err)
 				continue
 			}
+			log.Println("148")
+			log.Println(ex.GetName())
 			status, err = ex.GetDepositStatus(order.EETxId, "BTC")
 			if err != nil {
 				log.Println("141 " + err.Error())
 				continue
 			}
+			log.Println("received deposit status")
+			log.Println(status)
 		}
 		if status.Status == hestia.ExchangeStatusCompleted {
+			log.Println("Entra status completed")
 			order.FinalOrder.Amount = status.AvailableAmount
+			log.Println("A la mitad")
 			orderId, err := ex.SellAtMarketPrice(order.FinalOrder)
+			log.Println("Sale sell market price")
 			if err != nil {
 				log.Println(err)
 				continue
@@ -182,25 +189,27 @@ func handleWithdrawal(wg *sync.WaitGroup) {
 	orders := append(ordersFirstWithdrawal, ordersSecondWithdrawal...)
 
 	var currExOrder *hestia.ExchangeOrder
-	var withdrawalId *string
+	var withdrawalId string
 	var withdrawalAddress string
+	var toExchange bool
 	var nextState hestia.AdrestiaStatus
 
 	for _, order := range orders {
 		if order.Status == hestia.AdrestiaStatusFirstWithdrawal {
 			currExOrder = &order.FirstOrder
 			if order.DualExchange {
-				withdrawalId = &order.EETxId
+				toExchange = true
+				withdrawalId = order.EETxId
 				withdrawalAddress = order.SecondExAddress
 				nextState = hestia.AdrestiaStatusSecondExchange
 			} else {
-				withdrawalId = &order.EHTxId
+				withdrawalId = order.EHTxId
 				withdrawalAddress = order.WithdrawAddress
 				nextState = hestia.AdrestiaStatusCompleted
 			}
 		} else {
 			currExOrder = &order.FinalOrder
-			withdrawalId = &order.EHTxId
+			withdrawalId = order.EHTxId
 			withdrawalAddress = order.WithdrawAddress
 			nextState = hestia.AdrestiaStatusCompleted
 		}
@@ -217,13 +226,18 @@ func handleWithdrawal(wg *sync.WaitGroup) {
 			continue
 		}
 
-		txHash, err := exchange.GetWithdrawalTxHash(*withdrawalId, coin.Info.Tag, withdrawalAddress, currExOrder.ReceivedAmount)
+		txHash, err := exchange.GetWithdrawalTxHash(withdrawalId, coin.Info.Tag, withdrawalAddress, currExOrder.ReceivedAmount)
+		log.Println(currExOrder.Exchange + " - tx hash - " + txHash)
 		if err != nil {
 			log.Println(err)
 			continue
 		}
 		if txHash != "" {
-			withdrawalId = &txHash
+			if toExchange {
+				order.EETxId = txHash
+			} else {
+				order.EHTxId = txHash
+			}
 			changeOrderStatus(order, nextState)
 		}
 	}
@@ -271,7 +285,7 @@ func handleConversion(wg *sync.WaitGroup) {
 					}
 					txid, err := exchange.Withdraw(*coin, order.SecondExAddress, currExOrder.ReceivedAmount)
 					if err != nil {
-						fmt.Println(err)
+						fmt.Println(currExOrder.Exchange + " " + err.Error())
 						continue
 					}
 					log.Println("Withdraw Id")

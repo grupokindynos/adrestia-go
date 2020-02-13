@@ -10,7 +10,7 @@ import (
 )
 
 type ExchangeFactory struct {
-	exchangesMp map[string]IExchange
+	params Params
 }
 
 func NewExchangeFactory(params Params) *ExchangeFactory {
@@ -18,35 +18,30 @@ func NewExchangeFactory(params Params) *ExchangeFactory {
 		panic("you need .env at the root of adrestia-go/")
 	}
 
-	BinanceInstance := NewBinance(params)
-	BitsoInstance := NewBitso(params)
-	SouthInstance := NewSouthXchange(params)
-
 	exFactory := new(ExchangeFactory)
-
-	exFactory.exchangesMp = map[string]IExchange{
-		"binance":      BinanceInstance,
-		"bitso":        BitsoInstance,
-		"southxchange": SouthInstance,
-	}
+	exFactory.params = params
 
 	return exFactory
 }
 
+func (e *ExchangeFactory) createInstance(name string) (IExchange, error) {
+	var exName = strings.ToLower(name)
+	if exName == "binance" {
+		return NewBinance(e.params), nil
+	} else if exName == "southxchange" {
+		return NewSouthXchange(e.params), nil
+	} else if exName == "bitso" {
+		return NewBitso(e.params), nil
+	} else {
+		return nil, errors.New("exchange not found for " + exName)
+	}
+}
+
 func (e *ExchangeFactory) GetExchangeByCoin(coin coins.Coin) (IExchange, error) {
 	coinInfo, _ := coinfactory.GetCoin(coin.Info.Tag)
-	exchange, ok := e.exchangesMp[coinInfo.Rates.Exchange]
-	if !ok {
-		return nil, errors.New("exchange not found for " + coin.Info.Tag)
-	}
-	return exchange, nil
+	return e.createInstance(coinInfo.Rates.Exchange)
 }
 
 func (e *ExchangeFactory) GetExchangeByName(name string) (IExchange, error) {
-	var exName = strings.ToLower(name)
-	exchange, ok := e.exchangesMp[exName]
-	if !ok {
-		return nil, errors.New("exchange" + name + " not found")
-	}
-	return exchange, nil
+	return e.createInstance(name)
 }

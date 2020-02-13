@@ -104,6 +104,8 @@ func (b *Binance) GetDepositStatus(txid string, asset string) (orderStatus hesti
 	}
 	for _, deposit := range deposits {
 		if deposit.TxID == txid {
+			l.Println("Deposit")
+			l.Println(deposit)
 			switch deposit.Status {
 			case 0:
 				return

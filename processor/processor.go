@@ -55,11 +55,12 @@ func Start() {
 	}
 
 	var wg sync.WaitGroup
-	wg.Add(5)
+	wg.Add(6)
 	//wg.Add(1)
 	go handleCreatedOrders(&wg)
 	go handleExchange(&wg)
 	go handleConversion(&wg)
+	go handleWithdrawal(&wg)
 	go handleCompletedExchange(&wg)
 	go handleCompleted(&wg)
 	wg.Wait()
@@ -110,8 +111,8 @@ func handleExchange(wg *sync.WaitGroup) {
 			log.Println("117 " + err.Error())
 			continue
 		}
+		log.Println(status)
 		if status.Status == hestia.ExchangeStatusCompleted {
-			log.Println(status)
 			order.FirstOrder.Amount = status.AvailableAmount
 			orderId, err := ex.SellAtMarketPrice(order.FirstOrder)
 			if err != nil {
@@ -172,6 +173,63 @@ func handleExchange(wg *sync.WaitGroup) {
 	fmt.Println("Finished handleExchange")
 }
 
+func handleWithdrawal(wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	ordersFirstWithdrawal := getOrders(hestia.AdrestiaStatusFirstWithdrawal) // waiting for withdrawal
+	ordersSecondWithdrawal := getOrders(hestia.AdrestiaStatusSecondWithdrawal)
+
+	orders := append(ordersFirstWithdrawal, ordersSecondWithdrawal...)
+
+	var currExOrder *hestia.ExchangeOrder
+	var withdrawalId *string
+	var withdrawalAddress string
+	var nextState hestia.AdrestiaStatus
+
+	for _, order := range orders {
+		if order.Status == hestia.AdrestiaStatusFirstWithdrawal {
+			currExOrder = &order.FirstOrder
+			if order.DualExchange {
+				withdrawalId = &order.EETxId
+				withdrawalAddress = order.SecondExAddress
+				nextState = hestia.AdrestiaStatusSecondExchange
+			} else {
+				withdrawalId = &order.EHTxId
+				withdrawalAddress = order.WithdrawAddress
+				nextState = hestia.AdrestiaStatusCompleted
+			}
+		} else {
+			currExOrder = &order.FinalOrder
+			withdrawalId = &order.EHTxId
+			withdrawalAddress = order.WithdrawAddress
+			nextState = hestia.AdrestiaStatusCompleted
+		}
+
+		coin, err := cf.GetCoin(currExOrder.ReceivedCurrency)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		exchange, err := proc.ExchangeFactory.GetExchangeByName(currExOrder.Exchange)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		txHash, err := exchange.GetWithdrawalTxHash(*withdrawalId, coin.Info.Tag, withdrawalAddress, currExOrder.ReceivedAmount)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		if txHash != "" {
+			withdrawalId = &txHash
+			changeOrderStatus(order, nextState)
+		}
+	}
+	log.Println("handleWithdrawal completed")
+}
+
 func handleConversion(wg *sync.WaitGroup) {
 	defer wg.Done()
 
@@ -218,18 +276,14 @@ func handleConversion(wg *sync.WaitGroup) {
 					}
 					log.Println("Withdraw Id")
 					log.Println(txid)
-					// Give time to the exchange to generate withdraw info.
-					//time.Sleep(6 * time.Minute)
-					time.Sleep(10 * time.Second)
-					txHash, err := exchange.GetWithdrawalTxHash(txid, coin.Info.Tag, order.SecondExAddress, currExOrder.ReceivedAmount)
-					if err != nil {
-						log.Println(err)
-						return
-					}
-					order.EETxId = txHash
+
+					order.EETxId = txid
+					order.FinalOrder.CreatedTime = time.Now().Unix()
+					changeOrderStatus(order, hestia.AdrestiaStatusFirstWithdrawal)
+				} else {
+					order.FinalOrder.CreatedTime = time.Now().Unix()
+					changeOrderStatus(order, hestia.AdrestiaStatusSecondExchange)
 				}
-				order.FinalOrder.CreatedTime = time.Now().Unix()
-				changeOrderStatus(order, hestia.AdrestiaStatusSecondExchange)
 			} else {
 				changeOrderStatus(order, hestia.AdrestiaStatusExchangeComplete)
 			}
@@ -247,12 +301,15 @@ func handleCompletedExchange(wg *sync.WaitGroup) {
 	defer wg.Done()
 	orders := getOrders(hestia.AdrestiaStatusExchangeComplete)
 	var exchangeOrder hestia.ExchangeOrder
+	var nextState hestia.AdrestiaStatus
 
 	for _, order := range orders {
 		if order.DualExchange {
 			exchangeOrder = order.FinalOrder
+			nextState = hestia.AdrestiaStatusSecondWithdrawal
 		} else {
 			exchangeOrder = order.FirstOrder
+			nextState = hestia.AdrestiaStatusFirstWithdrawal
 		}
 		exchange, err := proc.ExchangeFactory.GetExchangeByName(exchangeOrder.Exchange)
 		if err != nil {
@@ -270,17 +327,10 @@ func handleCompletedExchange(wg *sync.WaitGroup) {
 			fmt.Println(err)
 			continue
 		}
-		// Give time to the exchange to generate withdraw info.
-		// time.Sleep(6 * time.Minute)
-		time.Sleep(10 * time.Second)
-		txHash, err := exchange.GetWithdrawalTxHash(txId, coin.Info.Tag, order.WithdrawAddress, exchangeOrder.ReceivedAmount)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		order.EHTxId = txHash
+
+		order.EHTxId = txId
 		order.FulfilledTime = time.Now().Unix()
-		changeOrderStatus(order, hestia.AdrestiaStatusCompleted)
+		changeOrderStatus(order, nextState)
 	}
 
 	fmt.Println("Finished handleCompletedExchange")

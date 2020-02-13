@@ -28,6 +28,7 @@ type CurrentTime struct {
 
 var currTime CurrentTime
 var hestiaEnv string
+var plutusEnv string
 
 func init() {
 	if err := godotenv.Load(); err != nil {
@@ -43,8 +44,10 @@ func main() {
 	// If flag was set, change the hestia request url to be local
 	if *localRun {
 		hestiaEnv = "HESTIA_LOCAL_URL"
+		plutusEnv = "PLUTUS_LOCAL_URL"
 	} else {
 		hestiaEnv = "HESTIA_PRODUCTION_URL"
+		plutusEnv = "PLUTUS_PRODUCTION_URL"
 	}
 
 	obolService := obol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
@@ -52,18 +55,20 @@ func main() {
 		Obol: &obolService,
 	}
 	params := exchanges.Params{
-		Plutus:          &services.PlutusRequests{Obol: &obolService, PlutusURL: os.Getenv("PLUTUS_URL")},
+		Plutus:          &services.PlutusRequests{Obol: &obolService, PlutusURL: os.Getenv(plutusEnv)},
 		Hestia:          &services.HestiaRequests{HestiaURL: os.Getenv(hestiaEnv)},
 		Obol:            &obolService,
 		ExchangeFactory: exchanges.NewExchangeFactory(factoryParams),
 	}
 	processor.InitProcessor(params)
+	processor.Start()
 
 	timer()
 }
 
 func timer() {
-	ticker := time.NewTicker(30 * time.Second)
+	ticker := time.NewTicker(10 * time.Minute)
+	//ticker := time.NewTicker(10 * time.Second)
 	go func() {
 		for _ = range ticker.C {
 			processor.Start()

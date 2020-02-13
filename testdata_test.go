@@ -162,11 +162,11 @@ func TestGetAddress(t *testing.T) {
 
 func TestSendToExchange(t *testing.T) {
 	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
-	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_URL")}
+	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_PRODUCTION_URL")}
 	res, err := plutus.WithdrawToAddress(plutus2.SendAddressBodyReq{
-		Address: "XeLQqhtB6MwqerQMdDXptcjFf6UHuvVET3",
+		Address: "XjcPeT5AhGjoXdxuxwUwzaJE7SBbDKxyWG",
 		Coin:    "DASH",
-		Amount:  0.1,
+		Amount:  0.152670,
 	})
 	if err != nil {
 		fmt.Println(err)

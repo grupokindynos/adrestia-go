@@ -101,6 +101,7 @@ func (p *PlutusRequests) GetAddress(coin string) (string, error) {
 }
 
 func (p *PlutusRequests) WithdrawToAddress(body plutus.SendAddressBodyReq) (txId string, err error) {
+	fmt.Printf("%+v\n", body)
 	req, err := mvt.CreateMVTToken("POST", p.PlutusURL+"/send/address", "adrestia", os.Getenv("MASTER_PASSWORD"), body, os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
 	if err != nil {
 		return txId, err

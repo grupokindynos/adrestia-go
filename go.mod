@@ -11,10 +11,11 @@ require (
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang/mock v1.3.1
+	github.com/golang/protobuf v1.3.3 // indirect
 	github.com/google/go-querystring v1.0.0
 	github.com/gookit/color v1.2.0
 	github.com/gorilla/websocket v1.4.1 // indirect
-	github.com/grupokindynos/common v0.0.0-20200207160011-818e4a563988
+	github.com/grupokindynos/common v0.0.0-20200213161042-b495efc9146d
 	github.com/grupokindynos/go-binance v0.0.0-20200210180220-218257ed04be
 	github.com/grupokindynos/gobitso v0.7.3
 	github.com/joho/godotenv v1.3.0
@@ -26,7 +27,8 @@ require (
 	github.com/olympus-protocol/ogen v0.0.0-20200122021631-c3b68757d5f7 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
-	golang.org/x/sys v0.0.0-20200124204421-9fbb57f87de9 // indirect
+	golang.org/x/crypto v0.0.0-20200210222208-86ce3cb69678 // indirect
+	golang.org/x/sys v0.0.0-20200202164722-d101bd2416d5 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0 // indirect
 	gopkg.in/square/go-jose.v2 v2.4.1 // indirect

@@ -275,6 +275,9 @@ func (b *Binance) Withdraw(coin coins.Coin, address string, amount float64) (str
 	if err != nil || !withdrawal.Success {
 		l.Println(fmt.Sprintf("[Withdraw] Binance failed to withdraw %s", err))
 		l.Println(fmt.Sprintf("Msg response: " + withdrawal.Msg))
+		if err == nil {
+			return "", errors.New(withdrawal.Msg)
+		}
 		return "", err
 	}
 

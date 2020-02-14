@@ -268,18 +268,17 @@ func (s *SouthXchange) getAvailableAmount(order hestia.ExchangeOrder) (float64, 
 		return 0, err
 	}
 
-	var tradeId int
 	availableAmount := 0.0
+	set := make(map[int]bool)
 
 	for _, tx := range txs {
-		if tx.OrderCode != order.OrderId {
-			tradeId = tx.TradeId
-			break
+		if tx.OrderCode == order.OrderId {
+			set[tx.TradeId] = true
 		}
 	}
 
 	for _, tx := range txs {
-		if tx.TradeId == tradeId {
+		if set[tx.TradeId] {
 			availableAmount += tx.Amount
 		}
 	}

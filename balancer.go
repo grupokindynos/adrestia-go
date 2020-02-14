@@ -1,6 +1,14 @@
+/*
+	Process Description
+	Check for wallets with superavits, send remaining to exchange conversion to bTC and then send to HW.
+	Use exceeding balance in HW (or a new bTC WALLET that solely fits this purpose) to balance other wallets
+	in exchanges (should convert and withdraw to an address stored in Firestore).
+*/
+
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -43,22 +51,32 @@ func getExchangeOrder(exchange exchanges.IExchange, fromCoin string, toCoin stri
 	return exchangeOrder, nil
 }
 
-func main() {
-	fmt.Println("OBOL URL", os.Getenv("OBOL_URL"))
-	hestiaService := services.HestiaRequests{}
-	obolService := obol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
-	plutusService := services.PlutusRequests{Obol: &obolService}
-	exFactory := exchanges.NewExchangeFactory(exchanges.Params{Obol: &obolService})
-	color.Info.Tips("Program Started")
-	/*
-		Process Description
-		Check for wallets with superavits, send remaining to exchange conversion to bTC and then send to HW.
-		Use exceeding balance in HW (or a new bTC WALLET that solely fits this purpose) to balance other wallets
-		in exchanges (should convert and withdraw to an address stored in Firestore).
-	*/
-	// TODO Disable and Enable Shift at start and re-enable ending of the process
+var (
+	hestiaEnv string
+	plutusEnv string
+)
 
-	// TODO This should be the last process, accounting for moved orders
+func main() {
+	// Read input flag
+	localRun := flag.Bool("local", false, "set this flag to run adrestia with local db")
+	flag.Parse()
+
+	// If flag was set, change the hestia request url to be local
+	if *localRun {
+		hestiaEnv = "HESTIA_LOCAL_URL"
+		plutusEnv = "PLUTUS_LOCAL_URL"
+	} else {
+		hestiaEnv = "HESTIA_PRODUCTION_URL"
+		plutusEnv = "PLUTUS_PRODUCTION_URL"
+	}
+
+	hestiaService := services.HestiaRequests{HestiaURL: os.Getenv(hestiaEnv)}
+	obolService := obol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
+	plutusService := services.PlutusRequests{Obol: &obolService, PlutusURL: os.Getenv(plutusEnv)}
+	exFactory := exchanges.NewExchangeFactory(exchanges.Params{Obol: &obolService})
+
+	color.Info.Tips("Program Started")
+
 	confHestia, err := hestiaService.GetAdrestiaCoins()
 	fmt.Println(confHestia)
 	var balances = plutusService.GetWalletBalances(confHestia) // Gets balance from Hot Wallets
@@ -150,7 +168,6 @@ func main() {
 			WithdrawAddress: hwAddress,
 		}
 
-		// symbol side exchange name ReferenceCurrency listingCurrency
 		_, err = hestiaService.CreateAdrestiaOrder(order)
 		if err != nil {
 			fmt.Println(err)

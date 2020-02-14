@@ -3,6 +3,13 @@ package services
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/gookit/color"
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	coinfactory "github.com/grupokindynos/common/coin-factory"
@@ -11,12 +18,6 @@ import (
 	"github.com/grupokindynos/common/plutus"
 	"github.com/grupokindynos/common/tokens/mrt"
 	"github.com/grupokindynos/common/tokens/mvt"
-	"io/ioutil"
-	"log"
-	"net/http"
-	"os"
-	"strings"
-	"time"
 )
 
 type PlutusRequests struct {
@@ -33,7 +34,7 @@ func (p *PlutusRequests) GetWalletBalances(availableCoins []hestia.Coin) []balan
 		if err != nil {
 			continue
 		}
-		res, err := plutus.GetWalletBalance(os.Getenv("PLUTUS_URL"), strings.ToLower(coinInfo.Info.Tag), os.Getenv("ADRESTIA_PRIV_KEY"), "adrestia", os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
+		res, err := plutus.GetWalletBalance(p.PlutusURL, strings.ToLower(coinInfo.Info.Tag), os.Getenv("ADRESTIA_PRIV_KEY"), "adrestia", os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
 		if err != nil {
 			fmt.Println(fmt.Sprintf("Plutus Service Error for %s: %v", coinInfo.Info.Tag, err))
 		} else {
@@ -42,6 +43,7 @@ func (p *PlutusRequests) GetWalletBalances(availableCoins []hestia.Coin) []balan
 			b.ConfirmedBalance = res.Confirmed
 			b.UnconfirmedBalance = res.Unconfirmed
 			b.Ticker = coinInfo.Info.Tag
+			b.Target
 			rawBalances = append(rawBalances, b)
 			fmt.Println(fmt.Sprintf("%.8f %s\t of a total of %.8f\t%.2f%%", b.ConfirmedBalance, b.Ticker, b.ConfirmedBalance+b.UnconfirmedBalance, b.GetConfirmedProportion()))
 		}
@@ -77,7 +79,7 @@ func (p *PlutusRequests) GetWalletBalance(ticker string) (res plutus.Balance, er
 		fmt.Println("error jasdbsaisd")
 		return
 	}
-	res, err = plutus.GetWalletBalance(os.Getenv("PLUTUS_URL"), strings.ToLower(coinInfo.Info.Tag), os.Getenv("ADRESTIA_PRIV_KEY"), "adrestia", os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
+	res, err = plutus.GetWalletBalance(p.PlutusURL, strings.ToLower(coinInfo.Info.Tag), os.Getenv("ADRESTIA_PRIV_KEY"), "adrestia", os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
 	if err != nil {
 		fmt.Println(fmt.Sprintf("Plutus Service Error for %s: %v", coinInfo.Info.Tag, err))
 	}
@@ -85,7 +87,7 @@ func (p *PlutusRequests) GetWalletBalance(ticker string) (res plutus.Balance, er
 }
 
 func (p *PlutusRequests) GetBtcAddress() (string, error) {
-	address, err := plutus.GetWalletAddress(os.Getenv("PLUTUS_URL"), "btc", os.Getenv("ADRESTIA_PRIV_KEY"), "adrestia", os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
+	address, err := plutus.GetWalletAddress(p.PlutusURL, "btc", os.Getenv("ADRESTIA_PRIV_KEY"), "adrestia", os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
 	if err != nil {
 		return "", err
 	}
@@ -142,6 +144,6 @@ func (p *PlutusRequests) WithdrawToAddress(body plutus.SendAddressBodyReq) (txId
 }
 
 func (p *PlutusRequests) GetWalletTx(coin string, txId string) (transaction plutus.Transaction, err error) {
-	transaction, err = plutus.GetWalletTX(os.Getenv("PLUTUS_URL"), strings.ToLower(coin), strings.ToLower(txId), os.Getenv("ADRESTIA_PRIV_KEY"), "adrestia", os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
+	transaction, err = plutus.GetWalletTX(p.PlutusURL, strings.ToLower(coin), strings.ToLower(txId), os.Getenv("ADRESTIA_PRIV_KEY"), "adrestia", os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
 	return
 }

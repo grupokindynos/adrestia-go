@@ -36,6 +36,7 @@ func TestSouthAPI(t *testing.T) {
 	for _, tx := range txs {
 		fmt.Printf("%+v\n", tx)
 	}
+	//3ANOQ16U
 
 	//price, err := southClient.GetMarketPrice("POLIS", "BTC")
 

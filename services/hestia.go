@@ -3,16 +3,17 @@ package services
 import (
 	"encoding/json"
 	"errors"
-	"github.com/google/go-querystring/query"
-	"github.com/grupokindynos/adrestia-go/models/adrestia"
-	"github.com/grupokindynos/common/hestia"
-	"github.com/grupokindynos/common/tokens/mrt"
-	"github.com/grupokindynos/common/tokens/mvt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/google/go-querystring/query"
+	"github.com/grupokindynos/adrestia-go/models/adrestia"
+	"github.com/grupokindynos/common/hestia"
+	"github.com/grupokindynos/common/tokens/mrt"
+	"github.com/grupokindynos/common/tokens/mvt"
 )
 
 type HestiaRequests struct {
@@ -54,7 +55,7 @@ func (h *HestiaRequests) GetAdrestiaCoins() (availableCoins []hestia.Coin, err e
 	if err != nil {
 		return []hestia.Coin{}, err
 	}
-	// fmt.Println("Hestia Conf: ", response)
+	//fmt.Println("Hestia Conf: ", response)
 	for _, coin := range response {
 		if coin.Adrestia {
 			availableCoins = append(availableCoins, coin)

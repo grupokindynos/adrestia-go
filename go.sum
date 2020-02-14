@@ -79,16 +79,6 @@ github.com/gorilla/websocket v1.4.1 h1:q7AeDBpnBk8AogcD4DSag/Ukw/KV+YhzLj2bP5HvK
 github.com/gorilla/websocket v1.4.1/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/grupokindynos/common v0.0.0-20191028172931-d01cff9cfbc3 h1:CAbTLrihLSGdJnbpKkswvAVPk2HK2uk/R0fmgHGKoeA=
 github.com/grupokindynos/common v0.0.0-20191028172931-d01cff9cfbc3/go.mod h1:GUdrFqqFWFaecQtHAuQQdS0elR2mqHJAClBW98GIFzI=
-github.com/grupokindynos/common v0.0.0-20200211160006-cddcee3e87a8 h1:PaEexIkzJWoiyDnQJ0G/goklebeYQNjfZYOg28TmIvk=
-github.com/grupokindynos/common v0.0.0-20200211160006-cddcee3e87a8/go.mod h1:GuHK2gA5yF3hD5PjguSHuTf8f2xyEmdxoiFOFviyhng=
-github.com/grupokindynos/common v0.0.0-20200211170601-e79af19ac812 h1:qQzw0d+682n4vgYQGrSKH3EeyDK6V3MyoGC7C9TH1/U=
-github.com/grupokindynos/common v0.0.0-20200211170601-e79af19ac812/go.mod h1:GuHK2gA5yF3hD5PjguSHuTf8f2xyEmdxoiFOFviyhng=
-github.com/grupokindynos/common v0.0.0-20200211174551-e3911ebb67a2 h1:URgywBaIaQionTNCanLcppHo7xJryqaMNnz/sYD2IDc=
-github.com/grupokindynos/common v0.0.0-20200211174551-e3911ebb67a2/go.mod h1:GuHK2gA5yF3hD5PjguSHuTf8f2xyEmdxoiFOFviyhng=
-github.com/grupokindynos/common v0.0.0-20200213153730-c64940f38603 h1:ZmTgxgMSn+R3DIQRVV6lKygE9eXZsDV4WcmwqEh8Mns=
-github.com/grupokindynos/common v0.0.0-20200213153730-c64940f38603/go.mod h1:GuHK2gA5yF3hD5PjguSHuTf8f2xyEmdxoiFOFviyhng=
-github.com/grupokindynos/common v0.0.0-20200213161042-b495efc9146d h1:Jx0WvG+gw+M9+OfzySOGX6FS2l9F52+wa18vreQ+bpU=
-github.com/grupokindynos/common v0.0.0-20200213161042-b495efc9146d/go.mod h1:GuHK2gA5yF3hD5PjguSHuTf8f2xyEmdxoiFOFviyhng=
 github.com/grupokindynos/common v0.0.0-20200213164924-949ef43df47c h1:T3kq2ew3cNfhq1z3ogvxVeOd0FSQM5LexxgzJVW+VHg=
 github.com/grupokindynos/common v0.0.0-20200213164924-949ef43df47c/go.mod h1:GuHK2gA5yF3hD5PjguSHuTf8f2xyEmdxoiFOFviyhng=
 github.com/grupokindynos/common v0.0.0-20200214155251-4e275cfaa32d h1:vhXzvJ6gxgxuvu+WcG3DF1R7MbWBfiTiS9InQ23WATc=

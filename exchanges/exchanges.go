@@ -10,7 +10,6 @@ import (
 type IExchange interface {
 	GetName() (string, error)
 	GetAddress(coin coins.Coin) (string, error)
-	OneCoinToBtc(coin coins.Coin) (float64, error)
 	GetBalances() ([]balance.Balance, error)
 	SellAtMarketPrice(sellOrder hestia.ExchangeOrder) (string, error)
 	Withdraw(coin coins.Coin, address string, amount float64) (string, error)

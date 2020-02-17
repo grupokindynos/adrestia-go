@@ -2,8 +2,9 @@ package balance
 
 import (
 	"fmt"
-	"github.com/grupokindynos/common/hestia"
 	"log"
+
+	"github.com/grupokindynos/common/hestia"
 )
 
 type HotWalletBalances struct {
@@ -13,17 +14,17 @@ type HotWalletBalances struct {
 }
 
 type Balance struct {
-	Ticker     				string  	`json:"ticker"`
-	ConfirmedBalance    	float64 	`json:"confirmedBalance"`
-	UnconfirmedBalance  	float64 	`json:"unconfirmedBalance"`
-	Target 					float64		`json:"target"`
-	RateBTC    				float64 	`json:"rateBTC"`
-	DiffBTC   				float64 	`json:"diffBTC"`
-	IsBalanced 				bool    	`json:"isBalanced"`
+	Ticker             string  `json:"ticker"`
+	ConfirmedBalance   float64 `json:"confirmedBalance"`
+	UnconfirmedBalance float64 `json:"unconfirmedBalance"`
+	Target             float64 `json:"target"`
+	RateBTC            float64 `json:"rateBTC"`
+	DiffBTC            float64 `json:"diffBTC"`
+	IsBalanced         bool    `json:"isBalanced"`
 }
 
 func (b *Balance) GetConfirmedProportion() float64 {
-	if b.ConfirmedBalance + b.UnconfirmedBalance == 0 {
+	if b.ConfirmedBalance+b.UnconfirmedBalance == 0 {
 		return 0.0
 	}
 	return b.ConfirmedBalance * 100.0 / (b.ConfirmedBalance + b.UnconfirmedBalance)
@@ -36,7 +37,7 @@ func (b *Balance) GetBalanceInBtc(totalBalance bool) float64 {
 		otherwise it returns only the CONFIRMED balance at the exchange.
 	*/
 	if b.RateBTC == 0.0 {
-		return 0.0;
+		return 0.0
 	}
 	if totalBalance {
 		return (b.ConfirmedBalance + b.UnconfirmedBalance) * b.RateBTC
@@ -44,12 +45,12 @@ func (b *Balance) GetBalanceInBtc(totalBalance bool) float64 {
 	return b.ConfirmedBalance * b.RateBTC
 }
 
-func (b *Balance) GetTotalBalance() float64{
+func (b *Balance) GetTotalBalance() float64 {
 	return b.UnconfirmedBalance + b.ConfirmedBalance
 }
 
 func (b *Balance) GetDiff() {
-	log.Println(fmt.Sprintf("%s has %.8f as balance, a target of %.8f and a rate of %.8f", b.Ticker, b.GetTotalBalance(), b.Target, b.RateBTC))
+	log.Println(fmt.Sprintf("GetDiff() - %s has %.8f as balance, a target of %.8f and a rate of %.8f", b.Ticker, b.GetTotalBalance(), b.Target, b.RateBTC))
 	b.DiffBTC = (b.GetTotalBalance() - b.Target) * b.RateBTC
 	// TODO Update this section to account for Tx/Miner Fees
 	// Make it >= a range
@@ -64,14 +65,14 @@ func (b *Balance) SetTarget(target float64) {
 	b.Target = target
 }
 
-func (b *Balance) SetRate(rate float64){
+func (b *Balance) SetRate(rate float64) {
 	b.RateBTC = rate
 }
 
 // Sort Struct
 type ByDiff []Balance
 
-func (a ByDiff) Len() int           { return len(a) }
+func (a ByDiff) Len() int { return len(a) }
 func (a ByDiff) Less(i, j int) bool {
 	if a[i].Ticker == "BTC" {
 		return true
@@ -79,11 +80,11 @@ func (a ByDiff) Less(i, j int) bool {
 		return a[i].DiffBTC < a[j].DiffBTC
 	}
 }
-func (a ByDiff) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByDiff) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 
 type ByDiffInverse []Balance
 
-func (a ByDiffInverse) Len() int           { return len(a) }
+func (a ByDiffInverse) Len() int { return len(a) }
 func (a ByDiffInverse) Less(i, j int) bool {
 	if a[i].Ticker == "BTC" {
 		return false
@@ -92,7 +93,7 @@ func (a ByDiffInverse) Less(i, j int) bool {
 	}
 
 }
-func (a ByDiffInverse) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByDiffInverse) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 
 func (b HotWalletBalances) PrintBalances() {
 	for i, _ := range b.Data {
@@ -101,6 +102,6 @@ func (b HotWalletBalances) PrintBalances() {
 }
 
 type WalletInfoWrapper struct {
-	HotWalletBalance 	Balance
-	FirebaseConf 		hestia.Coin
+	HotWalletBalance Balance
+	FirebaseConf     hestia.Coin
 }

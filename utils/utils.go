@@ -12,18 +12,17 @@ import (
 	"github.com/grupokindynos/common/hestia"
 )
 
+// This function normalizes the wallets that were detected in Plutus and those with configuration in Hestia.
+// Returns a map of the coins' ticker as key containing a wrapper with both the actual balance of the wallet and
+// its firebase configuration.
 func NormalizeWallets(balances []balance.Balance, hestiaConf []hestia.Coin) (map[string]balance.WalletInfoWrapper, []string) {
 	var activeCoins = make(map[string]bool) // TODO Replace with Hestia call
 	activeCoins["BTC"] = true
 	activeCoins["POLIS"] = true
 	activeCoins["DASH"] = true
-	fmt.Println("balances", balances)
-	fmt.Println("hestiaConf", hestiaConf)
-	/*
-		This function normalizes the wallets that were detected in Plutus and those with configuration in Hestia.
-		Returns a map of the coins' ticker as key containing a wrapper with both the actual balance of the wallet and
-		its firebase configuration.
-	*/
+	fmt.Printf("balances %+v\n", balances)
+	fmt.Printf("hestiaConf %+v\n", hestiaConf)
+
 	var mapBalances = make(map[string]balance.Balance)
 	var mapConf = make(map[string]hestia.Coin)
 	var missingCoins []string
@@ -45,7 +44,7 @@ func NormalizeWallets(balances []balance.Balance, hestiaConf []hestia.Coin) (map
 					If the current coin is present in both the coinConfig and the acquired Balance maps,
 				 	the proceed with the wrapper creation that will handle the balancing of the coins.
 			*/
-			// fmt.Println(elem.Ticker, "\n", mapConf[elem.Ticker].Balances.HotWallet)
+			fmt.Println(elem.Ticker, "\n", mapConf[elem.Ticker].Balances.HotWallet)
 			elem.SetTarget(mapConf[elem.Ticker].Balances.HotWallet) // Final attribute for Balance class, represents the target amount in the base currency that should be present
 			if elem.Target > 0.0 {
 				if _, ok := activeCoins[elem.Ticker]; ok {
@@ -102,7 +101,7 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 		for diff > 0.0 {
 			if balanced[i].DiffBTC >= diff {
 				amountTx = diff
-				rateBTC = wallet.RateBTC
+				rateBTC = balanced[i].RateBTC
 				balanced[i].DiffBTC -= diff
 			} else {
 				amountTx = balanced[i].DiffBTC

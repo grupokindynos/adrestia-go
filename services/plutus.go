@@ -43,7 +43,6 @@ func (p *PlutusRequests) GetWalletBalances(availableCoins []hestia.Coin) []balan
 			b.ConfirmedBalance = res.Confirmed
 			b.UnconfirmedBalance = res.Unconfirmed
 			b.Ticker = coinInfo.Info.Tag
-			b.Target
 			rawBalances = append(rawBalances, b)
 			fmt.Println(fmt.Sprintf("%.8f %s\t of a total of %.8f\t%.2f%%", b.ConfirmedBalance, b.Ticker, b.ConfirmedBalance+b.UnconfirmedBalance, b.GetConfirmedProportion()))
 		}
@@ -56,12 +55,19 @@ func (p *PlutusRequests) GetWalletBalances(availableCoins []hestia.Coin) []balan
 	log.Println("Retrieving Wallet Rates...")
 	for _, coin := range rawBalances {
 		var currentBalance = coin
-		rate, err := p.Obol.GetCoin2CoinRates("btc", currentBalance.Ticker)
+		var rate float64
+		var err error
+
+		if strings.ToLower(coin.Ticker) != "btc" {
+			rate, err = p.Obol.GetCoin2CoinRates(currentBalance.Ticker, "btc")
+		} else {
+			rate = 1.0
+		}
 		if err != nil {
 			flagAllRates = true
 			errRates = append(errRates, coin.Ticker)
 		} else {
-			// fmt.Println("Rate for ", coin.Ticker, " is ", rate)
+			fmt.Println("Rate for ", coin.Ticker, " is alwats", rate)
 			currentBalance.SetRate(rate)
 			updatedBalances = append(updatedBalances, currentBalance)
 		}

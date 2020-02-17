@@ -30,7 +30,7 @@ type SouthXchange struct {
 
 func NewSouthXchange(params Params) *SouthXchange {
 	s := new(SouthXchange)
-	s.Name = "SouthXchange"
+	s.Name = "southXchange"
 	data := s.getSettings()
 	s.apiKey = data.ApiKey
 	s.apiSecret = data.ApiSecret
@@ -55,6 +55,7 @@ func (s *SouthXchange) GetAddress(coin coins.Coin) (string, error) {
 	for i := 0; i < 3; i++ { // try to get an address just 3 times
 		address, err = s.southClient.GetDepositAddress(strings.ToLower(coin.Info.Tag))
 		envTag := "SOUTH_ADDRESS_" + coin.Info.Tag
+		log.Println("address: ", address, "error: ", err)
 		if err != nil {
 			if !strings.Contains(err.Error(), "400") {
 				address = "request error"
@@ -65,28 +66,17 @@ func (s *SouthXchange) GetAddress(coin coins.Coin) (string, error) {
 				address = os.Getenv(envTag)
 				break
 			}
-			time.Sleep(90 * 1000 * time.Millisecond) // wait 90 seconds to generate a new address
-			continue
+			time.Sleep(90 * time.Second) // wait 90 seconds to generate a new address
+		} else {
+			os.Setenv(envTag, address)
+			break
 		}
-		os.Setenv(envTag, address)
-		break
 	}
 	str := string(address)
 	str = strings.Replace(str, "\\", "", -1)
 	str = strings.Replace(str, "\"", "", -1)
 	str = strings.Replace(str, "/", "", -1)
-	return str, err
-}
-
-func (s *SouthXchange) OneCoinToBtc(coin coins.Coin) (float64, error) {
-	if coin.Info.Tag == "BTC" {
-		return 1.0, nil
-	}
-	rate, err := s.Obol.GetCoin2CoinRatesWithAmount("btc", coin.Info.Tag, fmt.Sprintf("%f", 1.0))
-	if err != nil {
-		return 0.0, err
-	}
-	return rate.AveragePrice, nil
+	return str, nil
 }
 
 func (s *SouthXchange) GetBalances() ([]balance.Balance, error) {
@@ -97,8 +87,13 @@ func (s *SouthXchange) GetBalances() ([]balance.Balance, error) {
 	if err != nil {
 		return balances, err
 	}
+	var rate float64
 	for _, asset := range res {
-		rate, _ := s.Obol.GetCoin2CoinRates("BTC", asset.Currency)
+		if strings.ToLower(asset.Currency) != "btc" {
+			rate, _ = s.Obol.GetCoin2CoinRates("BTC", asset.Currency)
+		} else {
+			rate = 1.0
+		}
 		var b = balance.Balance{
 			Ticker:             asset.Currency,
 			ConfirmedBalance:   asset.Available,
@@ -248,15 +243,15 @@ func (s *SouthXchange) GetPair(fromCoin string, toCoin string) (OrderSide, error
 		}
 	}
 
-	orderSide.Book = bookName.Base + bookName.Coin
-	if bookName.Base == fromCoin {
+	orderSide.Book = bookName.Coin + bookName.Base
+	if bookName.Coin == fromCoin {
 		orderSide.Type = "sell"
-		orderSide.ReceivedCurrency = bookName.Coin
-		orderSide.SoldCurrency = bookName.Base
-	} else {
-		orderSide.Type = "buy"
 		orderSide.ReceivedCurrency = bookName.Base
 		orderSide.SoldCurrency = bookName.Coin
+	} else {
+		orderSide.Type = "buy"
+		orderSide.ReceivedCurrency = bookName.Coin
+		orderSide.SoldCurrency = bookName.Base
 	}
 
 	return orderSide, nil

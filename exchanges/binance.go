@@ -32,7 +32,7 @@ type Binance struct {
 
 func NewBinance(params Params) *Binance {
 	c := new(Binance)
-	c.Name = "Binance"
+	c.Name = "binance"
 	c.BaseUrl = ""
 	data := GetSettings()
 	var logger log.Logger
@@ -63,9 +63,7 @@ func (b *Binance) GetName() (string, error) {
 
 func (b *Binance) GetAddress(coin coins.Coin) (string, error) {
 	address, err := b.binanceApi.DepositAddress(binance.AddressRequest{
-		Asset: "btc",
-		//RecvWindow: 5 * time.Second,
-		//Status: true,
+		Asset:     strings.ToLower(coin.Info.Tag),
 		Timestamp: time.Now(),
 	})
 	if err != nil {
@@ -74,21 +72,6 @@ func (b *Binance) GetAddress(coin coins.Coin) (string, error) {
 	}
 	fmt.Println(*address)
 	return address.Address, nil
-}
-
-// TODO Missing
-func (b *Binance) OneCoinToBtc(coin coins.Coin) (float64, error) {
-	l.Println(fmt.Sprintf("[OneCoinToBtc] Calculating for %s using %s", coin.Info.Name, b.Name))
-	if coin.Info.Tag == "BTC" {
-		return 1.0, nil
-	}
-	// TODO Missing update on method, not strictly needed though
-	rate, err := b.Obol.GetCoin2CoinRatesWithAmount("btc", coin.Info.Tag, fmt.Sprintf("%f", 1.0))
-	if err != nil {
-		return 0.0, err
-	}
-	l.Println(fmt.Sprintf("[OneCoinToBtc] Calculated rate for %s as %.8f BTC per Coin", coin.Info.Name, rate))
-	return rate.AveragePrice, nil
 }
 
 func (b *Binance) GetDepositStatus(txid string, asset string) (orderStatus hestia.OrderStatus, err error) {
@@ -167,8 +150,8 @@ func (b *Binance) GetPair(fromCoin string, toCoin string) (OrderSide, error) {
 		orderSide.SoldCurrency = fromCoin
 	} else {
 		orderSide.Type = "buy"
-		orderSide.ReceivedCurrency = fromCoin
-		orderSide.SoldCurrency = toCoin
+		orderSide.ReceivedCurrency = toCoin
+		orderSide.SoldCurrency = fromCoin
 	}
 
 	return orderSide, nil
@@ -186,9 +169,13 @@ func (b *Binance) GetBalances() ([]balance.Balance, error) {
 	if err != nil {
 		return balances, err
 	}
-
+	var rate float64
 	for _, asset := range res.Balances {
-		rate, _ := b.Obol.GetCoin2CoinRates("BTC", asset.Asset)
+		if strings.ToLower(asset.Asset) != "btc" {
+			rate, _ = b.Obol.GetCoin2CoinRates("BTC", asset.Asset)
+		} else {
+			rate = 1.0
+		}
 		var b = balance.Balance{
 			Ticker:             asset.Asset,
 			ConfirmedBalance:   asset.Free,

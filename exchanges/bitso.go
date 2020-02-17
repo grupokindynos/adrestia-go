@@ -46,26 +46,19 @@ func (b *Bitso) GetAddress(coin coins.Coin) (string, error) {
 	return address.Payload.AccountIdentifier, nil
 }
 
-func (b *Bitso) OneCoinToBtc(coin coins.Coin) (float64, error) {
-	if coin.Info.Tag == "BTC" {
-		return 1.0, nil
-	}
-	rate, err := b.Obol.GetCoin2CoinRatesWithAmount("btc", coin.Info.Tag, fmt.Sprintf("%f", 1.0))
-	if err != nil {
-		return 0.0, err
-	}
-	return rate.AveragePrice, nil
-}
-
 func (b *Bitso) GetBalances() ([]balance.Balance, error) {
 	bal, err := b.bitsoService.Balances()
 	if err != nil {
 		return nil, err
 	}
 	var balances []balance.Balance
-
+	var rate float64
 	for _, asset := range bal.Payload.Balances {
-		rate, _ := b.Obol.GetCoin2CoinRates("BTC", asset.Currency)
+		if strings.ToLower(asset.Currency) != "btc" {
+			rate, _ = b.Obol.GetCoin2CoinRates("BTC", asset.Currency)
+		} else {
+			rate = 1.0
+		}
 		confirmedAmount, err := strconv.ParseFloat(asset.Available, 64)
 		unconfirmedAmount, err := strconv.ParseFloat(asset.Available, 64)
 		if err != nil {

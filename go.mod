@@ -6,17 +6,15 @@ require (
 	github.com/binance-exchange/go-binance v0.0.0-20180518133450-1af034307da5 // indirect
 	github.com/eabz/btcutil v0.0.0-20200122160855-a9a14a65b356 // indirect
 	github.com/gin-gonic/gin v1.5.0 // indirect
-	github.com/go-kit/kit v0.9.0
-	github.com/go-logfmt/logfmt v0.5.0 // indirect
+	github.com/go-kit/kit v0.10.0
 	github.com/go-playground/universal-translator v0.17.0 // indirect
-	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang/mock v1.3.1
 	github.com/golang/protobuf v1.3.3 // indirect
 	github.com/google/go-querystring v1.0.0
 	github.com/gookit/color v1.2.0
 	github.com/gorilla/websocket v1.4.1 // indirect
 	github.com/grupokindynos/common v0.0.0-20200214155251-4e275cfaa32d
-	github.com/grupokindynos/go-binance v0.0.0-20200210180220-218257ed04be
+	github.com/grupokindynos/go-binance v0.0.0-20200218200020-be83de467e5d
 	github.com/grupokindynos/gobitso v0.7.3
 	github.com/joho/godotenv v1.3.0
 	github.com/json-iterator/go v1.1.9 // indirect

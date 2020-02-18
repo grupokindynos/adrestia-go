@@ -1,16 +1,22 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"math"
+	"os"
 	"sort"
 
 	"github.com/gookit/color"
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	"github.com/grupokindynos/adrestia-go/models/transaction"
 	"github.com/grupokindynos/common/hestia"
+	cObol "github.com/grupokindynos/common/obol"
 )
+
+var obol = cObol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
+var minimumUSDTxAmount = 100.0
 
 // This function normalizes the wallets that were detected in Plutus and those with configuration in Hestia.
 // Returns a map of the coins' ticker as key containing a wrapper with both the actual balance of the wallet and
@@ -89,16 +95,26 @@ func SortBalances(data map[string]balance.WalletInfoWrapper) (balancedWallets []
 	return balancedWallets, unbalancedWallets
 }
 
-func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []transaction.PTx {
+func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) ([]transaction.PTx, error) {
 	var pendingTransactions []transaction.PTx
 	var newTx transaction.PTx
 	var amountTx float64
 	var rateBTC float64
+	rateUSD, err := getUSDRate("BTC")
+	if err != nil {
+		return pendingTransactions, err
+	}
+
 	i := 0 // Balanced wallet index
 	for _, wallet := range unbalanced {
 		log.Println("BalanceHW:: Balancing ", wallet.Ticker)
 		diff := math.Abs(wallet.DiffBTC)
-		for diff > 0.0 {
+		amountUSD := diff * rateUSD
+		for amountUSD >= minimumUSDTxAmount {
+			if balanced[i].DiffBTC*rateUSD < minimumUSDTxAmount {
+				i++
+				continue
+			}
 			if balanced[i].DiffBTC >= diff {
 				amountTx = diff
 				rateBTC = balanced[i].RateBTC
@@ -106,18 +122,36 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) []trans
 			} else {
 				amountTx = balanced[i].DiffBTC
 				rateBTC = balanced[i].RateBTC
-				i++
+				balanced[i].DiffBTC = 0.0
 			}
-
 			newTx.Amount = amountTx / rateBTC
 			newTx.ToCoin = wallet.Ticker
 			newTx.FromCoin = balanced[i].Ticker
 			newTx.BtcRate = rateBTC
 			pendingTransactions = append(pendingTransactions, newTx)
 			diff -= amountTx
+			amountUSD = diff * rateUSD
+			if balanced[i].DiffBTC == 0.0 {
+				i++
+			}
 		}
 	}
-	return pendingTransactions
+	return pendingTransactions, nil
+}
+
+func getUSDRate(coin string) (float64, error) {
+	obolRates, err := obol.GetCoinRates(coin)
+	if err != nil {
+		return 0.0, err
+	}
+
+	for _, rate := range obolRates {
+		if rate.Code == "USD" {
+			return rate.Rate, nil
+		}
+	}
+
+	return 0.0, errors.New("USD rate not found")
 }
 
 func DetermineBalanceability(balanced []balance.Balance, unbalanced []balance.Balance) (bool, float64) {

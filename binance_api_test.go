@@ -10,6 +10,7 @@ import (
 	l "log"
 	"os"
 	"testing"
+
 	//"time"
 
 	"github.com/go-kit/kit/log"
@@ -92,7 +93,11 @@ func TestBinanceAPI(t *testing.T) {
 	// 	}
 	// }
 	//fmt.Println(newOrder)
-	fmt.Printf("%+v\n", res)
+	for _, book := range res.Symbols {
+		if book.Symbol == "DASHBTC" {
+			fmt.Printf("%+v\n", book)
+		}
+	}
 	//fmt.Printf("%+v\n", res)
 	//fmt.Printf("%+v\n", withdrawals)
 }

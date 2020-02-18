@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	l "log"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -231,6 +232,13 @@ func (b *Binance) SellAtMarketPrice(order hestia.ExchangeOrder) (string, error) 
 			side = binance.SideSell
 			amount = order.Amount
 		}
+		precision, err := b.getTradePrecision(order.Symbol)
+		if err != nil {
+			return "", err
+		}
+		l.Println(amount)
+		amount = roundFixedPrecision(amount, precision)
+		l.Println(amount)
 		newOrder, err = b.binanceApi.NewOrder(binance.NewOrderRequest{
 			Symbol:           order.Symbol,
 			Side:             side,
@@ -349,6 +357,40 @@ func (b *Binance) isQuoteOrderAvailable(symbol string) (bool, error) {
 	}
 
 	return false, errors.New("symbol not found")
+}
+
+func (b *Binance) getTradePrecision(symbol string) (int, error) {
+	info, err := b.binanceApi.ExchangeInfo()
+	if err != nil {
+		return 0, err
+	}
+	symbol = strings.ToLower(symbol)
+
+	for _, market := range info.Symbols {
+		if strings.ToLower(market.Symbol) == symbol {
+			for _, filter := range market.Filters {
+				if filter.FilterType == "LOT_SIZE" {
+					step, err := strconv.ParseFloat(filter.StepSize, 64)
+					if err != nil {
+						l.Println(err)
+						return 0, err
+					}
+					return int(-math.Log10(step)), nil
+				}
+			}
+		}
+	}
+
+	return 0, errors.New("symbol not found")
+}
+
+func round(f float64) float64 {
+	return math.Floor(f + .5)
+}
+
+func roundFixedPrecision(f float64, places int) float64 {
+	shift := math.Pow(10, float64(places))
+	return round(f*shift) / shift
 }
 
 func (b *Binance) getReceivedAmount(order binance.ExecutedOrder) float64 {

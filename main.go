@@ -27,8 +27,8 @@ type CurrentTime struct {
 }
 
 var currTime CurrentTime
-var hestiaEnv string
-var plutusEnv string
+var mainHestiaEnv string
+var mainPlutusEnv string
 
 func init() {
 	if err := godotenv.Load(); err != nil {
@@ -43,11 +43,11 @@ func main() {
 
 	// If flag was set, change the hestia request url to be local
 	if *localRun {
-		hestiaEnv = "HESTIA_LOCAL_URL"
-		plutusEnv = "PLUTUS_LOCAL_URL"
+		mainHestiaEnv = "HESTIA_LOCAL_URL"
+		mainPlutusEnv = "PLUTUS_LOCAL_URL"
 	} else {
-		hestiaEnv = "HESTIA_PRODUCTION_URL"
-		plutusEnv = "PLUTUS_PRODUCTION_URL"
+		mainHestiaEnv = "HESTIA_PRODUCTION_URL"
+		mainPlutusEnv = "PLUTUS_PRODUCTION_URL"
 	}
 
 	obolService := obol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
@@ -55,8 +55,8 @@ func main() {
 		Obol: &obolService,
 	}
 	params := exchanges.Params{
-		Plutus:          &services.PlutusRequests{Obol: &obolService, PlutusURL: os.Getenv(plutusEnv)},
-		Hestia:          &services.HestiaRequests{HestiaURL: os.Getenv(hestiaEnv)},
+		Plutus:          &services.PlutusRequests{Obol: &obolService, PlutusURL: os.Getenv(mainPlutusEnv)},
+		Hestia:          &services.HestiaRequests{HestiaURL: os.Getenv(mainHestiaEnv)},
 		Obol:            &obolService,
 		ExchangeFactory: exchanges.NewExchangeFactory(factoryParams),
 	}

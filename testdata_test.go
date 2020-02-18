@@ -157,7 +157,7 @@ func init() {
 func TestGetAddress(t *testing.T) {
 	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
 	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_URL")}
-	fmt.Println(plutus.GetAddress("POLIS"))
+	fmt.Println(plutus.GetAddress("TELOS"))
 }
 
 func TestSendToExchange(t *testing.T) {

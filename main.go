@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/grupokindynos/adrestia-go/balancer"
 	"github.com/grupokindynos/adrestia-go/exchanges"
 	"github.com/grupokindynos/adrestia-go/processor"
 	"github.com/grupokindynos/adrestia-go/services"
@@ -60,23 +61,34 @@ func main() {
 		Obol:            &obolService,
 		ExchangeFactory: exchanges.NewExchangeFactory(factoryParams),
 	}
+	b := balancer.NewBalancer(params)
 	processor.InitProcessor(params)
-	processor.Start()
+	//processor.Start()
 
-	timer()
+	timerBalancer(b)
+	//timerProcessor()
+	forever()
 }
 
-func timer() {
+func timerBalancer(b balancer.Balancer) {
+	//ticker := time.NewTicker(36 * time.Hour)
+	ticker := time.NewTicker(10 * time.Second)
+	go func() {
+		for _ = range ticker.C {
+			b.StartBalancer()
+		}
+	}()
+}
+
+func timerProcessor() {
 	//ticker := time.NewTicker(10*time.Second)
 	ticker := time.NewTicker(2 * time.Minute)
-	//ticker := time.NewTicker(10 * time.Second)
+	//ticker := time.NewTicker(5 * time.Second)
 	go func() {
 		for _ = range ticker.C {
 			processor.Start()
 		}
 	}()
-
-	forever()
 }
 
 func forever() {

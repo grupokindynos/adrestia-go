@@ -11,6 +11,7 @@ import (
 	"github.com/grupokindynos/adrestia-go/exchanges"
 	"github.com/grupokindynos/adrestia-go/models/adrestia"
 	"github.com/grupokindynos/adrestia-go/services"
+	"github.com/grupokindynos/adrestia-go/telegram"
 	blockbook "github.com/grupokindynos/common/blockbook"
 	cf "github.com/grupokindynos/common/coin-factory"
 	"github.com/grupokindynos/common/hestia"
@@ -30,6 +31,7 @@ var (
 	initialized    bool
 	adrestiaOrders []hestia.AdrestiaOrder
 	blockExplorer  blockbook.BlockBook
+	telegramBot    = telegram.NewTelegramBot()
 )
 
 func InitProcessor(params exchanges.Params) {
@@ -58,7 +60,7 @@ func Start() {
 	}
 
 	var wg sync.WaitGroup
-	wg.Add(7)
+	wg.Add(6)
 	//wg.Add(1)
 	go handleCreatedOrders(&wg)
 	go handleExchange(&wg)
@@ -66,7 +68,6 @@ func Start() {
 	go handleWithdrawal(&wg)
 	go handleCompletedExchange(&wg)
 	go handlePlutusDeposit(&wg)
-	go handleCompleted(&wg)
 	wg.Wait()
 
 	fmt.Println("Adrestia Order Processor Finished")
@@ -384,23 +385,18 @@ func handlePlutusDeposit(wg *sync.WaitGroup) {
 			}
 			order.ReceivedAmount = receivedAmount
 			order.FulfilledTime = time.Now().Unix()
+			telegramBot.SendMessage(fmt.Sprintf("Change from %s to %s has been completed.\nSent %.8f and received %.8f.\nOrderId: %s", order.FromCoin, order.ToCoin, order.Amount, order.ReceivedAmount*1e-8, order.ID))
 			changeOrderStatus(order, hestia.AdrestiaStatusCompleted)
 		}
 	}
 	log.Println("Finished handlePlutusDeposit")
 }
 
-func handleCompleted(wg *sync.WaitGroup) {
-	defer wg.Done()
-	// Sends a telegram message and deletes order from CurrentOrders. Moves it to legacy table
-	fmt.Println("Finished handleCompleted")
-}
-
 func getReceivedAmount(tx blockbook.Tx, withdrawAddress string) (float64, error) {
-	for _, txVout := range tx.Vout{
+	for _, txVout := range tx.Vout {
 		for _, address := range txVout.Addresses {
 			if address == withdrawAddress {
-				value, err := strconv.ParseFloat(txVout.Value,  64)
+				value, err := strconv.ParseFloat(txVout.Value, 64)
 				if err != nil {
 					return 0.0, err
 				}

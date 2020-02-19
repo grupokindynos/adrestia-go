@@ -16,7 +16,7 @@ import (
 )
 
 var obol = cObol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
-var minimumUSDTxAmount = 100.0
+var minimumUSDTxAmount = 70.0
 
 // This function normalizes the wallets that were detected in Plutus and those with configuration in Hestia.
 // Returns a map of the coins' ticker as key containing a wrapper with both the actual balance of the wallet and

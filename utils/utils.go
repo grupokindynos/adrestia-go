@@ -15,7 +15,7 @@ import (
 	cObol "github.com/grupokindynos/common/obol"
 )
 
-var obol = cObol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
+var obol cObol.ObolRequest
 var minimumUSDTxAmount = 70.0
 
 // This function normalizes the wallets that were detected in Plutus and those with configuration in Hestia.
@@ -23,9 +23,12 @@ var minimumUSDTxAmount = 70.0
 // its firebase configuration.
 func NormalizeWallets(balances []balance.Balance, hestiaConf []hestia.Coin) (map[string]balance.WalletInfoWrapper, []string) {
 	var activeCoins = make(map[string]bool) // TODO Replace with Hestia call
-	activeCoins["BTC"] = true
-	activeCoins["POLIS"] = true
-	activeCoins["DASH"] = true
+	for _, coin := range hestiaConf {
+		if coin.Adrestia {
+			activeCoins[coin.Ticker] = true
+		}
+	}
+
 	fmt.Printf("balances %+v\n", balances)
 	fmt.Printf("hestiaConf %+v\n", hestiaConf)
 
@@ -140,6 +143,7 @@ func BalanceHW(balanced []balance.Balance, unbalanced []balance.Balance) ([]tran
 }
 
 func getUSDRate(coin string) (float64, error) {
+	obol.ObolURL = os.Getenv("OBOL_URL")
 	obolRates, err := obol.GetCoinRates(coin)
 	if err != nil {
 		return 0.0, err

@@ -42,10 +42,14 @@ func (tb *TelegramBot) SendMessage(message string) {
 	if !tb.IsWorking() {
 		return
 	}
-	tb.telegramBot.Debug = true
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 	chatId, _ := strconv.ParseInt(os.Getenv("TELEGRAM_CHAT_ID"), 10, 64)
 
 	tb.telegramBot.Send(tgbotapi.NewMessage(chatId, message))
+}
+
+func (tb *TelegramBot) SendError(message string) {
+	errorMessage := "**********ERROR**********\n" + message + "\n*************************"
+	tb.SendMessage(errorMessage)
 }

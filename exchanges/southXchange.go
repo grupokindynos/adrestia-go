@@ -2,7 +2,6 @@ package exchanges
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"math"
 	"os"
@@ -12,7 +11,6 @@ import (
 	"github.com/grupokindynos/adrestia-go/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
 	"github.com/grupokindynos/adrestia-go/models/transaction"
-	"github.com/grupokindynos/adrestia-go/utils"
 	"github.com/grupokindynos/common/coin-factory/coins"
 	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/obol"
@@ -55,10 +53,9 @@ func (s *SouthXchange) GetAddress(coin coins.Coin) (string, error) {
 	for i := 0; i < 3; i++ { // try to get an address just 3 times
 		address, err = s.southClient.GetDepositAddress(strings.ToLower(coin.Info.Tag))
 		envTag := "SOUTH_ADDRESS_" + coin.Info.Tag
-		log.Println("address: ", address, "error: ", err)
 		if err != nil {
 			if !strings.Contains(err.Error(), "400") {
-				address = "request error"
+				address = "southxchange address request error"
 				break
 			}
 
@@ -80,11 +77,10 @@ func (s *SouthXchange) GetAddress(coin coins.Coin) (string, error) {
 }
 
 func (s *SouthXchange) GetBalances() ([]balance.Balance, error) {
-	str := fmt.Sprintf("[GetBalances] Retrieving Balances for coins at %s", s.Name)
-	log.Println(str)
 	var balances []balance.Balance
 	res, err := s.southClient.GetBalances()
 	if err != nil {
+		log.Println("south - GetBalances - GetBalances() - ", err.Error())
 		return balances, err
 	}
 	var rate float64
@@ -107,13 +103,10 @@ func (s *SouthXchange) GetBalances() ([]balance.Balance, error) {
 		}
 
 	}
-	str = utils.GetBalanceLog(balances, s.Name)
-	log.Println(str)
 	return balances, nil
 }
 
 func (s *SouthXchange) SellAtMarketPrice(order hestia.ExchangeOrder) (string, error) {
-	log.Println("Entra south sell")
 	l, r := order.GetTradingPair()
 	var res string
 	var err error
@@ -123,13 +116,10 @@ func (s *SouthXchange) SellAtMarketPrice(order hestia.ExchangeOrder) (string, er
 		orderType = south.Buy
 		price, err := s.southClient.GetMarketPrice(l, r)
 		if err != nil {
+			log.Println("south - SellAtMarketPrice - GetMarketPrice - ", err.Error())
 			return "", err
 		}
-		fmt.Printf("%+v\n", price)
-		log.Println(l + r)
 		buyAmount := order.Amount / price.Bid
-		log.Println("Buy Amount")
-		log.Println(buyAmount)
 		res, err = s.southClient.PlaceOrder(l, r, orderType, buyAmount, price.Bid, true)
 	} else {
 		orderType = south.Sell
@@ -137,7 +127,7 @@ func (s *SouthXchange) SellAtMarketPrice(order hestia.ExchangeOrder) (string, er
 	}
 
 	if err != nil {
-		log.Println("Error - southXchange - SellAtMarketPrice - " + err.Error())
+		log.Println("south - SellAtMarketPrice - PlaceOrder - " + err.Error())
 		return "", err
 	}
 
@@ -146,12 +136,11 @@ func (s *SouthXchange) SellAtMarketPrice(order hestia.ExchangeOrder) (string, er
 }
 
 func (s *SouthXchange) Withdraw(coin coins.Coin, address string, amount float64) (string, error) {
-	res, err := s.southClient.Withdraw(address, strings.ToUpper(coin.Info.Tag), amount)
-	fmt.Println(res, err)
+	_, err := s.southClient.Withdraw(address, strings.ToUpper(coin.Info.Tag), amount)
 	if err != nil {
+		log.Println("south - Withdraw - Withdraw() - ", err.Error())
 		return "", err
 	}
-	// TODO Get txid from ListTransactionsEndpoint
 	return "", err
 }
 
@@ -163,6 +152,7 @@ func (s *SouthXchange) GetDepositStatus(txid string, asset string) (hestia.Order
 	var status hestia.OrderStatus
 	txs, err := s.southClient.GetTransactions("deposits", 0, 1000, "", false)
 	if err != nil {
+		log.Println("south - GetDepositStatus - GetTransactions() - ", err.Error())
 		return status, err
 	}
 	status.Status = hestia.ExchangeStatusError
@@ -177,25 +167,25 @@ func (s *SouthXchange) GetDepositStatus(txid string, asset string) (hestia.Order
 				status.Status = hestia.ExchangeStatusOpen
 				return status, nil
 			} else {
-				return status, errors.New("unknown status " + tx.Status)
+				return status, errors.New("south - GetDepositStatus - unknown status " + tx.Status)
 			}
 		}
 	}
-	return status, errors.New("transaction not found")
+	return status, errors.New("south - transaction not found")
 }
 
 func (s *SouthXchange) GetOrderStatus(order hestia.ExchangeOrder) (hestia.OrderStatus, error) {
 	var status hestia.OrderStatus
 	southOrder, err := s.southClient.GetOrder(order.OrderId)
 	if err != nil {
+		log.Println("south - GetOrderStatus - GetOrder() - ", err.Error())
 		return status, err
 	}
-	log.Println(order.OrderId)
-	log.Println(southOrder)
 	if southOrder.Status == "executed" || southOrder.Status == "confirmed" {
 		status.Status = hestia.ExchangeStatusCompleted
 		amount, err := s.getAvailableAmount(order)
 		if err != nil {
+			log.Println("south - GetOrderStatus - getAvailableAmount() - ", err.Error())
 			return status, err
 		}
 		status.AvailableAmount = amount
@@ -205,7 +195,7 @@ func (s *SouthXchange) GetOrderStatus(order hestia.ExchangeOrder) (hestia.OrderS
 	} else {
 		status.Status = hestia.ExchangeStatusError
 		status.AvailableAmount = 0
-		err = errors.New("unknown order status " + southOrder.Status)
+		err = errors.New("south - unknown order status " + southOrder.Status)
 	}
 	return status, err
 }
@@ -213,6 +203,7 @@ func (s *SouthXchange) GetOrderStatus(order hestia.ExchangeOrder) (hestia.OrderS
 func (s *SouthXchange) GetWithdrawalTxHash(txId string, asset string, address string, withdrawalAmount float64) (string, error) {
 	txs, err := s.southClient.GetTransactions("withdrawals", 0, 1000, "", true)
 	if err != nil {
+		log.Println("south - GetWithdrawalTxHash - GetTransactions() - ", err.Error())
 		return "", err
 	}
 	wc := s.WithdrawConfigs[asset]
@@ -224,7 +215,7 @@ func (s *SouthXchange) GetWithdrawalTxHash(txId string, asset string, address st
 		}
 	}
 
-	return "", errors.New("withdrawal not found")
+	return "", errors.New("south - withdrawal not found")
 }
 
 func (s *SouthXchange) GetPair(fromCoin string, toCoin string) (OrderSide, error) {
@@ -233,6 +224,7 @@ func (s *SouthXchange) GetPair(fromCoin string, toCoin string) (OrderSide, error
 	toCoin = strings.ToUpper(toCoin)
 	books, err := s.southClient.GetMarketSummaries()
 	if err != nil {
+		log.Println("south - GetPair - GetMarketSummaries() - ", err.Error())
 		return orderSide, err
 	}
 	var bookName south.MarketSummary

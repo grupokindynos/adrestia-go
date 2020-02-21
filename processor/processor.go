@@ -76,9 +76,7 @@ func Start() {
 func handleCreatedOrders(wg *sync.WaitGroup) {
 	defer wg.Done()
 	orders := getOrders(hestia.AdrestiaStatusCreated)
-	log.Println("CREATED_ORDERS", orders)
 	for _, order := range orders {
-		log.Println("entra")
 		txId, err := proc.Plutus.WithdrawToAddress(plutus.SendAddressBodyReq{
 			Address: order.FirstExAddress,
 			Coin:    order.FromCoin,
@@ -107,22 +105,19 @@ func handleExchange(wg *sync.WaitGroup) {
 	for _, order := range firstExchangeOrders {
 		ex, err := proc.ExchangeFactory.GetExchangeByName(order.FirstOrder.Exchange)
 		if err != nil {
-			log.Println(err)
+			log.Println("handleExchange - GetExchangeByName() - " + err.Error())
 			continue
 		}
-		log.Println(order.FirstOrder.Exchange)
 		status, err := ex.GetDepositStatus(order.HETxId, order.FromCoin)
 		if err != nil {
-			log.Println("117 " + err.Error())
+			log.Println("handleExchange - GetDepositStatus() - " + err.Error())
 			continue
 		}
-		log.Println(status)
 		if status.Status == hestia.ExchangeStatusCompleted {
 			order.FirstOrder.Amount = status.AvailableAmount
 			orderId, err := ex.SellAtMarketPrice(order.FirstOrder)
 			if err != nil {
-				log.Println(orderId)
-				log.Println(err)
+				log.Println("handleExchange - SellAtMarketPrice() - " + err.Error())
 				continue
 			}
 
@@ -130,7 +125,7 @@ func handleExchange(wg *sync.WaitGroup) {
 			order.Status = hestia.AdrestiaStatusFirstConversion
 			updatedId, err := proc.Hestia.UpdateAdrestiaOrder(order)
 			if err != nil {
-				log.Println("HandleExchange: Failed to update order ", order.ID)
+				log.Println("handleExchange - UpdateAdrestiaOrder - ", order.ID, " - "+err.Error())
 				continue
 			}
 			log.Println(fmt.Sprintf("HandleExchange: Successfully updated order %s to status %d", updatedId, hestia.AdrestiaStatusFirstConversion))
@@ -148,27 +143,20 @@ func handleExchange(wg *sync.WaitGroup) {
 		} else {
 			ex, err = proc.ExchangeFactory.GetExchangeByName(order.FinalOrder.Exchange)
 			if err != nil {
-				log.Println(err)
+				log.Println("handleExchange - GetExchangeByName() - " + err.Error())
 				continue
 			}
-			log.Println("148")
-			log.Println(ex.GetName())
 			status, err = ex.GetDepositStatus(order.EETxId, "BTC")
 			if err != nil {
-				log.Println("141 " + err.Error())
+				log.Println("handleExchange - 2nd GetDepositStatus() - " + err.Error())
 				continue
 			}
-			log.Println("received deposit status")
-			log.Println(status)
 		}
 		if status.Status == hestia.ExchangeStatusCompleted {
-			log.Println("Entra status completed")
 			order.FinalOrder.Amount = status.AvailableAmount
-			log.Println("A la mitad")
 			orderId, err := ex.SellAtMarketPrice(order.FinalOrder)
-			log.Println("Sale sell market price")
 			if err != nil {
-				log.Println(err)
+				log.Println("handleExchange - 2nd SellAtMarketPrice() - " + err.Error())
 				continue
 			}
 
@@ -188,13 +176,12 @@ func handleExchange(wg *sync.WaitGroup) {
 
 func handleWithdrawal(wg *sync.WaitGroup) {
 	defer wg.Done()
+	log.Println("Start handleWithdrawal")
 
 	ordersFirstWithdrawal := getOrders(hestia.AdrestiaStatusFirstWithdrawal) // waiting for withdrawal
 	ordersSecondWithdrawal := getOrders(hestia.AdrestiaStatusSecondWithdrawal)
 
 	orders := append(ordersFirstWithdrawal, ordersSecondWithdrawal...)
-	log.Println("withdrawal orders")
-	log.Println(len(orders))
 
 	var currExOrder *hestia.ExchangeOrder
 	var withdrawalId string
@@ -224,20 +211,19 @@ func handleWithdrawal(wg *sync.WaitGroup) {
 
 		coin, err := cf.GetCoin(currExOrder.ReceivedCurrency)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("handleWithdrawal - GetCoin() - " + err.Error())
 			continue
 		}
 
 		exchange, err := proc.ExchangeFactory.GetExchangeByName(currExOrder.Exchange)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("handleWithdrawal - GetExchangeByName() - " + err.Error())
 			continue
 		}
 
 		txHash, err := exchange.GetWithdrawalTxHash(withdrawalId, coin.Info.Tag, withdrawalAddress, currExOrder.ReceivedAmount)
-		log.Println(currExOrder.Exchange + " - tx hash - " + txHash)
 		if err != nil {
-			log.Println(err)
+			log.Println("handleWithdrawal - GetWithdrawalTxHash() - " + err.Error())
 			continue
 		}
 		if txHash != "" {
@@ -254,6 +240,7 @@ func handleWithdrawal(wg *sync.WaitGroup) {
 
 func handleConversion(wg *sync.WaitGroup) {
 	defer wg.Done()
+	log.Println("Starting handleConversion")
 
 	ordersFirst := getOrders(hestia.AdrestiaStatusFirstConversion)
 	ordersSecond := getOrders(hestia.AdrestiaStatusSecondConversion)
@@ -269,13 +256,13 @@ func handleConversion(wg *sync.WaitGroup) {
 		}
 		exchange, err := proc.ExchangeFactory.GetExchangeByName(currExOrder.Exchange)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("handleConversion - GetExchangeByName() - " + err.Error())
 			continue
 		}
 
 		status, err := exchange.GetOrderStatus(*currExOrder)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("handleConversion - GetOrderStatus() - ", err.Error())
 			continue
 		}
 
@@ -288,17 +275,14 @@ func handleConversion(wg *sync.WaitGroup) {
 				if order.FirstOrder.Exchange != order.FinalOrder.Exchange {
 					coin, err := cf.GetCoin(currExOrder.ReceivedCurrency)
 					if err != nil {
-						fmt.Println(err)
+						fmt.Println("handleConversion - GetCoin() - ", err.Error())
 						continue
 					}
 					txid, err := exchange.Withdraw(*coin, order.SecondExAddress, currExOrder.ReceivedAmount)
 					if err != nil {
-						fmt.Println(currExOrder.Exchange + " " + err.Error())
+						fmt.Println("handleConversion - Withdraw() - " + currExOrder.Exchange + " " + err.Error())
 						continue
 					}
-					log.Println("Withdraw Id")
-					log.Println(txid)
-
 					order.EETxId = txid
 					order.FinalOrder.CreatedTime = time.Now().Unix()
 					changeOrderStatus(order, hestia.AdrestiaStatusFirstWithdrawal)
@@ -321,10 +305,11 @@ func handleConversion(wg *sync.WaitGroup) {
 
 func handleCompletedExchange(wg *sync.WaitGroup) {
 	defer wg.Done()
+
+	log.Println("Starting handleCompletedExchange")
 	orders := getOrders(hestia.AdrestiaStatusExchangeComplete)
 	var exchangeOrder hestia.ExchangeOrder
 	var nextState hestia.AdrestiaStatus
-	log.Println(len(orders))
 
 	for _, order := range orders {
 		if order.DualExchange {
@@ -336,19 +321,18 @@ func handleCompletedExchange(wg *sync.WaitGroup) {
 		}
 		exchange, err := proc.ExchangeFactory.GetExchangeByName(exchangeOrder.Exchange)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("handleCompletedExchange - GetExchangeByName() - ", err.Error())
 			continue
 		}
 		coin, err := cf.GetCoin(exchangeOrder.ReceivedCurrency)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("handleCompletedExchange - GetCoin() - ", err.Error())
 			continue
 		}
 
 		txId, err := exchange.Withdraw(*coin, order.WithdrawAddress, exchangeOrder.ReceivedAmount)
-		log.Println(txId)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("handleCompletedExchange - Withdraw() - ", err.Error())
 			continue
 		}
 
@@ -367,25 +351,30 @@ func handlePlutusDeposit(wg *sync.WaitGroup) {
 	for _, order := range orders {
 		coin, err := cf.GetCoin(order.ToCoin)
 		if err != nil {
-			log.Println(err)
+			log.Println("handlePlutusDeposit - GetCoin() - ", err.Error())
 			continue
 		}
 
 		blockExplorer.Url = "https://" + coin.BlockchainInfo.ExternalSource
 		res, err := blockExplorer.GetTx(order.EHTxId)
 		if err != nil {
-			log.Println(err)
+			log.Println("handlePlutusDeposit - GetTx() - ", err.Error())
 			continue
 		}
 		if res.Confirmations > 0 {
 			receivedAmount, err := getReceivedAmount(res, order.WithdrawAddress)
 			if err != nil {
-				log.Println(err)
+				log.Println("handlePlutusDeposit - getReceivedAmount() - ", err.Error())
 				continue
 			}
 			order.ReceivedAmount = receivedAmount
 			order.FulfilledTime = time.Now().Unix()
-			telegramBot.SendMessage(fmt.Sprintf("Change from %s to %s has been completed.\nSent %.8f and received %.8f.\nOrderId: %s", order.FromCoin, order.ToCoin, order.Amount, order.ReceivedAmount*1e-8, order.ID))
+			rate, err := proc.Obol.GetCoin2CoinRates(order.FromCoin, order.ToCoin)
+			if err != nil {
+				log.Println("handlePlutusDeposit - GetCoin2CoinRates() - ", err.Error())
+				rate = 1.0
+			}
+			telegramBot.SendMessage(fmt.Sprintf("Change from %s to %s has been completed.\nSent %.8f %s and received %.8f %s (~%.8f %s).\nOrderId: %s", order.FromCoin, order.ToCoin, order.Amount, order.FromCoin, order.ReceivedAmount*1e-8, order.ToCoin, order.ReceivedAmount*1e-8/rate, order.FromCoin, order.ID))
 			changeOrderStatus(order, hestia.AdrestiaStatusCompleted)
 		}
 	}
@@ -411,7 +400,6 @@ func changeOrderStatus(order hestia.AdrestiaOrder, status hestia.AdrestiaStatus)
 	fallbackStatus := order.Status
 	order.Status = status
 	resp, err := proc.Hestia.UpdateAdrestiaOrder(order)
-	// TODO Move in map (if concurrency on maps allows for it)
 	if err != nil {
 		order.Status = fallbackStatus
 		fmt.Println(err)

@@ -63,16 +63,15 @@ func main() {
 	}
 	b := balancer.NewBalancer(params)
 	processor.InitProcessor(params)
-	//processor.Start()
-
+	processor.Start()
+	//b.StartBalancer()
 	timerBalancer(b)
-	//timerProcessor()
+	timerProcessor()
 	forever()
 }
 
 func timerBalancer(b balancer.Balancer) {
-	//ticker := time.NewTicker(36 * time.Hour)
-	ticker := time.NewTicker(10 * time.Second)
+	ticker := time.NewTicker(36 * time.Hour)
 	go func() {
 		for _ = range ticker.C {
 			b.StartBalancer()
@@ -81,9 +80,7 @@ func timerBalancer(b balancer.Balancer) {
 }
 
 func timerProcessor() {
-	//ticker := time.NewTicker(10*time.Second)
-	ticker := time.NewTicker(2 * time.Minute)
-	//ticker := time.NewTicker(5 * time.Second)
+	ticker := time.NewTicker(10 * time.Minute)
 	go func() {
 		for _ = range ticker.C {
 			processor.Start()

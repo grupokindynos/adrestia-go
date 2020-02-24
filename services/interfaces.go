@@ -14,6 +14,7 @@ type HestiaService interface {
 	UpdateAdrestiaOrder(orderData hestia.AdrestiaOrder) (string, error)
 	UpdateAdrestiaOrderStatus(orderData hestia.AdrestiaOrderUpdate) (string, error)
 	GetAllOrders(adrestiaOrderParams adrestia.OrderParams) ([]hestia.AdrestiaOrder, error)
+	GetAdrestiaStatus() (hestia.Available, error)
 }
 
 type PlutusService interface {

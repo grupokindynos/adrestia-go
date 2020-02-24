@@ -62,7 +62,7 @@ func Start() {
 		return
 	}
 
-	err := fillOrders()
+	err = fillOrders()
 	if err != nil {
 		return
 	}

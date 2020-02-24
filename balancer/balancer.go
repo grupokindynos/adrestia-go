@@ -53,7 +53,7 @@ func (b *Balancer) StartBalancer() {
 		return
 	}
 	telegramBot.SendMessage("Balancer Started")
-	err := b.areLeftOrders()
+	err = b.areLeftOrders()
 	if err != nil {
 		log.Println("balancer - areLeftOrders() - ", err.Error())
 		return

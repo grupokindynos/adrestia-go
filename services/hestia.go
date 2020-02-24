@@ -297,5 +297,5 @@ func (h *HestiaRequests) GetAdrestiaStatus() (hestia.Available, error) {
 	if err != nil {
 		return hestia.Available{}, err
 	}
-	return hestia.Adrestia, nil
+	return response.Adrestia, nil
 }

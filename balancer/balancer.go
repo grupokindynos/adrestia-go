@@ -44,6 +44,14 @@ func NewBalancer(params exchanges.Params) Balancer {
 }
 
 func (b *Balancer) StartBalancer() {
+	status, err := b.Hestia.GetAdrestiaStatus()
+	if err != nil {
+		log.Println("Couldn't get adrestia status")
+		return
+	}
+	if !status.Service {
+		return
+	}
 	telegramBot.SendMessage("Balancer Started")
 	err := b.areLeftOrders()
 	if err != nil {

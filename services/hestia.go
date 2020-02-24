@@ -261,3 +261,41 @@ func (h *HestiaRequests) GetAllOrders(adrestiaOrderParams adrestia.OrderParams) 
 	}
 	return response, nil
 }
+
+func (h *HestiaRequests) GetAdrestiaStatus() (hestia.Available, error) {
+	req, err := mvt.CreateMVTToken("GET", os.Getenv(h.HestiaURL)+"/config", "adrestia", os.Getenv("MASTER_PASSWORD"), nil, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
+	if err != nil {
+		return hestia.Available{}, err
+	}
+	client := http.Client{
+		Timeout: 5 * time.Second,
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		return hestia.Available{}, err
+	}
+	defer res.Body.Close()
+	tokenResponse, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return hestia.Available{}, err
+	}
+	var tokenString string
+	err = json.Unmarshal(tokenResponse, &tokenString)
+	if err != nil {
+		return hestia.Available{}, err
+	}
+	headerSignature := res.Header.Get("service")
+	if headerSignature == "" {
+		return hestia.Available{}, errors.New("no header signature")
+	}
+	valid, payload := mrt.VerifyMRTToken(headerSignature, tokenString, os.Getenv("HESTIA_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
+	if !valid {
+		return hestia.Available{}, err
+	}
+	var response hestia.Config
+	err = json.Unmarshal(payload, &response)
+	if err != nil {
+		return hestia.Available{}, err
+	}
+	return hestia.Adrestia, nil
+}

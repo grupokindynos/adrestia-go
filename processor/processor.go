@@ -43,6 +43,14 @@ func InitProcessor(params exchanges.Params) {
 }
 
 func Start() {
+	status, err := proc.Hestia.GetAdrestiaStatus()
+	if err != nil {
+		log.Println("Couldn't get adrestia status")
+		return
+	}
+	if !status.Service {
+		return
+	}
 	if !initialized {
 		log.Println("error - Processor not initialized")
 		return

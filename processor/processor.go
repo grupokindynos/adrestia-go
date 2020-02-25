@@ -45,22 +45,19 @@ func InitProcessor(params exchanges.Params) {
 func Start() {
 	status, err := proc.Hestia.GetAdrestiaStatus()
 	if err != nil {
-		log.Println("Couldn't get adrestia status")
+		log.Println("Couldn't get adrestia status" + err.Error())
 		return
 	}
 	if !status.Service {
+		log.Println("Processor not available at the moment")
 		return
 	}
 	if !initialized {
 		log.Println("error - Processor not initialized")
 		return
 	}
-	const adrestiaStatus = true // TODO Replace with Hestia conf variable
-	log.Println("Starting Adrestia Order Processor")
 
-	if !adrestiaStatus {
-		return
-	}
+	log.Println("Starting Adrestia Order Processor")
 
 	err = fillOrders()
 	if err != nil {

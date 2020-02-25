@@ -263,7 +263,7 @@ func (h *HestiaRequests) GetAllOrders(adrestiaOrderParams adrestia.OrderParams) 
 }
 
 func (h *HestiaRequests) GetAdrestiaStatus() (hestia.Available, error) {
-	req, err := mvt.CreateMVTToken("GET", os.Getenv(h.HestiaURL)+"/config", "adrestia", os.Getenv("MASTER_PASSWORD"), nil, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
+	req, err := mvt.CreateMVTToken("GET", h.HestiaURL+"/config", "adrestia", os.Getenv("MASTER_PASSWORD"), nil, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
 	if err != nil {
 		return hestia.Available{}, err
 	}

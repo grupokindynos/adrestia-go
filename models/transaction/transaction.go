@@ -6,10 +6,10 @@ import (
 
 // Placeholder transaction
 type PTx struct {
-	ToCoin string
+	ToCoin   string
 	FromCoin string
-	Amount float64
-	Rate float64
+	Amount   float64
+	BtcRate  float64
 }
 
 type ExchangeSell struct {

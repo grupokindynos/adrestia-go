@@ -63,8 +63,8 @@ func main() {
 	}
 	b := balancer.NewBalancer(params)
 	processor.InitProcessor(params)
-	processor.Start()
-	b.StartBalancer()
+	go processor.Start()
+	go b.StartBalancer()
 	timerBalancer(b)
 	timerProcessor()
 	forever()

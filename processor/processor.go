@@ -48,7 +48,7 @@ func Start() {
 		log.Println("Couldn't get adrestia status" + err.Error())
 		return
 	}
-	if !status.Service {
+	if !status.Processor {
 		log.Println("Processor not available at the moment")
 		return
 	}

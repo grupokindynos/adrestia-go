@@ -2,6 +2,7 @@ package exchanges
 
 import (
 	"errors"
+	"log"
 	"strings"
 
 	coinfactory "github.com/grupokindynos/common/coin-factory"
@@ -15,7 +16,7 @@ type ExchangeFactory struct {
 
 func NewExchangeFactory(params Params) *ExchangeFactory {
 	if err := godotenv.Load(); err != nil {
-		panic("you need .env at the root of adrestia-go/")
+		log.Println("Not .env file found for ExchangeFactory")
 	}
 
 	exFactory := new(ExchangeFactory)

@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/grupokindynos/adrestia-go/balancer"
@@ -30,6 +31,7 @@ type CurrentTime struct {
 var currTime CurrentTime
 var mainHestiaEnv string
 var mainPlutusEnv string
+var globalParams exchanges.Params
 
 func init() {
 	if err := godotenv.Load(); err != nil {
@@ -55,41 +57,55 @@ func main() {
 	factoryParams := exchanges.Params{
 		Obol: &obolService,
 	}
-	params := exchanges.Params{
+	globalParams = exchanges.Params{
 		Plutus:          &services.PlutusRequests{Obol: &obolService, PlutusURL: os.Getenv(mainPlutusEnv)},
 		Hestia:          &services.HestiaRequests{HestiaURL: os.Getenv(mainHestiaEnv)},
 		Obol:            &obolService,
 		ExchangeFactory: exchanges.NewExchangeFactory(factoryParams),
 	}
-	b := balancer.NewBalancer(params)
-	processor.InitProcessor(params)
-	go processor.Start()
-	go b.StartBalancer()
-	timerBalancer(b)
-	timerProcessor()
-	forever()
+	timer()
 }
 
-func timerBalancer(b balancer.Balancer) {
-	ticker := time.NewTicker(36 * time.Hour)
-	go func() {
-		for _ = range ticker.C {
-			b.StartBalancer()
-		}
-	}()
-}
-
-func timerProcessor() {
-	ticker := time.NewTicker(10 * time.Minute)
-	go func() {
-		for _ = range ticker.C {
-			processor.Start()
-		}
-	}()
-}
-
-func forever() {
+func timer() {
 	for {
-		time.Sleep(24 * time.Hour)
+		time.Sleep(1 * time.Second)
+		currTime = CurrentTime{
+			Hour:   time.Now().Hour(),
+			Day:    time.Now().Day(),
+			Minute: time.Now().Minute(),
+			Second: time.Now().Second(),
+		}
+		if currTime.Second == 0 {
+			var wg sync.WaitGroup
+			wg.Add(1)
+			runCrons(&wg)
+			wg.Wait()
+		}
 	}
+}
+
+func runCrons(mainWg *sync.WaitGroup) {
+	defer func() {
+		mainWg.Done()
+	}()
+	b := balancer.NewBalancer(globalParams)
+	processor.InitProcessor(globalParams)
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go runCronMinutes(2160, processor.Start, &wg) // 1 day and half
+	go runCronMinutes(10, b.StartBalancer, &wg) // 10 minutes
+	wg.Wait()
+}
+
+func runCronMinutes(schedule int, function func(), wg *sync.WaitGroup) {
+	go func() {
+		defer func() {
+			wg.Done()
+		}()
+		remainder := currTime.Minute % schedule
+		if remainder == 0 {
+			function()
+		}
+		return
+	}()
 }

@@ -9,6 +9,7 @@ package balancer
 import (
 	"errors"
 	"fmt"
+	"github.com/grupokindynos/adrestia-go/logger"
 	"log"
 	"time"
 
@@ -31,6 +32,7 @@ type Balancer struct {
 }
 
 var telegramBot = telegram.NewTelegramBot()
+var fileLog logger.FileLogger
 
 func NewBalancer(params exchanges.Params) Balancer {
 	balancer := Balancer{
@@ -44,26 +46,33 @@ func NewBalancer(params exchanges.Params) Balancer {
 }
 
 func (b *Balancer) StartBalancer() {
+	var err error
+	fileLog, err = logger.NewLogger("balancer_log", "balancer")
+	defer fileLog.EndLogger()
+	if err != nil {
+		log.Println("Couldn't initialize file logger")
+	}
 	status, err := b.Hestia.GetAdrestiaStatus()
 	if err != nil {
-		log.Println("Couldn't get adrestia status " + err.Error())
+		fileLog.Println("Couldn't get adrestia status " + err.Error())
 		return
 	}
 	if !status.Service {
-		log.Println("Balancer not available at the moment")
+		fileLog.Println("Balancer not available at the moment")
 		return
 	}
 	telegramBot.SendMessage("Balancer Started")
 	err = b.areLeftOrders()
 	if err != nil {
-		log.Println("balancer - areLeftOrders() - ", err.Error())
+		fileLog.Println("balancer - areLeftOrders() - " + err.Error())
 		return
 	}
 
 	confHestia, err := b.Hestia.GetAdrestiaCoins()
 	var balances = b.Plutus.GetWalletBalances(confHestia) // Gets balance from Hot Wallets
 	if err != nil {
-		log.Fatalln("balancer - GetWalletBalances() - ", err.Error())
+		fileLog.Println("balancer - GetWalletBalances() - " + err.Error())
+		return
 	}
 	availableWallets, _ := utils.NormalizeWallets(balances, confHestia) // Verifies wallets in firebase are the same as in plutus and creates a map
 
@@ -76,7 +85,7 @@ func (b *Balancer) StartBalancer() {
 
 	txs, err := utils.BalanceHW(balanced, unbalanced)
 	if err != nil {
-		log.Println("balancer - BalanceHW() - ", err.Error())
+		fileLog.Println("balancer - BalanceHW() - " + err.Error())
 		return
 	}
 
@@ -90,13 +99,13 @@ func (b *Balancer) StartBalancer() {
 		if tx.FromCoin != "BTC" {
 			firstAddress, firstExchangeOrder, err = getOrderInfo(b.ExchangeFactory, tx.FromCoin, tx.FromCoin, tx.FromCoin, "BTC")
 			if err != nil {
-				fmt.Println("balancer - 1st getOrderInfo() - ", err.Error())
+				fileLog.Println("balancer - 1st getOrderInfo() - " + err.Error())
 				continue
 			}
 		} else {
 			firstAddress, firstExchangeOrder, err = getOrderInfo(b.ExchangeFactory, tx.ToCoin, tx.FromCoin, tx.FromCoin, tx.ToCoin)
 			if err != nil {
-				fmt.Println("balancer - 2nd getOrderInfo() - ", err.Error())
+				fileLog.Println("balancer - 2nd getOrderInfo() - " + err.Error())
 				continue
 			}
 		}
@@ -104,7 +113,7 @@ func (b *Balancer) StartBalancer() {
 		if tx.ToCoin != "BTC" && tx.FromCoin != "BTC" {
 			secondAddress, secondExchangeOrder, err = getOrderInfo(b.ExchangeFactory, tx.ToCoin, "BTC", "BTC", tx.ToCoin)
 			if err != nil {
-				fmt.Println("balancer - 3rd getOrderInfo() - ", err.Error())
+				fileLog.Println("balancer - 3rd getOrderInfo() - " + err.Error())
 				continue
 			}
 			dualExchange = true
@@ -112,7 +121,7 @@ func (b *Balancer) StartBalancer() {
 
 		hwAddress, err := b.Plutus.GetAddress(tx.ToCoin)
 		if err != nil {
-			fmt.Println("balancer - GetAddress() - ", err.Error())
+			fileLog.Println("balancer - GetAddress() - " + err.Error())
 			continue
 		}
 
@@ -133,7 +142,7 @@ func (b *Balancer) StartBalancer() {
 		}
 		_, err = b.Hestia.CreateAdrestiaOrder(order)
 		if err != nil {
-			fmt.Println("balancer - CreateAdrestiaOrder() - ", err.Error())
+			fileLog.Println("balancer - CreateAdrestiaOrder() - " + err.Error())
 			continue
 		}
 		telegramBot.SendMessage(fmt.Sprintf("Created order to change %.8f %s to %s\nOrderId: %s", order.Amount, order.FromCoin, order.ToCoin, order.ID))

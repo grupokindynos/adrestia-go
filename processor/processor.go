@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/grupokindynos/adrestia-go/exchanges"
+	"github.com/grupokindynos/adrestia-go/logger"
 	"github.com/grupokindynos/adrestia-go/models/adrestia"
 	"github.com/grupokindynos/adrestia-go/services"
 	"github.com/grupokindynos/adrestia-go/telegram"
@@ -32,6 +33,7 @@ var (
 	adrestiaOrders []hestia.AdrestiaOrder
 	blockExplorer  blockbook.BlockBook
 	telegramBot    = telegram.NewTelegramBot()
+	fileLog 	   logger.FileLogger
 )
 
 func InitProcessor(params exchanges.Params) {
@@ -43,21 +45,26 @@ func InitProcessor(params exchanges.Params) {
 }
 
 func Start() {
+	var err error
+	fileLog, err = logger.NewLogger("processor_log", "processor")
+	if err != nil {
+		log.Println("Couldn't initialize file logger")
+	}
 	status, err := proc.Hestia.GetAdrestiaStatus()
 	if err != nil {
-		log.Println("Couldn't get adrestia status" + err.Error())
+		fileLog.Println("Couldn't get adrestia status" + err.Error())
 		return
 	}
 	if !status.Processor {
-		log.Println("Processor not available at the moment")
+		fileLog.Println("Processor not available at the moment")
 		return
 	}
 	if !initialized {
-		log.Println("error - Processor not initialized")
+		fileLog.Println("error - Processor not initialized")
 		return
 	}
 
-	log.Println("Starting Adrestia Order Processor")
+	fileLog.Println("Starting Adrestia Processor")
 
 	err = fillOrders()
 	if err != nil {
@@ -75,7 +82,8 @@ func Start() {
 	go handlePlutusDeposit(&wg)
 	wg.Wait()
 
-	fmt.Println("Adrestia Order Processor Finished")
+	fileLog.Println("Adrestia Processor Finished")
+	fileLog.EndLogger()
 }
 
 func handleCreatedOrders(wg *sync.WaitGroup) {
@@ -88,7 +96,7 @@ func handleCreatedOrders(wg *sync.WaitGroup) {
 			Amount:  order.Amount,
 		})
 		if err != nil {
-			log.Println(fmt.Sprintf("error broadcasting order %s of coin %s: %v", order.ID, order.FromCoin, err))
+			fileLog.Println(fmt.Sprintf("error broadcasting order %s of coin %s: %v", order.ID, order.FromCoin, err))
 			continue
 		}
 		order.HETxId = txId
@@ -110,19 +118,19 @@ func handleExchange(wg *sync.WaitGroup) {
 	for _, order := range firstExchangeOrders {
 		ex, err := proc.ExchangeFactory.GetExchangeByName(order.FirstOrder.Exchange)
 		if err != nil {
-			log.Println("handleExchange - GetExchangeByName() - " + err.Error())
+			fileLog.Println("handleExchange - GetExchangeByName() - " + err.Error())
 			continue
 		}
 		status, err := ex.GetDepositStatus(order.HETxId, order.FromCoin)
 		if err != nil {
-			log.Println("handleExchange - GetDepositStatus() - " + err.Error())
+			fileLog.Println("handleExchange - GetDepositStatus() - " + err.Error())
 			continue
 		}
 		if status.Status == hestia.ExchangeStatusCompleted {
 			order.FirstOrder.Amount = status.AvailableAmount
 			orderId, err := ex.SellAtMarketPrice(order.FirstOrder)
 			if err != nil {
-				log.Println("handleExchange - SellAtMarketPrice() - " + err.Error())
+				fileLog.Println("handleExchange - SellAtMarketPrice() - " + err.Error())
 				continue
 			}
 
@@ -130,10 +138,10 @@ func handleExchange(wg *sync.WaitGroup) {
 			order.Status = hestia.AdrestiaStatusFirstConversion
 			updatedId, err := proc.Hestia.UpdateAdrestiaOrder(order)
 			if err != nil {
-				log.Println("handleExchange - UpdateAdrestiaOrder - ", order.ID, " - "+err.Error())
+				fileLog.Println("handleExchange - UpdateAdrestiaOrder - " + order.ID+ " - "+err.Error())
 				continue
 			}
-			log.Println(fmt.Sprintf("HandleExchange: Successfully updated order %s to status %d", updatedId, hestia.AdrestiaStatusFirstConversion))
+			fileLog.Println(fmt.Sprintf("HandleExchange: Successfully updated order %s to status %d", updatedId, hestia.AdrestiaStatusFirstConversion))
 		}
 	}
 
@@ -148,12 +156,12 @@ func handleExchange(wg *sync.WaitGroup) {
 		} else {
 			ex, err = proc.ExchangeFactory.GetExchangeByName(order.FinalOrder.Exchange)
 			if err != nil {
-				log.Println("handleExchange - GetExchangeByName() - " + err.Error())
+				fileLog.Println("handleExchange - GetExchangeByName() - " + err.Error())
 				continue
 			}
 			status, err = ex.GetDepositStatus(order.EETxId, "BTC")
 			if err != nil {
-				log.Println("handleExchange - 2nd GetDepositStatus() - " + err.Error())
+				fileLog.Println("handleExchange - 2nd GetDepositStatus() - " + err.Error())
 				continue
 			}
 		}
@@ -161,7 +169,7 @@ func handleExchange(wg *sync.WaitGroup) {
 			order.FinalOrder.Amount = status.AvailableAmount
 			orderId, err := ex.SellAtMarketPrice(order.FinalOrder)
 			if err != nil {
-				log.Println("handleExchange - 2nd SellAtMarketPrice() - " + err.Error())
+				fileLog.Println("handleExchange - 2nd SellAtMarketPrice() - " + err.Error())
 				continue
 			}
 
@@ -169,10 +177,10 @@ func handleExchange(wg *sync.WaitGroup) {
 			order.Status = hestia.AdrestiaStatusSecondConversion
 			updatedId, err := proc.Hestia.UpdateAdrestiaOrder(order)
 			if err != nil {
-				log.Println("HandleExchange: Failed to update order ", order.ID)
+				fileLog.Println("HandleExchange: Failed to update order " + order.ID)
 				continue
 			}
-			log.Println(fmt.Sprintf("HandleExchange: Successfully updated order %s to status %d", updatedId, hestia.AdrestiaStatusSecondConversion))
+			fileLog.Println(fmt.Sprintf("HandleExchange: Successfully updated order %s to status %d", updatedId, hestia.AdrestiaStatusSecondConversion))
 		}
 	}
 	// 1. Verifies deposit in exchange and creates Selling Order always targets BTC
@@ -181,7 +189,7 @@ func handleExchange(wg *sync.WaitGroup) {
 
 func handleWithdrawal(wg *sync.WaitGroup) {
 	defer wg.Done()
-	log.Println("Start handleWithdrawal")
+	fileLog.Println("Start handleWithdrawal")
 
 	ordersFirstWithdrawal := getOrders(hestia.AdrestiaStatusFirstWithdrawal) // waiting for withdrawal
 	ordersSecondWithdrawal := getOrders(hestia.AdrestiaStatusSecondWithdrawal)
@@ -228,7 +236,7 @@ func handleWithdrawal(wg *sync.WaitGroup) {
 
 		txHash, err := exchange.GetWithdrawalTxHash(withdrawalId, coin.Info.Tag, withdrawalAddress, currExOrder.ReceivedAmount)
 		if err != nil {
-			log.Println("handleWithdrawal - GetWithdrawalTxHash() - " + err.Error())
+			fileLog.Println("handleWithdrawal - GetWithdrawalTxHash() - " + err.Error())
 			continue
 		}
 		if txHash != "" {
@@ -240,12 +248,12 @@ func handleWithdrawal(wg *sync.WaitGroup) {
 			changeOrderStatus(order, nextState)
 		}
 	}
-	log.Println("handleWithdrawal completed")
+	fileLog.Println("handleWithdrawal completed")
 }
 
 func handleConversion(wg *sync.WaitGroup) {
 	defer wg.Done()
-	log.Println("Starting handleConversion")
+	fileLog.Println("Starting handleConversion")
 
 	ordersFirst := getOrders(hestia.AdrestiaStatusFirstConversion)
 	ordersSecond := getOrders(hestia.AdrestiaStatusSecondConversion)
@@ -311,7 +319,7 @@ func handleConversion(wg *sync.WaitGroup) {
 func handleCompletedExchange(wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	log.Println("Starting handleCompletedExchange")
+	fileLog.Println("Starting handleCompletedExchange")
 	orders := getOrders(hestia.AdrestiaStatusExchangeComplete)
 	var exchangeOrder hestia.ExchangeOrder
 	var nextState hestia.AdrestiaStatus
@@ -350,40 +358,40 @@ func handleCompletedExchange(wg *sync.WaitGroup) {
 
 func handlePlutusDeposit(wg *sync.WaitGroup) {
 	defer wg.Done()
-	log.Println("Start handlePlutusDeposit")
+	fileLog.Println("Start handlePlutusDeposit")
 
 	orders := getOrders(hestia.AdrestiaStatusPlutusDeposit)
 	for _, order := range orders {
 		coin, err := cf.GetCoin(order.ToCoin)
 		if err != nil {
-			log.Println("handlePlutusDeposit - GetCoin() - ", err.Error())
+			fileLog.Println("handlePlutusDeposit - GetCoin() - " + err.Error())
 			continue
 		}
 
 		blockExplorer.Url = "https://" + coin.BlockchainInfo.ExternalSource
 		res, err := blockExplorer.GetTx(order.EHTxId)
 		if err != nil {
-			log.Println("handlePlutusDeposit - GetTx() - ", err.Error())
+			fileLog.Println("handlePlutusDeposit - GetTx() - " + err.Error())
 			continue
 		}
 		if res.Confirmations > 0 {
 			receivedAmount, err := getReceivedAmount(res, order.WithdrawAddress)
 			if err != nil {
-				log.Println("handlePlutusDeposit - getReceivedAmount() - ", err.Error())
+				fileLog.Println("handlePlutusDeposit - getReceivedAmount() - " + err.Error())
 				continue
 			}
 			order.ReceivedAmount = receivedAmount
 			order.FulfilledTime = time.Now().Unix()
 			rate, err := proc.Obol.GetCoin2CoinRates(order.FromCoin, order.ToCoin)
 			if err != nil {
-				log.Println("handlePlutusDeposit - GetCoin2CoinRates() - ", err.Error())
+				fileLog.Println("handlePlutusDeposit - GetCoin2CoinRates() - " + err.Error())
 				rate = 1.0
 			}
 			telegramBot.SendMessage(fmt.Sprintf("Change from %s to %s has been completed.\nSent %.8f %s and received %.8f %s (~%.8f %s).\nOrderId: %s", order.FromCoin, order.ToCoin, order.Amount, order.FromCoin, order.ReceivedAmount*1e-8, order.ToCoin, order.ReceivedAmount*1e-8/rate, order.FromCoin, order.ID))
 			changeOrderStatus(order, hestia.AdrestiaStatusCompleted)
 		}
 	}
-	log.Println("Finished handlePlutusDeposit")
+	fileLog.Println("Finished handlePlutusDeposit")
 }
 
 func getReceivedAmount(tx blockbook.Tx, withdrawAddress string) (float64, error) {
@@ -409,7 +417,7 @@ func changeOrderStatus(order hestia.AdrestiaOrder, status hestia.AdrestiaStatus)
 		order.Status = fallbackStatus
 		fmt.Println(err)
 	} else {
-		log.Println(fmt.Sprintf("order %s in %s has been updated to %d\t%s", order.FirstOrder.OrderId, order.FirstOrder.Exchange, order.Status, resp))
+		fileLog.Println(fmt.Sprintf("order %s in %s has been updated to %d\t%s", order.FirstOrder.OrderId, order.FirstOrder.Exchange, order.Status, resp))
 	}
 }
 
@@ -440,9 +448,9 @@ func fillOrders() error {
 	})
 
 	if err != nil {
-		log.Fatal("Could not retrieve adrestiaOrders form Hestia", err)
+		fileLog.Println("Could not retrieve adrestiaOrders form Hestia" + err.Error())
 		return err
 	}
-	log.Println(fmt.Sprintf("Received a total of %d AdrestiaOrders", len(adrestiaOrders)))
+	fileLog.Println(fmt.Sprintf("Received a total of %d AdrestiaOrders", len(adrestiaOrders)))
 	return nil
 }

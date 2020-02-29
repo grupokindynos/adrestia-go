@@ -12,6 +12,7 @@ import (
 	"github.com/grupokindynos/adrestia-go/processor"
 	"github.com/grupokindynos/adrestia-go/services"
 	"github.com/grupokindynos/common/obol"
+	"github.com/grupokindynos/adrestia-go/logger"
 	"github.com/joho/godotenv"
 )
 
@@ -40,7 +41,12 @@ func init() {
 }
 
 func main() {
-	log.Println("Program Started")
+	fl, err := logger.NewLogger("main_log", "main")
+	if err != nil {
+		log.Println("Couldn't initialize logger")
+	}
+	fl.Println("Program Started")
+
 	// Read input flag
 	localRun := flag.Bool("local", false, "set this flag to run adrestia with local db")
 	flag.Parse()
@@ -64,6 +70,7 @@ func main() {
 		Obol:            &obolService,
 		ExchangeFactory: exchanges.NewExchangeFactory(factoryParams),
 	}
+	fl.EndLogger()
 	timer()
 }
 

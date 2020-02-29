@@ -20,3 +20,4 @@ api/exchanges/config/*.json
 api/testfile.go
 .env
 .DS_Store
+*.log

@@ -177,7 +177,7 @@ func TestSendToExchange(t *testing.T) {
 
 func TestBalance(t *testing.T) {
 	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_URL")}
-	plutus := services.PlutusRequests{Obol: &oboli}
+	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_PRODUCTION_URL")}
 	bal, err := plutus.GetWalletBalance("BTC")
 	if err != nil {
 		fmt.Println(err)

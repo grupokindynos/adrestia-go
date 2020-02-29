@@ -40,6 +40,7 @@ func init() {
 }
 
 func main() {
+	log.Println("Program Started")
 	// Read input flag
 	localRun := flag.Bool("local", false, "set this flag to run adrestia with local db")
 	flag.Parse()
@@ -92,8 +93,8 @@ func runCrons(mainWg *sync.WaitGroup) {
 	processor.InitProcessor(globalParams)
 	var wg sync.WaitGroup
 	wg.Add(2)
-	go runCronMinutes(2160, processor.Start, &wg) // 1 day and half
-	go runCronMinutes(10, b.StartBalancer, &wg) // 10 minutes
+	go runCronMinutes(2160, b.StartBalancer, &wg) // 1 day and half
+	go runCronMinutes(10, processor.Start, &wg) // 10 minutes
 	wg.Wait()
 }
 

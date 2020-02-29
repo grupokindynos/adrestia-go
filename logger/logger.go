@@ -40,3 +40,16 @@ func (fl *FileLogger) EndLogger() {
 		fl.isOpen = false
 	}
 }
+
+func SingleLog(filename string, prefix string, message string) error {
+	log.Println(message)
+	f, err := os.OpenFile(filename + ".log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	defer f.Close()
+	if err != nil {
+		return err
+	}
+
+	logger := log.New(f, prefix, log.LstdFlags)
+	logger.Println(message)
+	return nil
+}

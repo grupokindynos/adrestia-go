@@ -1,7 +1,7 @@
 package telegram
 
 import (
-	"log"
+	"github.com/grupokindynos/adrestia-go/logger"
 	"os"
 	"strconv"
 
@@ -14,16 +14,18 @@ type TelegramBot struct {
 	isWorking   bool
 }
 
+var fileLog logger.FileLogger
+
 func init() {
 	if err := godotenv.Load(); err != nil {
-		log.Print("No .env file found")
+		logger.SingleLog("telegram_log", "telegram", "No .env file found")
 	}
 }
 
 func NewTelegramBot() TelegramBot {
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_API_KEY"))
 	if err != nil {
-		log.Println("NewTelegramBot - " + err.Error())
+		logger.SingleLog("telegram_log", "telegram", "NewTelegramBot - " + err.Error())
 		return TelegramBot{isWorking: false}
 	}
 	tb := TelegramBot{

@@ -33,19 +33,21 @@ var currTime CurrentTime
 var mainHestiaEnv string
 var mainPlutusEnv string
 var globalParams exchanges.Params
+var fileLog logger.FileLogger
 
 func init() {
+	var err error
+	fileLog, err = logger.NewLogger("main_log", "main")
+	if err != nil {
+		log.Println("Couldn't initialize logger")
+	}
 	if err := godotenv.Load(); err != nil {
-		log.Print("No .env file found")
+		fileLog.Println("No .env file found")
 	}
 }
 
 func main() {
-	fl, err := logger.NewLogger("main_log", "main")
-	if err != nil {
-		log.Println("Couldn't initialize logger")
-	}
-	fl.Println("Program Started")
+	fileLog.Println("Program Started")
 
 	// Read input flag
 	localRun := flag.Bool("local", false, "set this flag to run adrestia with local db")
@@ -70,7 +72,7 @@ func main() {
 		Obol:            &obolService,
 		ExchangeFactory: exchanges.NewExchangeFactory(factoryParams),
 	}
-	fl.EndLogger()
+	fileLog.EndLogger()
 	timer()
 }
 

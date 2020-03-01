@@ -47,7 +47,7 @@ func init() {
 }
 
 func main() {
-	fileLog.Println("Program Started")
+	fileLog.Println("Adrestia Started")
 
 	// Read input flag
 	localRun := flag.Bool("local", false, "set this flag to run adrestia with local db")

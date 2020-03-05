@@ -128,7 +128,7 @@ func runCronHour(schedule int, function func(), wg *sync.WaitGroup) {
 		defer func() {
 			wg.Done()
 		}()
-		if currTime.Hour == schedule {
+		if currTime.Hour == schedule && currTime.Minute == 0 {
 			function()
 		}
 		return

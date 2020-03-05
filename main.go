@@ -102,7 +102,10 @@ func runCrons(mainWg *sync.WaitGroup) {
 	processor.InitProcessor(globalParams)
 	var wg sync.WaitGroup
 	wg.Add(2)
-	go runCronMinutes(2160, b.StartBalancer, &wg) // 1 day and half
+	// Balancer is going to run everyday at 5am.
+	// Digital Ocean time is upfront by 6 hours of our time, that's why it is going to run
+	// every day at 11am, to compensate that difference.
+	go runCronHour(11, b.StartBalancer, &wg)
 	go runCronMinutes(10, processor.Start, &wg) // 10 minutes
 	wg.Wait()
 }
@@ -114,6 +117,18 @@ func runCronMinutes(schedule int, function func(), wg *sync.WaitGroup) {
 		}()
 		remainder := currTime.Minute % schedule
 		if remainder == 0 {
+			function()
+		}
+		return
+	}()
+}
+
+func runCronHour(schedule int, function func(), wg *sync.WaitGroup) {
+	go func() {
+		defer func() {
+			wg.Done()
+		}()
+		if currTime.Hour == schedule {
 			function()
 		}
 		return

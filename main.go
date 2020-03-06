@@ -100,7 +100,7 @@ func runCrons(mainWg *sync.WaitGroup) {
 	// Digital Ocean time is upfront by 6 hours of our time, that's why it is going to run
 	// every day at 11am, to compensate that difference.
 	go runCronHour(11, b.StartBalancer, &wg)
-	go runCronMinutes(1, processor.Start, &wg) // 10 minutes
+	go runCronMinutes(5, processor.Start, &wg) // 5 minutes
 	wg.Wait()
 }
 

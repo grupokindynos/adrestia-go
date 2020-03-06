@@ -16,7 +16,7 @@ type IExchange interface {
 	GetRateByAmount(sell transaction.ExchangeSell) (float64, error)
 	GetOrderStatus(order hestia.ExchangeOrder) (hestia.OrderStatus, error)
 	GetPair(fromCoin string, toCoin string) (OrderSide, error)
-	GetWithdrawalTxHash(txId string, asset string, address string, withdrawalAmount float64) (string, error)
+	GetWithdrawalTxHash(txId string, asset string) (string, error)
 	GetDepositStatus(txid string, asset string) (hestia.OrderStatus, error)
 }
 

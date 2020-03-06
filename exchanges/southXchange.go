@@ -3,8 +3,8 @@ package exchanges
 import (
 	"errors"
 	"log"
-	"math"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -23,22 +23,16 @@ type SouthXchange struct {
 	apiSecret       string
 	southClient     south.SouthXchange
 	Obol            obol.ObolService
-	WithdrawConfigs map[string]WithdrawConfig
 }
 
 func NewSouthXchange(params Params) *SouthXchange {
 	s := new(SouthXchange)
-	s.Name = "southXchange"
+	s.Name = "southxchange"
 	data := s.getSettings()
 	s.apiKey = data.ApiKey
 	s.apiSecret = data.ApiSecret
 	s.southClient = *south.New(s.apiKey, s.apiSecret, "user-agent")
 	s.Obol = params.Obol
-	s.WithdrawConfigs = map[string]WithdrawConfig{
-		"BTC":   WithdrawConfig{PercentageFee: 0.050, MinimumAmount: 0.0001, Precision: 0.000001},
-		"DASH":  WithdrawConfig{MinimumAmount: 0.0001, Precision: 0.0001},
-		"POLIS": WithdrawConfig{MinimumAmount: 0.01, Precision: 0.0001},
-	}
 	return s
 }
 
@@ -136,12 +130,13 @@ func (s *SouthXchange) SellAtMarketPrice(order hestia.ExchangeOrder) (string, er
 }
 
 func (s *SouthXchange) Withdraw(coin coins.Coin, address string, amount float64) (string, error) {
-	_, err := s.southClient.Withdraw(address, strings.ToUpper(coin.Info.Tag), amount)
+	info, err := s.southClient.Withdraw(address, strings.ToUpper(coin.Info.Tag), amount)
 	if err != nil {
 		log.Println("south - Withdraw - Withdraw() - ", err.Error())
 		return "", err
 	}
-	return "", err
+	id := strconv.FormatInt(info.MovementId, 10)
+	return id, err
 }
 
 func (s *SouthXchange) GetRateByAmount(sell transaction.ExchangeSell) (float64, error) {
@@ -200,17 +195,19 @@ func (s *SouthXchange) GetOrderStatus(order hestia.ExchangeOrder) (hestia.OrderS
 	return status, err
 }
 
-func (s *SouthXchange) GetWithdrawalTxHash(txId string, asset string, address string, withdrawalAmount float64) (string, error) {
-	txs, err := s.southClient.GetTransactions("withdrawals", 0, 1000, "", true)
+func (s *SouthXchange) GetWithdrawalTxHash(txId string, _ string) (string, error) {
+	txs, err := s.southClient.GetTransactions("", 0, 500, "", true)
 	if err != nil {
 		log.Println("south - GetWithdrawalTxHash - GetTransactions() - ", err.Error())
 		return "", err
 	}
-	wc := s.WithdrawConfigs[asset]
-	amount := withdrawalAmount - wc.GetWithdrawFeeAmount(withdrawalAmount)
-
+	tradeId, err := strconv.ParseInt(txId, 10, 64)
+	if err != nil {
+		log.Println("south - GetWithdrawalTxHash - ParseInt() - ", err.Error())
+		return "", err
+	}
 	for _, tx := range txs {
-		if (math.Abs(tx.Amount-amount) < wc.Precision) && tx.Address == address {
+		if tx.MovementId == tradeId && tx.Type == "withdraw" {
 			return tx.Hash, nil
 		}
 	}

@@ -16,12 +16,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-const fiatThreshold = 2.00 // USD // 2.0 for Testing, 10 USD for production
-const orderTimeOut = 2 * time.Hour
-const exConfirmationThreshold = 10
-const walletConfirmationThreshold = 3
-const testingAmount = 0.00001
-
 type CurrentTime struct {
 	Hour   int
 	Day    int
@@ -106,7 +100,7 @@ func runCrons(mainWg *sync.WaitGroup) {
 	// Digital Ocean time is upfront by 6 hours of our time, that's why it is going to run
 	// every day at 11am, to compensate that difference.
 	go runCronHour(11, b.StartBalancer, &wg)
-	go runCronMinutes(10, processor.Start, &wg) // 10 minutes
+	go runCronMinutes(1, processor.Start, &wg) // 10 minutes
 	wg.Wait()
 }
 

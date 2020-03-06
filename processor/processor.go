@@ -108,7 +108,7 @@ func handleCreatedOrders(wg *sync.WaitGroup) {
 			continue
 		}
 	}
-	fmt.Println("Finished CreatedOrders")
+	fileLog.Println("Finished CreatedOrders")
 }
 
 func handleExchange(wg *sync.WaitGroup) {
@@ -184,7 +184,7 @@ func handleExchange(wg *sync.WaitGroup) {
 		}
 	}
 	// 1. Verifies deposit in exchange and creates Selling Order always targets BTC
-	fmt.Println("Finished handleExchange")
+	fileLog.Println("Finished handleExchange")
 }
 
 func handleWithdrawal(wg *sync.WaitGroup) {
@@ -198,7 +198,6 @@ func handleWithdrawal(wg *sync.WaitGroup) {
 
 	var currExOrder *hestia.ExchangeOrder
 	var withdrawalId string
-	var withdrawalAddress string
 	var toExchange bool
 	var nextState hestia.AdrestiaStatus
 
@@ -208,33 +207,30 @@ func handleWithdrawal(wg *sync.WaitGroup) {
 			if order.DualExchange {
 				toExchange = true
 				withdrawalId = order.EETxId
-				withdrawalAddress = order.SecondExAddress
 				nextState = hestia.AdrestiaStatusSecondExchange
 			} else {
 				withdrawalId = order.EHTxId
-				withdrawalAddress = order.WithdrawAddress
 				nextState = hestia.AdrestiaStatusPlutusDeposit
 			}
 		} else {
 			currExOrder = &order.FinalOrder
 			withdrawalId = order.EHTxId
-			withdrawalAddress = order.WithdrawAddress
 			nextState = hestia.AdrestiaStatusPlutusDeposit
 		}
 
 		coin, err := cf.GetCoin(currExOrder.ReceivedCurrency)
 		if err != nil {
-			fmt.Println("handleWithdrawal - GetCoin() - " + err.Error())
+			fileLog.Println("handleWithdrawal - GetCoin() - " + err.Error())
 			continue
 		}
 
 		exchange, err := proc.ExchangeFactory.GetExchangeByName(currExOrder.Exchange)
 		if err != nil {
-			fmt.Println("handleWithdrawal - GetExchangeByName() - " + err.Error())
+			fileLog.Println("handleWithdrawal - GetExchangeByName() - " + err.Error())
 			continue
 		}
 
-		txHash, err := exchange.GetWithdrawalTxHash(withdrawalId, coin.Info.Tag, withdrawalAddress, currExOrder.ReceivedAmount)
+		txHash, err := exchange.GetWithdrawalTxHash(withdrawalId, coin.Info.Tag)
 		if err != nil {
 			fileLog.Println("handleWithdrawal - GetWithdrawalTxHash() - " + err.Error())
 			continue
@@ -269,13 +265,13 @@ func handleConversion(wg *sync.WaitGroup) {
 		}
 		exchange, err := proc.ExchangeFactory.GetExchangeByName(currExOrder.Exchange)
 		if err != nil {
-			fmt.Println("handleConversion - GetExchangeByName() - " + err.Error())
+			fileLog.Println("handleConversion - GetExchangeByName() - " + err.Error())
 			continue
 		}
 
 		status, err := exchange.GetOrderStatus(*currExOrder)
 		if err != nil {
-			fmt.Println("handleConversion - GetOrderStatus() - ", err.Error())
+			fileLog.Println("handleConversion - GetOrderStatus() - " + err.Error())
 			continue
 		}
 
@@ -288,12 +284,12 @@ func handleConversion(wg *sync.WaitGroup) {
 				if order.FirstOrder.Exchange != order.FinalOrder.Exchange {
 					coin, err := cf.GetCoin(currExOrder.ReceivedCurrency)
 					if err != nil {
-						fmt.Println("handleConversion - GetCoin() - ", err.Error())
+						fileLog.Println("handleConversion - GetCoin() - " + err.Error())
 						continue
 					}
 					txid, err := exchange.Withdraw(*coin, order.SecondExAddress, currExOrder.ReceivedAmount)
 					if err != nil {
-						fmt.Println("handleConversion - Withdraw() - " + currExOrder.Exchange + " " + err.Error())
+						fileLog.Println("handleConversion - Withdraw() - " + currExOrder.Exchange + " " + err.Error())
 						continue
 					}
 					order.EETxId = txid
@@ -313,7 +309,7 @@ func handleConversion(wg *sync.WaitGroup) {
 
 	// 1. Checks if order has been fulfilled.
 	// 2. If target coin is BTC sends it to HW, else sends it to a second exchange
-	fmt.Println("Finished handleConversion")
+	fileLog.Println("Finished handleConversion")
 }
 
 func handleCompletedExchange(wg *sync.WaitGroup) {
@@ -334,18 +330,18 @@ func handleCompletedExchange(wg *sync.WaitGroup) {
 		}
 		exchange, err := proc.ExchangeFactory.GetExchangeByName(exchangeOrder.Exchange)
 		if err != nil {
-			fmt.Println("handleCompletedExchange - GetExchangeByName() - ", err.Error())
+			fileLog.Println("handleCompletedExchange - GetExchangeByName() - " + err.Error())
 			continue
 		}
 		coin, err := cf.GetCoin(exchangeOrder.ReceivedCurrency)
 		if err != nil {
-			fmt.Println("handleCompletedExchange - GetCoin() - ", err.Error())
+			fileLog.Println("handleCompletedExchange - GetCoin() - " + err.Error())
 			continue
 		}
 
 		txId, err := exchange.Withdraw(*coin, order.WithdrawAddress, exchangeOrder.ReceivedAmount)
 		if err != nil {
-			fmt.Println("handleCompletedExchange - Withdraw() - ", err.Error())
+			fileLog.Println("handleCompletedExchange - Withdraw() - " + err.Error())
 			continue
 		}
 
@@ -353,7 +349,7 @@ func handleCompletedExchange(wg *sync.WaitGroup) {
 		changeOrderStatus(order, nextState)
 	}
 
-	fmt.Println("Finished handleCompletedExchange")
+	fileLog.Println("Finished handleCompletedExchange")
 }
 
 func handlePlutusDeposit(wg *sync.WaitGroup) {
@@ -415,7 +411,7 @@ func changeOrderStatus(order hestia.AdrestiaOrder, status hestia.AdrestiaStatus)
 	resp, err := proc.Hestia.UpdateAdrestiaOrder(order)
 	if err != nil {
 		order.Status = fallbackStatus
-		fmt.Println(err)
+		fileLog.Println(fmt.Sprintf("changeOrderStatus - UpdateAdrestiaOrder - orderId: %s couldn't be updated %s", order.ID, err.Error()))
 	} else {
 		fileLog.Println(fmt.Sprintf("order %s in %s has been updated to %d\t%s", order.FirstOrder.OrderId, order.FirstOrder.Exchange, order.Status, resp))
 	}
@@ -423,11 +419,9 @@ func changeOrderStatus(order hestia.AdrestiaOrder, status hestia.AdrestiaStatus)
 
 func storeOrders(orders []hestia.AdrestiaOrder) {
 	for _, order := range orders {
-		res, err := proc.Hestia.CreateAdrestiaOrder(order)
+		_, err := proc.Hestia.CreateAdrestiaOrder(order)
 		if err != nil {
-			fmt.Println("error posting order to hestia: ", err)
-		} else {
-			fmt.Println(res)
+			fileLog.Println(fmt.Sprint("error posting order to hestia. orderId: %s %s", order.ID, err.Error()))
 		}
 	}
 }

@@ -99,7 +99,7 @@ func (b *Binance) GetDepositStatus(txid string, asset string) (orderStatus hesti
 	return
 }
 
-func (b *Binance) GetWithdrawalTxHash(txId string, asset string, address string, withdrawalAmount float64) (string, error) {
+func (b *Binance) GetWithdrawalTxHash(txId string, asset string) (string, error) {
 	withdrawals, err := b.binanceApi.WithdrawHistory(binance.HistoryRequest{
 		Asset:     strings.ToLower(asset),
 		Timestamp: time.Now(),

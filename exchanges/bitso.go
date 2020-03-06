@@ -123,7 +123,7 @@ func (b *Bitso) GetRateByAmount(sell transaction.ExchangeSell) (float64, error) 
 	return 0.0, errors.New("func not implemented")
 }
 
-func (b *Bitso) GetWithdrawalTxHash(txId string, asset string, address string, withdrawalAmount float64) (string, error) {
+func (b *Bitso) GetWithdrawalTxHash(txId string, _ string) (string, error) {
 	return txId, nil
 }
 

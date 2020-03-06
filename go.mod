@@ -22,7 +22,7 @@ require (
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
-	github.com/oedipusK/go-southxchange v0.0.0-20200206165528-2c1ec4dd4ecf
+	github.com/oedipusK/go-southxchange v0.0.0-20200306161710-01bc4005c20d
 	github.com/olympus-protocol/ogen v0.0.0-20200122021631-c3b68757d5f7 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect

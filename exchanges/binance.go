@@ -13,7 +13,6 @@ import (
 
 	"github.com/grupokindynos/adrestia-go/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
-	"github.com/grupokindynos/adrestia-go/models/transaction"
 	"github.com/joho/godotenv"
 
 	"github.com/go-kit/kit/log"
@@ -268,10 +267,6 @@ func (b *Binance) Withdraw(coin coins.Coin, address string, amount float64) (str
 	}
 
 	return withdrawal.Id, nil
-}
-
-func (b *Binance) GetRateByAmount(sell transaction.ExchangeSell) (float64, error) {
-	return 0.0, errors.New("func not implemented")
 }
 
 func (b *Binance) GetOrderStatus(order hestia.ExchangeOrder) (hestia.OrderStatus, error) {

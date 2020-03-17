@@ -10,7 +10,6 @@ import (
 
 	"github.com/grupokindynos/adrestia-go/exchanges/config"
 	"github.com/grupokindynos/adrestia-go/models/balance"
-	"github.com/grupokindynos/adrestia-go/models/transaction"
 	"github.com/grupokindynos/common/coin-factory/coins"
 	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/obol"
@@ -137,10 +136,6 @@ func (s *SouthXchange) Withdraw(coin coins.Coin, address string, amount float64)
 	}
 	id := strconv.FormatInt(info.MovementId, 10)
 	return id, err
-}
-
-func (s *SouthXchange) GetRateByAmount(sell transaction.ExchangeSell) (float64, error) {
-	return 0.0, errors.New("func not implemented")
 }
 
 func (s *SouthXchange) GetDepositStatus(txid string, asset string) (hestia.OrderStatus, error) {

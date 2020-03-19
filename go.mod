@@ -3,6 +3,7 @@ module github.com/grupokindynos/adrestia-go
 go 1.13
 
 require (
+	github.com/Toorop/go-bittrex v0.0.0-20190830073639-940e8b39e80d
 	github.com/binance-exchange/go-binance v0.0.0-20180518133450-1af034307da5 // indirect
 	github.com/eabz/btcutil v0.0.0-20200122160855-a9a14a65b356 // indirect
 	github.com/gin-gonic/gin v1.5.0 // indirect
@@ -25,8 +26,10 @@ require (
 	github.com/oedipusK/go-southxchange v0.0.0-20200306161710-01bc4005c20d
 	github.com/olympus-protocol/ogen v0.0.0-20200122021631-c3b68757d5f7 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/shopspring/decimal v0.0.0-20200227202807-02e2044944cc // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
+	github.com/thebotguys/signalr v0.0.0-20190119054324-787ebe6729fc // indirect
 	github.com/uudashr/gopkgs/v2 v2.1.2 // indirect
 	golang.org/x/crypto v0.0.0-20200210222208-86ce3cb69678 // indirect
 	golang.org/x/sys v0.0.0-20200202164722-d101bd2416d5 // indirect

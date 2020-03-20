@@ -149,38 +149,21 @@ func (b *Binance) GetPair(fromCoin string, toCoin string) (OrderSide, error) {
 	return orderSide, nil
 }
 
-func (b *Binance) GetBalances() ([]balance.Balance, error) {
-	var balances []balance.Balance
+func (b *Binance) GetBalance(coin string) (float64, error) {
 	res, err := b.binanceApi.Account(binance.AccountRequest{
 		RecvWindow: 5 * time.Second,
 		Timestamp:  time.Now(),
 	})
 
 	if err != nil {
-		l.Println("binance - GetBalances - Account() - ", err.Error())
-		return balances, err
+		return 0.0, errors.New("binance - GetBalance - Account() - " + err.Error())
 	}
-	var rate float64
 	for _, asset := range res.Balances {
-		if strings.ToLower(asset.Asset) != "btc" {
-			rate, _ = b.Obol.GetCoin2CoinRates("BTC", asset.Asset)
-		} else {
-			rate = 1.0
+		if asset.Asset == coin {
+			return asset.Free, nil
 		}
-		var b = balance.Balance{
-			Ticker:             asset.Asset,
-			ConfirmedBalance:   asset.Free,
-			UnconfirmedBalance: asset.Locked,
-			RateBTC:            rate,
-			DiffBTC:            0,
-			IsBalanced:         false,
-		}
-		if b.GetTotalBalance() > 0.0 {
-			balances = append(balances, b)
-		}
-
 	}
-	return balances, nil
+	return 0.0, errors.New("binance - GetBalance - Balances - " + err.Error())
 }
 
 func (b *Binance) SellAtMarketPrice(order hestia.ExchangeOrder) (string, error) {
@@ -321,8 +304,6 @@ func GetSettings() config.BinanceAuth {
 	var data config.BinanceAuth
 	data.PublicApi = os.Getenv("BINANCE_PUB_API")
 	data.PrivateApi = os.Getenv("BINANCE_PRIV_API")
-	data.PublicWithdrawKey = os.Getenv("BINANCE_PUB_WITHDRAW")
-	data.PrivateWithdrawKey = os.Getenv("BINANCE_PRIV_WITHDRAW")
 	return data
 }
 

@@ -26,7 +26,7 @@ require (
 	github.com/oedipusK/go-southxchange v0.0.0-20200306161710-01bc4005c20d
 	github.com/olympus-protocol/ogen v0.0.0-20200122021631-c3b68757d5f7 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/shopspring/decimal v0.0.0-20200227202807-02e2044944cc // indirect
+	github.com/shopspring/decimal v0.0.0-20200227202807-02e2044944cc
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
 	github.com/thebotguys/signalr v0.0.0-20190119054324-787ebe6729fc // indirect

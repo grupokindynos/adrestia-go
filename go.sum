@@ -173,6 +173,12 @@ github.com/grpc-ecosystem/grpc-gateway v1.9.5/go.mod h1:vNeuVxBJEsws4ogUvrchl83t
 github.com/grupokindynos/common v0.0.0-20200224195843-eef7fd3aa897/go.mod h1:GuHK2gA5yF3hD5PjguSHuTf8f2xyEmdxoiFOFviyhng=
 github.com/grupokindynos/common v0.0.0-20200315200154-4623c39edd33 h1:gmVrqKPEr7WsZPW2VZXp4RJ3RvLo12m5NNGdFnUqwo0=
 github.com/grupokindynos/common v0.0.0-20200315200154-4623c39edd33/go.mod h1:54Nv1EC/vlsMTdys83LQ7jHluB+bY5tXodU1orxqoAA=
+github.com/grupokindynos/common v0.0.0-20200319162956-bec088790476 h1:ue2n3xtOSyBRt4wqIRqPAxJAOkL2L4Jn9ddAvCgYR7g=
+github.com/grupokindynos/common v0.0.0-20200319162956-bec088790476/go.mod h1:54Nv1EC/vlsMTdys83LQ7jHluB+bY5tXodU1orxqoAA=
+github.com/grupokindynos/common v0.0.0-20200320190628-105599fac6af h1:yYlk+LUNuG7D7pZRQV3Ot2Z71bZZN/gnuddaTvRO9uQ=
+github.com/grupokindynos/common v0.0.0-20200320190628-105599fac6af/go.mod h1:54Nv1EC/vlsMTdys83LQ7jHluB+bY5tXodU1orxqoAA=
+github.com/grupokindynos/common v0.0.0-20200320191153-ab93518e8e2c h1:/0loOSwtVkybxKFh/q8hRGIMYUK81QxZd6WjZbTeRRQ=
+github.com/grupokindynos/common v0.0.0-20200320191153-ab93518e8e2c/go.mod h1:54Nv1EC/vlsMTdys83LQ7jHluB+bY5tXodU1orxqoAA=
 github.com/grupokindynos/go-binance v0.0.0-20200218200020-be83de467e5d h1:8KbHjP+K2y2CNQQcJXrxeSdRDNCp94qJn6RK08KwMhk=
 github.com/grupokindynos/go-binance v0.0.0-20200218200020-be83de467e5d/go.mod h1:RgYTB+ZsGwA2qfu4o9ObHcsGijn3F04BdV5Nv0mmMqI=
 github.com/grupokindynos/hestia v0.0.0-20200306023058-8098feac4e62 h1:wi0OkFGJzQLkIzNUzZzQLh7BSq+HBYkf/MV6tQSrdXk=

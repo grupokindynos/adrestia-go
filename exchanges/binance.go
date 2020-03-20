@@ -26,7 +26,7 @@ type Binance struct {
 	Obol        obol.ObolService
 }
 
-func NewBinance(params Params) *Binance {
+func NewBinance(obol obol.ObolService) *Binance {
 	c := new(Binance)
 	c.Name = "binance"
 	c.BaseUrl = ""
@@ -47,6 +47,7 @@ func NewBinance(params Params) *Binance {
 		ctx,
 	)
 	c.binanceApi = binance.NewBinance(binanceService)
+	c.Obol = obol
 	return c
 }
 

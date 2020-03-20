@@ -2,12 +2,21 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="dbfa9aa0-4b64-455b-8b3b-81a8a0286cdf" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/models/models.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/processor/deposits_processor.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/processor/exchange_balancer_processor.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/processor/hw_balancer_processor.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/exchanges/binance.go" beforeDir="false" afterPath="$PROJECT_DIR$/exchanges/binance.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/exchanges/exchange_factory.go" beforeDir="false" afterPath="$PROJECT_DIR$/exchanges/exchange_factory.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/exchanges/interface.go" beforeDir="false" afterPath="$PROJECT_DIR$/exchanges/interface.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/exchanges/southxchange.go" beforeDir="false" afterPath="$PROJECT_DIR$/exchanges/southxchange.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/processor/balance_processor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processor/balance_processor.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/processor/balance_processor.go" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/services/hestia.go" beforeDir="false" afterPath="$PROJECT_DIR$/services/hestia.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/services/interface.go" beforeDir="false" afterPath="$PROJECT_DIR$/services/interface.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/services/plutus.go" beforeDir="false" afterPath="$PROJECT_DIR$/services/plutus.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,10 +51,11 @@
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
     <property name="go.tried.to.enable.integration.vgo.integrator" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../common" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\castor-polis\Documents\GitHub\adrestia-go" />
       <recent name="C:\Projects\Go\src\github.com\grupokindynos\adrestia-go" />
     </key>
   </component>
@@ -78,10 +88,15 @@
     <proxy>direct</proxy>
   </component>
   <component name="WindowStateProjectService">
-    <state x="2660" y="276" key="FileChooserDialogImpl" timestamp="1584547278025">
-      <screen x="1920" y="0" width="1920" height="1040" />
+    <state x="552" y="178" key="#Build_Tags_&amp;_Vendoring" timestamp="1584716900489">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="552" y="178" key="#Build_Tags_&amp;_Vendoring/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1584716900489" />
+    <state x="740" y="276" key="FileChooserDialogImpl" timestamp="1584716933747">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="2660" y="276" key="FileChooserDialogImpl/0.0.1280.680/1920.0.1920.1040@1920.0.1920.1040" timestamp="1584547278025" />
+    <state x="740" y="276" key="FileChooserDialogImpl/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1584716933747" />
     <state x="2543" y="225" width="672" height="678" key="search.everywhere.popup" timestamp="1584547021863">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>

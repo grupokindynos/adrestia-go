@@ -22,14 +22,14 @@ type SouthXchange struct {
 	Obol            obol.ObolService
 }
 
-func NewSouthXchange(params Params) *SouthXchange {
+func NewSouthXchange(obol obol.ObolService) *SouthXchange {
 	s := new(SouthXchange)
 	s.Name = "southxchange"
 	data := s.getSettings()
 	s.apiKey = data.ApiKey
 	s.apiSecret = data.ApiSecret
 	s.southClient = *south.New(s.apiKey, s.apiSecret, "user-agent")
-	s.Obol = params.Obol
+	s.Obol = obol
 	return s
 }
 

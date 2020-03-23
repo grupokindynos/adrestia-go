@@ -75,3 +75,11 @@ func (p *PlutusInstance) WithdrawToAddress(body plutus.SendAddressBodyReq) (txId
 	}
 	return response, nil
 }
+
+func (p *PlutusInstance) GetAddress(coin string) (string, error) {
+	address, err := plutus.GetWalletAddress(p.PlutusURL, strings.ToLower(coin), os.Getenv("ADRESTIA_PRIV_KEY"), "adrestia", os.Getenv("PLUTUS_AUTH_USERNAME"), os.Getenv("PLUTUS_AUTH_PASSWORD"), os.Getenv("PLUTUS_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
+	if err != nil {
+		return "", err
+	}
+	return address, nil
+}

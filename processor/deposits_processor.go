@@ -2,7 +2,6 @@ package processor
 
 import (
 	"github.com/grupokindynos/adrestia-go/exchanges"
-	"github.com/grupokindynos/adrestia-go/models"
 	"github.com/grupokindynos/adrestia-go/services"
 	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/obol"
@@ -24,9 +23,10 @@ var (
 
 func (p *DepositProcessor) Start() {
 	var err error
-	pendingDeposits, err = p.Hestia.GetDeposits(models.OrderParams{IncludeComplete: false})
+	pendingDeposits, err = p.Hestia.GetDeposits(false, 0)
 	if err != nil {
 		log.Println("Unable to load deposits " + err.Error())
+		return
 	}
 
 	depositstExFactory = exchanges.NewExchangeFactory(p.Obol)
@@ -75,6 +75,16 @@ func (p *DepositProcessor) handlePerformedDeposit(wg *sync.WaitGroup) {
 			continue
 		}
 		if depositInfo.Status == hestia.ExchangeOrderStatusCompleted {
+			stock, err := exchange.GetBalance(deposit.Currency)
+			if err != nil {
+				log.Println("Unable to get new balance " + err.Error())
+				continue
+			}
+			_, err = p.Hestia.UpdateExchangeBalance(deposit.Exchange, stock)
+			if err != nil {
+				log.Println("Unable to update new exchange balance on hestia " + err.Error())
+				continue
+			}
 			deposit.ReceivedAmount = depositInfo.ReceivedAmount
 			deposit.Status = hestia.SimpleTxStatusCompleted
 			_, err = p.Hestia.UpdateDeposit(deposit)

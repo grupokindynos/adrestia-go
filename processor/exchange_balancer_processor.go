@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-type Processor struct {
+type ExchangesProcessor struct {
 	Hestia services.HestiaService
 	Plutus services.PlutusService
 	Obol obol.ObolService
@@ -22,7 +22,7 @@ var(
 	newDeposits []hestia.SimpleTx
 )
 
-func (p *Processor) Start() {
+func (p *ExchangesProcessor) Start() {
 	var err error
 	exchangesInfo, err = p.Hestia.GetExchanges()
 	if err != nil {
@@ -37,7 +37,7 @@ func (p *Processor) Start() {
 	p.balanceExchanges()
 }
 
-func (p *Processor) balanceExchanges() {
+func (p *ExchangesProcessor) balanceExchanges() {
 	for _, exchangeInfo := range exchangesInfo {
 		if exchangeInfo.StockAmount < exchangeInfo.StockMinimumAmount {
 			err := p.createDeposit(exchangeInfo, exchangeInfo.StockExpectedAmount - exchangeInfo.StockAmount)
@@ -66,7 +66,7 @@ func (p *Processor) balanceExchanges() {
 	}
 }
 
-func (p *Processor) createDeposit(exchangeInfo hestia.ExchangeInfo, amount float64) error {
+func (p *ExchangesProcessor) createDeposit(exchangeInfo hestia.ExchangeInfo, amount float64) error {
 	exchangeInstance, err := exchangeFactory.GetExchangeByName(exchangeInfo.Name)
 	if err != nil {
 		return err
@@ -92,7 +92,7 @@ func (p *Processor) createDeposit(exchangeInfo hestia.ExchangeInfo, amount float
 	return nil
 }
 
-func (p *Processor) isDepositPossible() (bool, error) {
+func (p *ExchangesProcessor) isDepositPossible() (bool, error) {
 	neededStock := make(map[string]float64)
 
 	for _, deposit := range newDeposits {

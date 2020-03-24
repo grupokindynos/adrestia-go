@@ -2,18 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="dbfa9aa0-4b64-455b-8b3b-81a8a0286cdf" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/balancer/balancer.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/adrestia-go.exe" beforeDir="false" afterPath="$PROJECT_DIR$/adrestia-go.exe" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/exchanges/interface.go" beforeDir="false" afterPath="$PROJECT_DIR$/exchanges/interface.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/models/models.go" beforeDir="false" afterPath="$PROJECT_DIR$/models/models.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/processor/deposits_processor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processor/deposits_processor.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/processor/exchange_balancer_processor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processor/exchange_balancer_processor.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/processor/hw_balancer_processor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processor/hw_balancer_processor.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/services/hestia.go" beforeDir="false" afterPath="$PROJECT_DIR$/services/hestia.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/services/interface.go" beforeDir="false" afterPath="$PROJECT_DIR$/services/interface.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/services/plutus.go" beforeDir="false" afterPath="$PROJECT_DIR$/services/plutus.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -48,7 +44,7 @@
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
     <property name="go.tried.to.enable.integration.vgo.integrator" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../common" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">

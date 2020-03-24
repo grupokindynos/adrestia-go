@@ -61,6 +61,25 @@ func (h *HestiaInstance) UpdateExchangeBalance(exchange string, amount float64) 
 	return response, nil
 }
 
+func (h *HestiaInstance) GetAdrestiaCoins() (availableCoins []hestia.Coin, err error) {
+	payload, err := h.get("/coins", models.GetFilters{})
+	if err != nil {
+		return nil, err
+	}
+	var response []hestia.Coin
+	err = json.Unmarshal(payload, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, coin := range response {
+		if coin.Adrestia.Available {
+			availableCoins = append(availableCoins, coin)
+		}
+	}
+	return availableCoins, nil
+}
+
 func (h *HestiaInstance) GetExchange(exchange string) (hestia.ExchangeInfo, error) {
 	payload, err := h.get("/exchange", models.GetFilters{Id:exchange})
 	if err != nil {
@@ -145,6 +164,44 @@ func (h *HestiaInstance) CreateDeposit(simpleTx hestia.SimpleTx) (string, error)
 
 func (h *HestiaInstance) CreateWithdrawal(simpleTx hestia.SimpleTx) (string, error) {
 	return h.doSimpleTx("POST", "/adrestia/new/withdrawal", simpleTx)
+}
+
+func (h *HestiaInstance) CreateBalancerOrder(balancerOrder hestia.BalancerOrder) (string, error) {
+	req, err := mvt.CreateMVTToken("POST", h.HestiaURL+"/adrestia/new/order", "adrestia", os.Getenv("MASTER_PASSWORD"), balancerOrder, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
+	if err != nil {
+		return "", err
+	}
+	client := http.Client{
+		Transport:     nil,
+		CheckRedirect: nil,
+		Jar:           nil,
+		Timeout:       time.Second * 30,
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+	tokenResponse, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+	var tokenString string
+	err = json.Unmarshal(tokenResponse, &tokenString)
+	if err != nil {
+		return "", err
+	}
+	headerSignature := res.Header.Get("service")
+	valid, payload := mrt.VerifyMRTToken(headerSignature, tokenString, os.Getenv("HESTIA_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
+	if !valid {
+		return "", err
+	}
+	var response string
+	err = json.Unmarshal(payload, &response)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
 }
 
 func (h *HestiaInstance) UpdateDeposit(simpleTx hestia.SimpleTx) (string, error) {

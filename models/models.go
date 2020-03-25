@@ -10,3 +10,9 @@ type TradeInfo struct {
 	Book string `json:"book"`
 	Type string `json:"type"`
 }
+
+type ExchangeTradeOrder struct {
+	Symbol string `json:"symbol"`
+	Side string `json:"side"`
+	Amount float64 `json:"amount"`
+}

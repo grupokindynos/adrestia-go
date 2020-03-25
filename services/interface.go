@@ -16,9 +16,11 @@ type HestiaService interface {
 	CreateDeposit(simpleTx hestia.SimpleTx) (string, error)
 	CreateWithdrawal(simpleTx hestia.SimpleTx) (string, error)
 	CreateBalancerOrder(balancerOrder hestia.BalancerOrder) (string, error)
+	CreateBalancer(balancer hestia.Balancer) (string, error)
 	UpdateDeposit(simpleTx hestia.SimpleTx) (string, error)
 	UpdateBalancer(balancer hestia.Balancer) (string, error)
 	UpdateWithdrawal(simpleTx hestia.SimpleTx) (string, error)
+	UpdateBalancerOrder(order hestia.BalancerOrder) (string, error)
 }
 
 type PlutusService interface {

@@ -28,37 +28,7 @@ func (h *HestiaInstance) UpdateExchangeBalance(exchange string, amount float64) 
 	if err != nil {
 		return "", err
 	}
-	client := http.Client{
-		Transport:     nil,
-		CheckRedirect: nil,
-		Jar:           nil,
-		Timeout:       time.Second * 30,
-	}
-	res, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer res.Body.Close()
-	tokenResponse, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return "", err
-	}
-	var tokenString string
-	err = json.Unmarshal(tokenResponse, &tokenString)
-	if err != nil {
-		return "", err
-	}
-	headerSignature := res.Header.Get("service")
-	valid, payload := mrt.VerifyMRTToken(headerSignature, tokenString, os.Getenv("HESTIA_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
-	if !valid {
-		return "", err
-	}
-	var response string
-	err = json.Unmarshal(payload, &response)
-	if err != nil {
-		return "", err
-	}
-	return response, nil
+	return doResponseToString(h.do(req))
 }
 
 func (h *HestiaInstance) GetAdrestiaCoins() (availableCoins []hestia.Coin, err error) {
@@ -159,11 +129,19 @@ func (h *HestiaInstance) GetBalancer() (hestia.Balancer, error) {
 }
 
 func (h *HestiaInstance) CreateDeposit(simpleTx hestia.SimpleTx) (string, error) {
-	return h.doSimpleTx("POST", "/adrestia/new/deposit", simpleTx)
+	req, err := mvt.CreateMVTToken("POST", h.HestiaURL+"/adrestia/new/deposit", "adrestia", os.Getenv("MASTER_PASSWORD"), simpleTx, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
+	if err != nil {
+		return "", err
+	}
+	return doResponseToString(h.do(req))
 }
 
 func (h *HestiaInstance) CreateWithdrawal(simpleTx hestia.SimpleTx) (string, error) {
-	return h.doSimpleTx("POST", "/adrestia/new/withdrawal", simpleTx)
+	req, err := mvt.CreateMVTToken("POST", h.HestiaURL+"/adrestia/new/withdrawal", "adrestia", os.Getenv("MASTER_PASSWORD"), simpleTx, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
+	if err != nil {
+		return "", err
+	}
+	return doResponseToString(h.do(req))
 }
 
 func (h *HestiaInstance) CreateBalancerOrder(balancerOrder hestia.BalancerOrder) (string, error) {
@@ -171,45 +149,31 @@ func (h *HestiaInstance) CreateBalancerOrder(balancerOrder hestia.BalancerOrder)
 	if err != nil {
 		return "", err
 	}
-	client := http.Client{
-		Transport:     nil,
-		CheckRedirect: nil,
-		Jar:           nil,
-		Timeout:       time.Second * 30,
-	}
-	res, err := client.Do(req)
+	return doResponseToString(h.do(req))
+}
+
+func (h *HestiaInstance) CreateBalancer(balancer hestia.Balancer) (string, error) {
+	req, err := mvt.CreateMVTToken("POST", h.HestiaURL+"/adrestia/new/balancer", "adrestia", os.Getenv("MASTER_PASSWORD"), balancer, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
 	if err != nil {
 		return "", err
 	}
-	defer res.Body.Close()
-	tokenResponse, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return "", err
-	}
-	var tokenString string
-	err = json.Unmarshal(tokenResponse, &tokenString)
-	if err != nil {
-		return "", err
-	}
-	headerSignature := res.Header.Get("service")
-	valid, payload := mrt.VerifyMRTToken(headerSignature, tokenString, os.Getenv("HESTIA_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
-	if !valid {
-		return "", err
-	}
-	var response string
-	err = json.Unmarshal(payload, &response)
-	if err != nil {
-		return "", err
-	}
-	return response, nil
+	return doResponseToString(h.do(req))
 }
 
 func (h *HestiaInstance) UpdateDeposit(simpleTx hestia.SimpleTx) (string, error) {
-	return h.doSimpleTx("PUT", "/adrestia/update/deposit", simpleTx)
+	req, err := mvt.CreateMVTToken("PUT", h.HestiaURL+"/adrestia/update/deposit", "adrestia", os.Getenv("MASTER_PASSWORD"), simpleTx, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
+	if err != nil {
+		return "", err
+	}
+	return doResponseToString(h.do(req))
 }
 
 func (h *HestiaInstance) UpdateWithdrawal(simpleTx hestia.SimpleTx) (string, error) {
-	return h.doSimpleTx("PUT", "/adrestia/update/withdrawal", simpleTx)
+	req, err := mvt.CreateMVTToken("PUT", h.HestiaURL+"/adrestia/update/withdrawal", "adrestia", os.Getenv("MASTER_PASSWORD"), simpleTx, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
+	if err != nil {
+		return "", err
+	}
+	return doResponseToString(h.do(req))
 }
 
 func (h *HestiaInstance) UpdateBalancer(balancer hestia.Balancer) (string, error) {
@@ -217,75 +181,15 @@ func (h *HestiaInstance) UpdateBalancer(balancer hestia.Balancer) (string, error
 	if err != nil {
 		return "", err
 	}
-	client := http.Client{
-		Transport:     nil,
-		CheckRedirect: nil,
-		Jar:           nil,
-		Timeout:       time.Second * 30,
-	}
-	res, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer res.Body.Close()
-	tokenResponse, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return "", err
-	}
-	var tokenString string
-	err = json.Unmarshal(tokenResponse, &tokenString)
-	if err != nil {
-		return "", err
-	}
-	headerSignature := res.Header.Get("service")
-	valid, payload := mrt.VerifyMRTToken(headerSignature, tokenString, os.Getenv("HESTIA_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
-	if !valid {
-		return "", err
-	}
-	var response string
-	err = json.Unmarshal(payload, &response)
-	if err != nil {
-		return "", err
-	}
-	return response, nil
+	return doResponseToString(h.do(req))
 }
 
-func (h *HestiaInstance) doSimpleTx(method string, url string, simpleTx hestia.SimpleTx) (string, error) {
-	req, err := mvt.CreateMVTToken(method, h.HestiaURL+url, "adrestia", os.Getenv("MASTER_PASSWORD"), simpleTx, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
+func (h *HestiaInstance) UpdateBalancerOrder(order hestia.BalancerOrder) (string, error) {
+	req, err := mvt.CreateMVTToken("PUT", h.HestiaURL+"/adrestia/update/order", "adrestia", os.Getenv("MASTER_PASSWORD"), order, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
 	if err != nil {
 		return "", err
 	}
-	client := http.Client{
-		Transport:     nil,
-		CheckRedirect: nil,
-		Jar:           nil,
-		Timeout:       time.Second * 30,
-	}
-	res, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer res.Body.Close()
-	tokenResponse, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return "", err
-	}
-	var tokenString string
-	err = json.Unmarshal(tokenResponse, &tokenString)
-	if err != nil {
-		return "", err
-	}
-	headerSignature := res.Header.Get("service")
-	valid, payload := mrt.VerifyMRTToken(headerSignature, tokenString, os.Getenv("HESTIA_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
-	if !valid {
-		return "", err
-	}
-	var response string
-	err = json.Unmarshal(payload, &response)
-	if err != nil {
-		return "", err
-	}
-	return response, nil
+	return doResponseToString(h.do(req))
 }
 
 func (h *HestiaInstance) get(url string, params models.GetFilters) ([]byte, error) {
@@ -293,18 +197,22 @@ func (h *HestiaInstance) get(url string, params models.GetFilters) ([]byte, erro
 	if err != nil {
 		return nil, err
 	}
-	client := http.Client{
-		Transport:     nil,
-		CheckRedirect: nil,
-		Jar:           nil,
-		Timeout:       time.Second * 30,
-	}
 	q := req.URL.RawQuery
 	val, err := query.Values(params)
 	if err != nil {
 		return nil, errors.New("problem with query parameters")
 	}
 	req.URL.RawQuery = q + val.Encode() // add encoded values
+	return h.do(req)
+}
+
+func (h *HestiaInstance) do(req *http.Request) ([]byte, error) {
+	client := http.Client{
+		Transport:     nil,
+		CheckRedirect: nil,
+		Jar:           nil,
+		Timeout:       time.Second * 30,
+	}
 	res, err := client.Do(req)
 	if err != nil {
 		return nil, err
@@ -324,6 +232,17 @@ func (h *HestiaInstance) get(url string, params models.GetFilters) ([]byte, erro
 	if !valid {
 		return nil, err
 	}
-
 	return payload, nil
+}
+
+func doResponseToString(payload []byte, err error) (string, error) {
+	if err != nil {
+		return "", err
+	}
+	var response string
+	err = json.Unmarshal(payload, &response)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
 }

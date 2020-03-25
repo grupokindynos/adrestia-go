@@ -62,7 +62,16 @@ func (p *ExchangesProcessor) balanceExchanges() {
 			}
 		}
 	} else {
-
+		balancer := hestia.Balancer{
+			Id:            utils.RandomString(),
+			Status:        hestia.BalancerStatusCreated,
+			CreatedTime:   time.Now().Unix(),
+			FulfilledTime: 0,
+		}
+		_, err := p.Hestia.CreateBalancer(balancer)
+		if err != nil {
+			log.Println("Unable to create balancer " + err.Error())
+		}
 	}
 }
 
@@ -86,7 +95,8 @@ func (p *ExchangesProcessor) createDeposit(exchangeInfo hestia.ExchangeInfo, amo
 		Currency:   exchangeInfo.StockCurrency,
 		Amount:     amount,
 		Status:     hestia.SimpleTxStatusCreated,
-		Timestamp:  time.Now().Unix(),
+		CreatedTime:  time.Now().Unix(),
+		FulfilledTime: 0,
 	}
 	newDeposits = append(newDeposits, deposit)
 	return nil

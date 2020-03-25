@@ -9,7 +9,7 @@ require (
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/golang/protobuf v1.3.3 // indirect
 	github.com/google/go-querystring v1.0.0
-	github.com/grupokindynos/common v0.0.0-20200324202645-0e73c1cef320
+	github.com/grupokindynos/common v0.0.0-20200325154726-430e1236fd72
 	github.com/grupokindynos/go-binance v0.0.0-20200218200020-be83de467e5d
 	github.com/joho/godotenv v1.3.0
 	github.com/json-iterator/go v1.1.9 // indirect

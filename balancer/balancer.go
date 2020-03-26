@@ -132,7 +132,7 @@ func (b *Balancer) createBalancerOrder(fromCoin string, toCoin string, amount fl
 		trade2 = b.createTradeOrder("USDT", toCoin, tradeInfo2)
 	}
 	
-	order := hestia.BalancerOrder{
+	order := hestia.BalancerOrder {
 		Id:              balancerId,
 		BalancerId:      balancerId,
 		FromCoin:        fromCoin,

@@ -2,19 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="dbfa9aa0-4b64-455b-8b3b-81a8a0286cdf" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/processor/balancer_orders_processor.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/processor/common.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/processor/withdrawals_processor.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/balancer/balancer.go" beforeDir="false" afterPath="$PROJECT_DIR$/balancer/balancer.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/exchanges/interface.go" beforeDir="false" afterPath="$PROJECT_DIR$/exchanges/interface.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/models.go" beforeDir="false" afterPath="$PROJECT_DIR$/models/models.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/processor/exchange_balancer_processor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processor/exchange_balancer_processor.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/processor/deposits_processor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processor/deposits_processor.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/processor/hw_balancer_processor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processor/hw_balancer_processor.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/services/hestia.go" beforeDir="false" afterPath="$PROJECT_DIR$/services/hestia.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/services/interface.go" beforeDir="false" afterPath="$PROJECT_DIR$/services/interface.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/processor/withdrawals_processor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processor/withdrawals_processor.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,7 +42,7 @@
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
     <property name="go.tried.to.enable.integration.vgo.integrator" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../common" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -90,11 +83,11 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="552" y="178" key="#Build_Tags_&amp;_Vendoring/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1584716900489" />
-    <state x="2660" y="276" key="FileChooserDialogImpl" timestamp="1584978075485">
+    <state x="2660" y="276" key="FileChooserDialogImpl" timestamp="1585235976895">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
     <state x="2660" y="276" key="FileChooserDialogImpl/0.0.1280.680/1920.0.1920.1040@1920.0.1920.1040" timestamp="1584547278025" />
-    <state x="2660" y="276" key="FileChooserDialogImpl/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1584978075485" />
+    <state x="2660" y="276" key="FileChooserDialogImpl/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1585235976895" />
     <state x="740" y="276" key="FileChooserDialogImpl/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1584716933747" />
     <state x="2543" y="225" width="672" height="678" key="search.everywhere.popup" timestamp="1585153404736">
       <screen x="1920" y="0" width="1920" height="1040" />

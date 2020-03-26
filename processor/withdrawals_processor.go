@@ -6,6 +6,7 @@ import (
 	"github.com/grupokindynos/common/hestia"
 	"log"
 	"sync"
+	"time"
 )
 
 type WithdrawalsProcessor struct {
@@ -101,6 +102,7 @@ func (wp *WithdrawalsProcessor) handlerWithdrawalPlutusDeposit(wg *sync.WaitGrou
 				continue
 			}
 			withdrawal.ReceivedAmount = receivedAmount
+			withdrawal.FulfilledTime = time.Now().Unix()
 			withdrawal.Status = hestia.SimpleTxStatusCompleted
 			_, err = wp.Hestia.UpdateWithdrawal(withdrawal)
 			if err != nil {

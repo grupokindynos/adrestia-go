@@ -8,6 +8,7 @@ import (
 	"github.com/grupokindynos/common/plutus"
 	"log"
 	"sync"
+	"time"
 )
 
 type DepositProcessor struct {
@@ -86,6 +87,7 @@ func (p *DepositProcessor) handlePerformedDeposit(wg *sync.WaitGroup) {
 				continue
 			}
 			deposit.ReceivedAmount = depositInfo.ReceivedAmount
+			deposit.FulfilledTime = time.Now().Unix()
 			deposit.Status = hestia.SimpleTxStatusCompleted
 			_, err = p.Hestia.UpdateDeposit(deposit)
 			if err != nil {

@@ -1,20 +1,14 @@
 package processor
 
 import (
-	"errors"
 	"github.com/grupokindynos/adrestia-go/balancer"
 	"github.com/grupokindynos/adrestia-go/exchanges"
-	"github.com/grupokindynos/adrestia-go/models"
 	"github.com/grupokindynos/adrestia-go/services"
 	"github.com/grupokindynos/common/blockbook"
-	cf "github.com/grupokindynos/common/coin-factory"
 	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/obol"
-	"github.com/grupokindynos/common/plutus"
 	"github.com/grupokindynos/common/utils"
 	"log"
-	"strconv"
-	"sync"
 	"time"
 )
 
@@ -56,7 +50,7 @@ func (hp *HwProcessor) Start() {
 		return
 	}
 	hwExFactory = exchanges.NewExchangeFactory(hp.Obol)
-	processorParams := Params{
+	processorParams := Params {
 		Hestia: hp.Hestia,
 		Plutus: hp.Plutus,
 	}
@@ -67,7 +61,10 @@ func (hp *HwProcessor) Start() {
 	case hestia.BalancerStatusCreated:
 		hp.withdrawFromExchanges()
 		currentBalancer.Status = hestia.BalancerStatusWithdrawal
-		hp.Hestia.UpdateBalancer(currentBalancer)
+		_, err := hp.Hestia.UpdateBalancer(currentBalancer)
+		if err != nil {
+			log.Println("Unable to change status to balancer " + err.Error())
+		}
 	case hestia.BalancerStatusWithdrawal:
 		if len(pendingWithdrawals) > 0 {
 			withdrawalsProcessor.Start()
@@ -78,15 +75,21 @@ func (hp *HwProcessor) Start() {
 				return
 			}
 			currentBalancer.Status = hestia.BalancerStatusTradeOrders
-			hp.Hestia.UpdateBalancer(currentBalancer)
+			_, err = hp.Hestia.UpdateBalancer(currentBalancer)
+			if err != nil {
+				log.Println("Unable to change status to balancer " + err.Error())
+			}
 		}
 	case hestia.BalancerStatusTradeOrders:
 		if len(pendingBalancerOrders) > 0 {
 			balancerOrdersProcessor.Start()
 		} else {
 			currentBalancer.Status = hestia.BalancerStatusCompleted
-			hp.Hestia.UpdateBalancer(currentBalancer)
-			// Update fulfilled time for balancer
+			currentBalancer.FulfilledTime = time.Now().Unix()
+			_, err := hp.Hestia.UpdateBalancer(currentBalancer)
+			if err != nil {
+				log.Println("Unable to change status to balancer " + err.Error())
+			}
 		}
 	default:
 	}
@@ -118,7 +121,7 @@ func (hp *HwProcessor) createWithdrawalOrder(exchangeInfo hestia.ExchangeInfo, a
 		Amount:         amount,
 		ReceivedAmount: 0,
 		Status:         hestia.SimpleTxStatusCreated,
-		CreatedTime:      time.Now().Unix(),
+		CreatedTime:    time.Now().Unix(),
 		FulfilledTime:  0,
 	}
 	_, err = hp.Hestia.CreateWithdrawal(withdrawal)

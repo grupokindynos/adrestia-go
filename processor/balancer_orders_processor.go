@@ -1,7 +1,6 @@
 package processor
 
 import (
-	"github.com/grupokindynos/adrestia-go/models"
 	"github.com/grupokindynos/adrestia-go/services"
 	cf "github.com/grupokindynos/common/coin-factory"
 	"github.com/grupokindynos/common/hestia"
@@ -67,7 +66,7 @@ func (bp *BalancerOrderProcessor) handlerBalancerOrdersExchangeDepositSent(wg *s
 			log.Println("Unable to get balancer by exchange")
 			continue
 		}
-		depositInfo, err := exchange.GetDepositStatus(order.DepositTxId)
+		depositInfo, err := exchange.GetDepositStatus(order.DepositTxId, "")
 		if err != nil {
 			log.Println("Unable to get deposit info " + err.Error())
 			continue
@@ -76,11 +75,7 @@ func (bp *BalancerOrderProcessor) handlerBalancerOrdersExchangeDepositSent(wg *s
 			order.FirstTrade.Amount = depositInfo.ReceivedAmount
 			order.FirstTrade.CreatedTime = time.Now().Unix()
 			order.Status = hestia.BalancerOrderStatusFirstTrade
-			orderId, err := exchange.SellAtMarketPrice(models.ExchangeTradeOrder{
-				Symbol: order.FirstTrade.Symbol,
-				Side:   order.FirstTrade.Side,
-				Amount: order.FirstTrade.Amount,
-			})
+			orderId, err := exchange.SellAtMarketPrice(order.FirstTrade)
 			if err != nil {
 				log.Println("Error while placing trading order " + err.Error())
 				continue
@@ -113,11 +108,7 @@ func (bp *BalancerOrderProcessor) handlerBalancerOrdersTrades(wg *sync.WaitGroup
 		} else {
 			tradeOrder = &order.SecondTrade
 		}
-		orderInfo, err := exchange.GetOrderStatus(models.ExchangeTradeOrder{
-			Symbol: tradeOrder.Symbol,
-			Side:   tradeOrder.Side,
-			Amount: tradeOrder.Amount,
-		})
+		orderInfo, err := exchange.GetOrderStatus(*tradeOrder)
 		if err != nil {
 			log.Println("Unable to get order status " + err.Error())
 			continue
@@ -128,11 +119,7 @@ func (bp *BalancerOrderProcessor) handlerBalancerOrdersTrades(wg *sync.WaitGroup
 			if order.Status == hestia.BalancerOrderStatusFirstTrade && order.DualConversion {
 				order.SecondTrade.Amount = orderInfo.ReceivedAmount
 				order.SecondTrade.CreatedTime = time.Now().Unix()
-				orderId, err := exchange.SellAtMarketPrice(models.ExchangeTradeOrder{
-					Symbol: order.SecondTrade.Symbol,
-					Side:   order.SecondTrade.Side,
-					Amount: order.SecondTrade.Amount,
-				})
+				orderId, err := exchange.SellAtMarketPrice(order.SecondTrade)
 				if err != nil {
 					log.Println("Error placing second trading order " + err.Error())
 					continue

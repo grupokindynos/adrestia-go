@@ -49,7 +49,7 @@ func (hp *HwProcessor) Start() {
 		log.Println("Unable to get exchanges info " + err.Error())
 		return
 	}
-	hwExFactory = exchanges.NewExchangeFactory(hp.Obol)
+	hwExFactory = exchanges.NewExchangeFactory(hp.Obol, hp.Hestia)
 	processorParams := Params {
 		Hestia: hp.Hestia,
 		Plutus: hp.Plutus,

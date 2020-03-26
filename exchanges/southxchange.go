@@ -2,34 +2,26 @@ package exchanges
 
 import (
 	"errors"
+	"github.com/grupokindynos/adrestia-go/models"
 	"log"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/grupokindynos/common/coin-factory/coins"
 	"github.com/grupokindynos/common/hestia"
-	"github.com/grupokindynos/common/obol"
 	south "github.com/oedipusK/go-southxchange"
 )
 
 type SouthXchange struct {
-	Exchange
-	apiKey          string
-	apiSecret       string
-	southClient     south.SouthXchange
-	Obol            obol.ObolService
+	exchangeInfo hestia.ExchangeInfo
+	southClient  south.SouthXchange
 }
 
-func NewSouthXchange(obol obol.ObolService) *SouthXchange {
+func NewSouthXchange(exchange hestia.ExchangeInfo) *SouthXchange {
 	s := new(SouthXchange)
-	s.Name = "southxchange"
-	data := s.getSettings()
-	s.apiKey = data.ApiKey
-	s.apiSecret = data.ApiSecret
-	s.southClient = *south.New(s.apiKey, s.apiSecret, "user-agent")
-	s.Obol = obol
+	s.exchangeInfo = exchange
+	s.southClient = *south.New(exchange.ApiPublicKey, exchange.ApiPrivateKey, "user-agent")
 	return s
 }
 
@@ -37,13 +29,13 @@ func (s *SouthXchange) GetName() (string, error) {
 	return "southxchange", nil
 }
 
-func (s *SouthXchange) GetAddress(coin coins.Coin) (string, error) {
+func (s *SouthXchange) GetAddress(coin string) (string, error) {
 	var address string
 	var err error
 
 	for i := 0; i < 3; i++ { // try to get an address just 3 times
-		address, err = s.southClient.GetDepositAddress(strings.ToLower(coin.Info.Tag))
-		envTag := "SOUTH_ADDRESS_" + coin.Info.Tag
+		address, err = s.southClient.GetDepositAddress(strings.ToLower(coin))
+		envTag := "SOUTH_ADDRESS_" + coin
 		if err != nil {
 			if !strings.Contains(err.Error(), "400") {
 				address = "southxchange address request error"
@@ -67,37 +59,21 @@ func (s *SouthXchange) GetAddress(coin coins.Coin) (string, error) {
 	return str, nil
 }
 
-func (s *SouthXchange) GetBalances() ([]balance.Balance, error) {  // tal vez la modifque para que solo regrese la que queremos
-	var balances []balance.Balance
+func (s *SouthXchange) GetBalance(coin string) (float64, error) {  // tal vez la modifque para que solo regrese la que queremos
 	res, err := s.southClient.GetBalances()
 	if err != nil {
 		log.Println("south - GetBalances - GetBalances() - ", err.Error())
-		return balances, err
+		return 0, err
 	}
-	var rate float64
 	for _, asset := range res {
-		if strings.ToLower(asset.Currency) != "btc" {
-			rate, _ = s.Obol.GetCoin2CoinRates("BTC", asset.Currency)
-		} else {
-			rate = 1.0
+		if coin == asset.Currency {
+			return asset.Available, nil
 		}
-		var b = balance.Balance{
-			Ticker:             asset.Currency,
-			ConfirmedBalance:   asset.Available,
-			UnconfirmedBalance: asset.Unconfirmed,
-			RateBTC:            rate,
-			DiffBTC:            0.0,
-			IsBalanced:         false,
-		}
-		if b.GetTotalBalance() > 0.0 {
-			balances = append(balances, b)
-		}
-
 	}
-	return balances, nil
+	return 0, errors.New("coin not found")
 }
 
-func (s *SouthXchange) SellAtMarketPrice(order hestia.ExchangeOrder) (string, error) {
+func (s *SouthXchange) SellAtMarketPrice(order hestia.Trade) (string, error) {
 	l, r := order.GetTradingPair()
 	var res string
 	var err error
@@ -126,8 +102,8 @@ func (s *SouthXchange) SellAtMarketPrice(order hestia.ExchangeOrder) (string, er
 	return res, nil
 }
 
-func (s *SouthXchange) Withdraw(coin coins.Coin, address string, amount float64) (string, error) {
-	info, err := s.southClient.Withdraw(address, strings.ToUpper(coin.Info.Tag), amount)
+func (s *SouthXchange) Withdraw(coin string, address string, amount float64) (string, error) {
+	info, err := s.southClient.Withdraw(address, strings.ToUpper(coin), amount)
 	if err != nil {
 		log.Println("south - Withdraw - Withdraw() - ", err.Error())
 		return "", err
@@ -136,23 +112,23 @@ func (s *SouthXchange) Withdraw(coin coins.Coin, address string, amount float64)
 	return id, err
 }
 
-func (s *SouthXchange) GetDepositStatus(txid string, asset string) (hestia.OrderStatus, error) {
-	var status hestia.OrderStatus
+func (s *SouthXchange) GetDepositStatus(txid string, _ string) (hestia.ExchangeOrderInfo, error) {
+	var status hestia.ExchangeOrderInfo
 	txs, err := s.southClient.GetTransactions("deposits", 0, 1000, "", false)
 	if err != nil {
 		log.Println("south - GetDepositStatus - GetTransactions() - ", err.Error())
 		return status, err
 	}
-	status.Status = hestia.ExchangeStatusError
+	status.Status = hestia.ExchangeOrderStatusError
 	for _, tx := range txs {
 		if tx.Hash == txid {
 			log.Println(tx)
 			if tx.Status == "confirmed" || tx.Status == "executed" {
-				status.Status = hestia.ExchangeStatusCompleted
-				status.AvailableAmount = tx.Amount
+				status.Status = hestia.ExchangeOrderStatusCompleted
+				status.ReceivedAmount = tx.Amount
 				return status, nil
 			} else if tx.Status == "pending" || tx.Status == "booked" {
-				status.Status = hestia.ExchangeStatusOpen
+				status.Status = hestia.ExchangeOrderStatusOpen
 				return status, nil
 			} else {
 				return status, errors.New("south - GetDepositStatus - unknown status " + tx.Status)
@@ -162,27 +138,25 @@ func (s *SouthXchange) GetDepositStatus(txid string, asset string) (hestia.Order
 	return status, errors.New("south - transaction not found")
 }
 
-func (s *SouthXchange) GetOrderStatus(order hestia.ExchangeOrder) (hestia.OrderStatus, error) {
-	var status hestia.OrderStatus
+func (s *SouthXchange) GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderInfo, error) {
+	var status hestia.ExchangeOrderInfo
 	southOrder, err := s.southClient.GetOrder(order.OrderId)
 	if err != nil {
 		log.Println("south - GetOrderStatus - GetOrder() - ", err.Error())
 		return status, err
 	}
 	if southOrder.Status == "executed" || southOrder.Status == "confirmed" {
-		status.Status = hestia.ExchangeStatusCompleted
+		status.Status = hestia.ExchangeOrderStatusCompleted
 		amount, err := s.getAvailableAmount(order)
 		if err != nil {
 			log.Println("south - GetOrderStatus - getAvailableAmount() - ", err.Error())
 			return status, err
 		}
-		status.AvailableAmount = amount
+		status.ReceivedAmount = amount
 	} else if southOrder.Status == "pending" || southOrder.Status == "booked" {
-		status.Status = hestia.ExchangeStatusOpen
-		status.AvailableAmount = 0.0
+		status.Status = hestia.ExchangeOrderStatusOpen
 	} else {
-		status.Status = hestia.ExchangeStatusError
-		status.AvailableAmount = 0
+		status.Status = hestia.ExchangeOrderStatusError
 		err = errors.New("south - unknown order status " + southOrder.Status)
 	}
 	return status, err
@@ -208,8 +182,8 @@ func (s *SouthXchange) GetWithdrawalTxHash(txId string, _ string) (string, error
 	return "", errors.New("south - withdrawal not found")
 }
 
-func (s *SouthXchange) GetPair(fromCoin string, toCoin string) (OrderSide, error) {
-	var orderSide OrderSide
+func (s *SouthXchange) GetPair(fromCoin string, toCoin string) (models.TradeInfo, error) {
+	var orderSide models.TradeInfo
 	fromCoin = strings.ToUpper(fromCoin)
 	toCoin = strings.ToUpper(toCoin)
 	books, err := s.southClient.GetMarketSummaries()
@@ -228,18 +202,14 @@ func (s *SouthXchange) GetPair(fromCoin string, toCoin string) (OrderSide, error
 	orderSide.Book = bookName.Coin + bookName.Base
 	if bookName.Coin == fromCoin {
 		orderSide.Type = "sell"
-		orderSide.ReceivedCurrency = bookName.Base
-		orderSide.SoldCurrency = bookName.Coin
 	} else {
 		orderSide.Type = "buy"
-		orderSide.ReceivedCurrency = bookName.Coin
-		orderSide.SoldCurrency = bookName.Base
 	}
 
 	return orderSide, nil
 }
 
-func (s *SouthXchange) getAvailableAmount(order hestia.ExchangeOrder) (float64, error) {
+func (s *SouthXchange) getAvailableAmount(order hestia.Trade) (float64, error) {
 	txs, err := s.southClient.GetTransactions("", 0, 1000, "", true)
 	if err != nil {
 		return 0, err
@@ -269,11 +239,4 @@ func (s *SouthXchange) getAvailableAmount(order hestia.ExchangeOrder) (float64, 
 	}
 
 	return availableAmount, nil
-}
-
-func (s *SouthXchange) getSettings() config.SouthXchangeAuth {
-	var data config.SouthXchangeAuth
-	data.ApiKey = os.Getenv("SOUTH_API_KEY")
-	data.ApiSecret = os.Getenv("SOUTH_API_SECRET")
-	return data
 }

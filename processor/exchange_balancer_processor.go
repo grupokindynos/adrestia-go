@@ -33,7 +33,7 @@ func (p *ExchangesProcessor) Start() {
 		log.Println("ExchangesInfo empty")
 		return
 	}
-	exchangeFactory = exchanges.NewExchangeFactory(p.Obol)
+	exchangeFactory = exchanges.NewExchangeFactory(p.Obol, p.Hestia)
 	p.balanceExchanges()
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/grupokindynos/adrestia-go/models"
 	l "log"
 	"math"
 	"os"
@@ -12,52 +13,44 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/log"
-	"github.com/grupokindynos/common/coin-factory/coins"
 	"github.com/grupokindynos/common/hestia"
-	"github.com/grupokindynos/common/obol"
 	"github.com/grupokindynos/go-binance"
-	"github.com/joho/godotenv"
 )
 
 type Binance struct {
-	Exchange
-	AccountName string
+	exchangeInfo hestia.ExchangeInfo
 	binanceApi  binance.Binance
-	Obol        obol.ObolService
 }
 
-func NewBinance(obol obol.ObolService) *Binance {
+func NewBinance(exchange hestia.ExchangeInfo) *Binance {
 	c := new(Binance)
-	c.Name = "binance"
-	c.BaseUrl = ""
-	data := GetSettings()
+	c.exchangeInfo = exchange
 	var logger log.Logger
 	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 	logger = log.With(logger, "time", log.DefaultTimestampUTC, "caller", log.DefaultCaller)
 
 	hmacSigner := &binance.HmacSigner{
-		Key: []byte(data.PrivateApi),
+		Key: []byte(exchange.ApiPrivateKey),
 	}
 	ctx, _ := context.WithCancel(context.Background())
 	binanceService := binance.NewAPIService(
 		"https://api.binance.com",
-		data.PublicApi,
+		exchange.ApiPublicKey,
 		hmacSigner,
 		logger,
 		ctx,
 	)
 	c.binanceApi = binance.NewBinance(binanceService)
-	c.Obol = obol
 	return c
 }
 
 func (b *Binance) GetName() (string, error) {
-	return b.Name, nil
+	return b.exchangeInfo.Name, nil
 }
 
-func (b *Binance) GetAddress(coin coins.Coin) (string, error) {
+func (b *Binance) GetAddress(coin string) (string, error) {
 	address, err := b.binanceApi.DepositAddress(binance.AddressRequest{
-		Asset:     strings.ToLower(coin.Info.Tag),
+		Asset:     strings.ToLower(coin),
 		Timestamp: time.Now(),
 	})
 	if err != nil {
@@ -67,16 +60,16 @@ func (b *Binance) GetAddress(coin coins.Coin) (string, error) {
 	return address.Address, nil
 }
 
-func (b *Binance) GetDepositStatus(txid string, asset string) (orderStatus hestia.OrderStatus, err error) {
-	orderStatus.AvailableAmount = 0.0
-	orderStatus.Status = hestia.ExchangeStatusOpen
+func (b *Binance) GetDepositStatus(txid string, _ string) (orderStatus hestia.ExchangeOrderInfo, err error) {
+	orderStatus.ReceivedAmount = 0.0
+	orderStatus.Status = hestia.ExchangeOrderStatusOpen
 	deposits, err := b.binanceApi.DepositHistory(binance.HistoryRequest{
 		RecvWindow: 5 * time.Second,
 		Timestamp:  time.Now(),
 	})
 	if err != nil {
 		l.Println("binance - GetDepositStatus - DepositHistory() - ", err.Error())
-		orderStatus.Status = hestia.ExchangeStatusError
+		orderStatus.Status = hestia.ExchangeOrderStatusError
 		return
 	}
 	for _, deposit := range deposits {
@@ -85,8 +78,8 @@ func (b *Binance) GetDepositStatus(txid string, asset string) (orderStatus hesti
 			case 0:
 				return
 			case 1:
-				orderStatus.Status = hestia.ExchangeStatusCompleted
-				orderStatus.AvailableAmount = deposit.Amount
+				orderStatus.Status = hestia.ExchangeOrderStatusCompleted
+				orderStatus.ReceivedAmount = deposit.Amount
 				return
 			case 6: // credited but cannot withdraw
 				return
@@ -115,8 +108,8 @@ func (b *Binance) GetWithdrawalTxHash(txId string, asset string) (string, error)
 	return "", errors.New("binance - GetWithdrawalTxHash() - withdrawal not found")
 }
 
-func (b *Binance) GetPair(fromCoin string, toCoin string) (OrderSide, error) {
-	var orderSide OrderSide
+func (b *Binance) GetPair(fromCoin string, toCoin string) (models.TradeInfo, error) {
+	var orderSide models.TradeInfo
 	fromCoin = strings.ToUpper(fromCoin)
 	toCoin = strings.ToUpper(toCoin)
 
@@ -139,12 +132,8 @@ func (b *Binance) GetPair(fromCoin string, toCoin string) (OrderSide, error) {
 	orderSide.Book = bookName
 	if fromIndex < toIndex {
 		orderSide.Type = "sell"
-		orderSide.ReceivedCurrency = toCoin
-		orderSide.SoldCurrency = fromCoin
 	} else {
 		orderSide.Type = "buy"
-		orderSide.ReceivedCurrency = toCoin
-		orderSide.SoldCurrency = fromCoin
 	}
 
 	return orderSide, nil
@@ -167,7 +156,7 @@ func (b *Binance) GetBalance(coin string) (float64, error) {
 	return 0.0, errors.New("binance - GetBalance - Balances - " + err.Error())
 }
 
-func (b *Binance) SellAtMarketPrice(order hestia.ExchangeOrder) (string, error) {
+func (b *Binance) SellAtMarketPrice(order hestia.Trade) (string, error) {
 	var side binance.OrderSide
 	var newOrder *binance.ProcessedOrder
 	var err error
@@ -228,9 +217,9 @@ func (b *Binance) SellAtMarketPrice(order hestia.ExchangeOrder) (string, error) 
 	return strconv.FormatInt(newOrder.OrderID, 10), nil
 }
 
-func (b *Binance) Withdraw(coin coins.Coin, address string, amount float64) (string, error) {
+func (b *Binance) Withdraw(coin string, address string, amount float64) (string, error) {
 	withdrawal, err := b.binanceApi.Withdraw(binance.WithdrawRequest{
-		Asset:      strings.ToLower(coin.Info.Tag),
+		Asset:      strings.ToLower(coin),
 		Address:    address,
 		Amount:     amount,
 		Name:       "Adrestia-go Withdrawal",
@@ -250,12 +239,12 @@ func (b *Binance) Withdraw(coin coins.Coin, address string, amount float64) (str
 	return withdrawal.Id, nil
 }
 
-func (b *Binance) GetOrderStatus(order hestia.ExchangeOrder) (hestia.OrderStatus, error) {
+func (b *Binance) GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderInfo, error) {
 	orderId, err := strconv.ParseInt(order.OrderId, 10, 64)
 	if err != nil {
-		return hestia.OrderStatus{
-			Status:          hestia.ExchangeStatusError,
-			AvailableAmount: 0,
+		return hestia.ExchangeOrderInfo {
+			Status:          hestia.ExchangeOrderStatusError,
+			ReceivedAmount:  0,
 		}, errors.New("could not parse order id")
 	}
 
@@ -268,44 +257,29 @@ func (b *Binance) GetOrderStatus(order hestia.ExchangeOrder) (hestia.OrderStatus
 
 	if err != nil {
 		l.Println("binance - GetOrderStatus - QueryOrder - ", err.Error())
-		return hestia.OrderStatus{
-			Status:          hestia.ExchangeStatusError,
-			AvailableAmount: 0,
+		return hestia.ExchangeOrderInfo {
+			Status:          hestia.ExchangeOrderStatusError,
+			ReceivedAmount:  0,
 		}, err
 	}
 
 	switch res.Status {
 	case binance.StatusFilled:
-		return hestia.OrderStatus{
-			Status:          hestia.ExchangeStatusCompleted,
-			AvailableAmount: b.getReceivedAmount(*res),
+		return hestia.ExchangeOrderInfo {
+			Status:          hestia.ExchangeOrderStatusCompleted,
+			ReceivedAmount:  b.getReceivedAmount(*res),
 		}, nil
 	case binance.StatusNew:
-		return hestia.OrderStatus{
-			Status:          hestia.ExchangeStatusOpen,
-			AvailableAmount: 0,
-		}, nil
 	case binance.StatusPartiallyFilled:
-		return hestia.OrderStatus{
-			Status:          hestia.ExchangeStatusOpen,
-			AvailableAmount: 0,
+		return hestia.ExchangeOrderInfo{
+			Status:          hestia.ExchangeOrderStatusOpen,
 		}, nil
 	default:
-		return hestia.OrderStatus{
-			Status:          hestia.ExchangeStatusOpen,
-			AvailableAmount: 0,
+		return hestia.ExchangeOrderInfo{
+			Status:          hestia.ExchangeOrderStatusOpen,
 		}, errors.New(fmt.Sprintf("binance - GetOrderStatus - unknown/unhandled order status: %s", res.Status))
 	}
-}
-
-func GetSettings() config.BinanceAuth {
-	if err := godotenv.Load(); err != nil {
-		l.Println(err)
-	}
-	var data config.BinanceAuth
-	data.PublicApi = os.Getenv("BINANCE_PUB_API")
-	data.PrivateApi = os.Getenv("BINANCE_PRIV_API")
-	return data
+	return hestia.ExchangeOrderInfo{}, errors.New("status not working")
 }
 
 func (b *Binance) isQuoteOrderAvailable(symbol string) (bool, error) {

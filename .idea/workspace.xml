@@ -3,11 +3,20 @@
   <component name="ChangeListManager">
     <list default="true" id="dbfa9aa0-4b64-455b-8b3b-81a8a0286cdf" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/balancer/balancer.go" beforeDir="false" afterPath="$PROJECT_DIR$/balancer/balancer.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/adrestia-go.exe" beforeDir="false" afterPath="$PROJECT_DIR$/adrestia-go.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/exchanges/binance.go" beforeDir="false" afterPath="$PROJECT_DIR$/exchanges/binance.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/exchanges/bitrue.go" beforeDir="false" afterPath="$PROJECT_DIR$/exchanges/stex.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/exchanges/bittrex.go" beforeDir="false" afterPath="$PROJECT_DIR$/exchanges/bittrex.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/exchanges/crex24.go" beforeDir="false" afterPath="$PROJECT_DIR$/exchanges/crex24.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/exchanges/exchange_factory.go" beforeDir="false" afterPath="$PROJECT_DIR$/exchanges/exchange_factory.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/exchanges/interface.go" beforeDir="false" afterPath="$PROJECT_DIR$/exchanges/interface.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/exchanges/southxchange.go" beforeDir="false" afterPath="$PROJECT_DIR$/exchanges/southxchange.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/processor/balancer_orders_processor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processor/balancer_orders_processor.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/processor/deposits_processor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processor/deposits_processor.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/processor/exchange_balancer_processor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processor/exchange_balancer_processor.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/processor/hw_balancer_processor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processor/hw_balancer_processor.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/processor/withdrawals_processor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processor/withdrawals_processor.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

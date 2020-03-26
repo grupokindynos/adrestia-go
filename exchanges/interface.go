@@ -8,10 +8,10 @@ import (
 type Exchange interface {
 	GetAddress(asset string) (string, error)
 	GetBalance(asset string) (float64, error)
-	SellAtMarketPrice(order models.ExchangeTradeOrder) (string, error)
+	SellAtMarketPrice(order hestia.Trade) (string, error)
 	Withdraw(asset string, address string, amount float64) (string, error)
-	GetOrderStatus(order models.ExchangeTradeOrder) (hestia.ExchangeOrderInfo, error)
+	GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderInfo, error)
 	GetPair(fromCoin string, toCoin string) (models.TradeInfo, error)
 	GetWithdrawalTxHash(txId string, asset string) (string, error)
-	GetDepositStatus(txId string) (hestia.ExchangeOrderInfo, error)
+	GetDepositStatus(txId string, asset string) (hestia.ExchangeOrderInfo, error)
 }

@@ -30,7 +30,7 @@ func (p *DepositProcessor) Start() {
 		return
 	}
 
-	depositstExFactory = exchanges.NewExchangeFactory(p.Obol)
+	depositstExFactory = exchanges.NewExchangeFactory(p.Obol, p.Hestia)
 
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -70,7 +70,7 @@ func (p *DepositProcessor) handlePerformedDeposit(wg *sync.WaitGroup) {
 			log.Println("Unable to get exchange " + err.Error())
 			continue
 		}
-		depositInfo, err := exchange.GetDepositStatus(deposit.TxId)
+		depositInfo, err := exchange.GetDepositStatus(deposit.TxId, "")
 		if err != nil {
 			log.Println("Unable to get order status " + err.Error())
 			continue

@@ -73,3 +73,6 @@ fabric.properties
 .env
 .idea/vcs.xml
 .idea/workspace.xml
+.idea/adrestia-go.iml
+.idea/misc.xml
+.idea/modules.xml

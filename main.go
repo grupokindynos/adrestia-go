@@ -72,6 +72,7 @@ func main() {
 
 	// If flag was set, change the hestia request url to be local
 	if *localRun {
+		log.Println("using local hestia and plutus")
 		hestiaUrl = "HESTIA_LOCAL_URL"
 		plutusUrl = "PLUTUS_LOCAL_URL"
 	} else {

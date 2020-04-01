@@ -27,7 +27,7 @@ func NewExchangeFactory(obol obol.ObolService, hestiaDb services.HestiaService) 
 	exFactory := new(ExchangeFactory)
 	exchanges, err := hestiaDb.GetExchanges()
 	if err != nil {
-		log.Println("Couldn't get exchanges info")
+		log.Println("Couldn't get exchanges info", err)
 	}
 
 	exFactory.exchangesInfo = make(map[string]hestia.ExchangeInfo)

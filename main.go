@@ -135,7 +135,7 @@ func ApplyRoutes(r *gin.Engine) {
 		Plutus:        &services.PlutusRequests{},
 		Obol:          &obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")},
 		DevMode:	   devMode,
-		ExFactory:     exchanges.NewExchangeFactory(&obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}, &services.HestiaRequests{HestiaURL: hestiaUrl}),
+		ExFactory:     exchanges.NewExchangeFactory(&obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}, &services.HestiaRequests{HestiaURL: os.Getenv(hestiaUrl)}),
 	}
 
 	api := r.Group("/")

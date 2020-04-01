@@ -16,3 +16,7 @@ type ExchangeTradeOrder struct {
 	Side string `json:"side"`
 	Amount float64 `json:"amount"`
 }
+
+type Params struct {
+	Coin string `json:"coin"`
+}

@@ -84,6 +84,8 @@ github.com/franela/goblin v0.0.0-20200105215937-c9ffbefa60db/go.mod h1:7dvUGVsVB
 github.com/franela/goreq v0.0.0-20171204163338-bcd34c9993f8/go.mod h1:ZhphrRTfi2rbfLwlschooIH4+wKKDR4Pdxhh+TRoA20=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
+github.com/gin-contrib/cors v1.3.1 h1:doAsuITavI4IOcd0Y19U4B+O0dNWihRyX//nn4sEmgA=
+github.com/gin-contrib/cors v1.3.1/go.mod h1:jjEJ4268OPZUcU7k9Pm653S7lXUGcqMADzFA61xsmDk=
 github.com/gin-contrib/sse v0.0.0-20190301062529-5545eab6dad3 h1:t8FVkw33L+wilf2QiWkw0UV77qRpcH/JHPKGpKa2E8g=
 github.com/gin-contrib/sse v0.0.0-20190301062529-5545eab6dad3/go.mod h1:VJ0WA2NBN22VlZ2dKZQPAPnyWw5XTlK1KymzLKsr59s=
 github.com/gin-contrib/sse v0.1.0 h1:Y/yl/+YNO8GZSjAhjMsSuLt29uWRFHdHYUb5lYOV9qE=
@@ -150,12 +152,6 @@ github.com/gorilla/websocket v1.4.0/go.mod h1:E7qHFY5m1UJ88s3WnNqhKjPHQ0heANvMoA
 github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190118093823-f849b5445de4/go.mod h1:FiyG127CGDf3tlThmgyCl78X/SZQqEOJBCDaAfeWzPs=
 github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0/go.mod h1:8NvIoxWQoOIhqOTXgfV/d3M/q6VIi02HzZEHgUlZvzk=
 github.com/grpc-ecosystem/grpc-gateway v1.9.5/go.mod h1:vNeuVxBJEsws4ogUvrchl83t/GYV9WGTSLVdBhOQFDY=
-github.com/grupokindynos/common v0.0.0-20200324202645-0e73c1cef320 h1:jjsWUaOtWBmkuySx1nfFetJaaM4arN71YxyODkWDxSA=
-github.com/grupokindynos/common v0.0.0-20200324202645-0e73c1cef320/go.mod h1:54Nv1EC/vlsMTdys83LQ7jHluB+bY5tXodU1orxqoAA=
-github.com/grupokindynos/common v0.0.0-20200325154726-430e1236fd72 h1:tjh7N34vT8D/VsFQqKvwA07WpSBaggb1tYL5hMyu3ck=
-github.com/grupokindynos/common v0.0.0-20200325154726-430e1236fd72/go.mod h1:54Nv1EC/vlsMTdys83LQ7jHluB+bY5tXodU1orxqoAA=
-github.com/grupokindynos/common v0.0.0-20200326165110-5fa02121bc36 h1:zMrScV5oB7Rn7wRTRUFbzYi58ny/eCj1mqLippo2Lq0=
-github.com/grupokindynos/common v0.0.0-20200326165110-5fa02121bc36/go.mod h1:54Nv1EC/vlsMTdys83LQ7jHluB+bY5tXodU1orxqoAA=
 github.com/grupokindynos/common v0.0.0-20200326183335-7cdae0aa7a40 h1:XkHSJH9BI1M8CQHhu1b7hOcSgpAm8kIXbRWmW4gudS0=
 github.com/grupokindynos/common v0.0.0-20200326183335-7cdae0aa7a40/go.mod h1:54Nv1EC/vlsMTdys83LQ7jHluB+bY5tXodU1orxqoAA=
 github.com/grupokindynos/go-binance v0.0.0-20200218200020-be83de467e5d h1:8KbHjP+K2y2CNQQcJXrxeSdRDNCp94qJn6RK08KwMhk=

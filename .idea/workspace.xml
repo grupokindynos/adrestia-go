@@ -2,21 +2,19 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="dbfa9aa0-4b64-455b-8b3b-81a8a0286cdf" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/adrestia-go.exe" beforeDir="false" afterPath="$PROJECT_DIR$/adrestia-go.exe" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/exchanges/binance.go" beforeDir="false" afterPath="$PROJECT_DIR$/exchanges/binance.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/exchanges/bitrue.go" beforeDir="false" afterPath="$PROJECT_DIR$/exchanges/stex.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/exchanges/bittrex.go" beforeDir="false" afterPath="$PROJECT_DIR$/exchanges/bittrex.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/exchanges/crex24.go" beforeDir="false" afterPath="$PROJECT_DIR$/exchanges/crex24.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/exchanges/exchange_factory.go" beforeDir="false" afterPath="$PROJECT_DIR$/exchanges/exchange_factory.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/exchanges/interface.go" beforeDir="false" afterPath="$PROJECT_DIR$/exchanges/interface.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/exchanges/southxchange.go" beforeDir="false" afterPath="$PROJECT_DIR$/exchanges/southxchange.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/controllers/adrestia.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/adrestia-go.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/processor/balancer_orders_processor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processor/balancer_orders_processor.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/processor/deposits_processor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processor/deposits_processor.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/processor/exchange_balancer_processor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processor/exchange_balancer_processor.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/processor/hw_balancer_processor.go" beforeDir="false" afterPath="$PROJECT_DIR$/processor/hw_balancer_processor.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/models.go" beforeDir="false" afterPath="$PROJECT_DIR$/models/models.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/services/hestia.go" beforeDir="false" afterPath="$PROJECT_DIR$/services/hestia.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/services/plutus.go" beforeDir="false" afterPath="$PROJECT_DIR$/services/plutus.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -47,6 +45,7 @@
   <component name="PropertiesComponent">
     <property name="DefaultGoTemplateProperty" value="Go File" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
@@ -66,6 +65,17 @@
       <kind value="FILE" />
       <filePath value="$PROJECT_DIR$" />
       <package value="github.com/adrestia-go" />
+      <directory value="$PROJECT_DIR$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="go build github.com/grupokindynos/adrestia-go" type="GoApplicationRunConfiguration" factoryName="Go Application" nameIsGenerated="true">
+      <module name="adrestia-go" />
+      <working_directory value="$PROJECT_DIR$" />
+      <go_parameters value="-i" />
+      <parameters value="-stop-proc" />
+      <kind value="PACKAGE" />
+      <filePath value="$PROJECT_DIR$" />
+      <package value="github.com/grupokindynos/adrestia-go" />
       <directory value="$PROJECT_DIR$" />
       <method v="2" />
     </configuration>
@@ -92,12 +102,52 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="552" y="178" key="#Build_Tags_&amp;_Vendoring/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1584716900489" />
+    <state x="414" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1585754946119">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="414" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1585754946119" />
+    <state width="775" height="646" key="DebuggerActiveHint" timestamp="1585755215816">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="775" height="646" key="DebuggerActiveHint/0.0.1920.1040@0.0.1920.1040" timestamp="1585755215816" />
     <state x="2660" y="276" key="FileChooserDialogImpl" timestamp="1585235976895">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
     <state x="2660" y="276" key="FileChooserDialogImpl/0.0.1280.680/1920.0.1920.1040@1920.0.1920.1040" timestamp="1584547278025" />
     <state x="2660" y="276" key="FileChooserDialogImpl/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1585235976895" />
     <state x="740" y="276" key="FileChooserDialogImpl/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1584716933747" />
+    <state width="1877" height="326" key="GridCell.Tab.0.bottom" timestamp="1585755496472">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="326" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1585755496472" />
+    <state width="1877" height="326" key="GridCell.Tab.0.center" timestamp="1585755496471">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="326" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1585755496471" />
+    <state width="1877" height="326" key="GridCell.Tab.0.left" timestamp="1585755496471">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="326" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1585755496471" />
+    <state width="1877" height="326" key="GridCell.Tab.0.right" timestamp="1585755496471">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="326" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1585755496471" />
+    <state width="1877" height="326" key="GridCell.Tab.1.bottom" timestamp="1585755496472">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="326" key="GridCell.Tab.1.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1585755496472" />
+    <state width="1877" height="326" key="GridCell.Tab.1.center" timestamp="1585755496472">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="326" key="GridCell.Tab.1.center/0.0.1920.1040@0.0.1920.1040" timestamp="1585755496472" />
+    <state width="1877" height="326" key="GridCell.Tab.1.left" timestamp="1585755496472">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="326" key="GridCell.Tab.1.left/0.0.1920.1040@0.0.1920.1040" timestamp="1585755496472" />
+    <state width="1877" height="326" key="GridCell.Tab.1.right" timestamp="1585755496472">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="326" key="GridCell.Tab.1.right/0.0.1920.1040@0.0.1920.1040" timestamp="1585755496472" />
     <state x="2543" y="225" width="672" height="678" key="search.everywhere.popup" timestamp="1585153404736">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>

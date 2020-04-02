@@ -5,7 +5,8 @@ go 1.13
 require (
 	github.com/Toorop/go-bittrex v0.0.0-20190830073639-940e8b39e80d
 	github.com/binance-exchange/go-binance v0.0.0-20180518133450-1af034307da5 // indirect
-	github.com/gin-gonic/gin v1.5.0 // indirect
+	github.com/gin-contrib/cors v1.3.1
+	github.com/gin-gonic/gin v1.5.0
 	github.com/go-kit/kit v0.10.0
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/golang/protobuf v1.3.3 // indirect

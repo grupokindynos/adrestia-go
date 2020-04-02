@@ -14,11 +14,11 @@ import (
 	"time"
 )
 
-type HestiaInstance struct {
+type HestiaRequests struct {
 	HestiaURL string
 }
 
-func (h *HestiaInstance) UpdateExchangeBalance(exchange string, amount float64) (string, error) {
+func (h *HestiaRequests) UpdateExchangeBalance(exchange string, amount float64) (string, error) {
 	exchangeInfo, err := h.GetExchange(exchange)
 	if err != nil{
 		return "", err
@@ -31,7 +31,7 @@ func (h *HestiaInstance) UpdateExchangeBalance(exchange string, amount float64) 
 	return doResponseToString(h.do(req))
 }
 
-func (h *HestiaInstance) GetAdrestiaCoins() (availableCoins []hestia.Coin, err error) {
+func (h *HestiaRequests) GetAdrestiaCoins() (availableCoins []hestia.Coin, err error) {
 	payload, err := h.get("/coins", models.GetFilters{})
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func (h *HestiaInstance) GetAdrestiaCoins() (availableCoins []hestia.Coin, err e
 	return availableCoins, nil
 }
 
-func (h *HestiaInstance) GetExchange(exchange string) (hestia.ExchangeInfo, error) {
+func (h *HestiaRequests) GetExchange(exchange string) (hestia.ExchangeInfo, error) {
 	payload, err := h.get("/exchange", models.GetFilters{Id:exchange})
 	if err != nil {
 		return hestia.ExchangeInfo{}, err
@@ -63,7 +63,7 @@ func (h *HestiaInstance) GetExchange(exchange string) (hestia.ExchangeInfo, erro
 	return response, nil
 }
 
-func (h *HestiaInstance) GetExchanges() (exchangesInfo []hestia.ExchangeInfo, err error) {
+func (h *HestiaRequests) GetExchanges() (exchangesInfo []hestia.ExchangeInfo, err error) {
 	payload, err := h.get("/exchanges", models.GetFilters{})
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func (h *HestiaInstance) GetExchanges() (exchangesInfo []hestia.ExchangeInfo, er
 	return response, nil
 }
 
-func (h *HestiaInstance) GetDeposits(includeComplete bool, sinceTimestamp int64) ([]hestia.SimpleTx, error) {
+func (h *HestiaRequests) GetDeposits(includeComplete bool, sinceTimestamp int64) ([]hestia.SimpleTx, error) {
 	payload, err := h.get("/adrestia/deposits", models.GetFilters{IncludeComplete:includeComplete, AddedSince:sinceTimestamp})
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func (h *HestiaInstance) GetDeposits(includeComplete bool, sinceTimestamp int64)
 	return response, nil
 }
 
-func (h *HestiaInstance) GetWithdrawals(includeComplete bool, sinceTimestamp int64) ([]hestia.SimpleTx, error) {
+func (h *HestiaRequests) GetWithdrawals(includeComplete bool, sinceTimestamp int64) ([]hestia.SimpleTx, error) {
 	payload, err := h.get("/adrestia/withdrawals", models.GetFilters{IncludeComplete:includeComplete, AddedSince:sinceTimestamp})
 	if err != nil {
 		return nil, err
@@ -102,7 +102,7 @@ func (h *HestiaInstance) GetWithdrawals(includeComplete bool, sinceTimestamp int
 	return response, nil
 }
 
-func (h *HestiaInstance) GetBalanceOrders(includeComplete bool, sinceTimestamp int64) ([]hestia.BalancerOrder, error) {
+func (h *HestiaRequests) GetBalanceOrders(includeComplete bool, sinceTimestamp int64) ([]hestia.BalancerOrder, error) {
 	payload, err := h.get("/adrestia/orders", models.GetFilters{IncludeComplete:includeComplete, AddedSince:sinceTimestamp})
 	if err != nil {
 		return nil, err
@@ -115,7 +115,7 @@ func (h *HestiaInstance) GetBalanceOrders(includeComplete bool, sinceTimestamp i
 	return response, nil
 }
 
-func (h *HestiaInstance) GetBalancer() (hestia.Balancer, error) {
+func (h *HestiaRequests) GetBalancer() (hestia.Balancer, error) {
 	payload, err := h.get("/adrestia/balancer", models.GetFilters{})
 	if err != nil {
 		return hestia.Balancer{}, err
@@ -128,7 +128,7 @@ func (h *HestiaInstance) GetBalancer() (hestia.Balancer, error) {
 	return response[0], nil
 }
 
-func (h *HestiaInstance) CreateDeposit(simpleTx hestia.SimpleTx) (string, error) {
+func (h *HestiaRequests) CreateDeposit(simpleTx hestia.SimpleTx) (string, error) {
 	req, err := mvt.CreateMVTToken("POST", h.HestiaURL+"/adrestia/new/deposit", "adrestia", os.Getenv("MASTER_PASSWORD"), simpleTx, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
 	if err != nil {
 		return "", err
@@ -136,7 +136,7 @@ func (h *HestiaInstance) CreateDeposit(simpleTx hestia.SimpleTx) (string, error)
 	return doResponseToString(h.do(req))
 }
 
-func (h *HestiaInstance) CreateWithdrawal(simpleTx hestia.SimpleTx) (string, error) {
+func (h *HestiaRequests) CreateWithdrawal(simpleTx hestia.SimpleTx) (string, error) {
 	req, err := mvt.CreateMVTToken("POST", h.HestiaURL+"/adrestia/new/withdrawal", "adrestia", os.Getenv("MASTER_PASSWORD"), simpleTx, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
 	if err != nil {
 		return "", err
@@ -144,7 +144,7 @@ func (h *HestiaInstance) CreateWithdrawal(simpleTx hestia.SimpleTx) (string, err
 	return doResponseToString(h.do(req))
 }
 
-func (h *HestiaInstance) CreateBalancerOrder(balancerOrder hestia.BalancerOrder) (string, error) {
+func (h *HestiaRequests) CreateBalancerOrder(balancerOrder hestia.BalancerOrder) (string, error) {
 	req, err := mvt.CreateMVTToken("POST", h.HestiaURL+"/adrestia/new/order", "adrestia", os.Getenv("MASTER_PASSWORD"), balancerOrder, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
 	if err != nil {
 		return "", err
@@ -152,7 +152,7 @@ func (h *HestiaInstance) CreateBalancerOrder(balancerOrder hestia.BalancerOrder)
 	return doResponseToString(h.do(req))
 }
 
-func (h *HestiaInstance) CreateBalancer(balancer hestia.Balancer) (string, error) {
+func (h *HestiaRequests) CreateBalancer(balancer hestia.Balancer) (string, error) {
 	req, err := mvt.CreateMVTToken("POST", h.HestiaURL+"/adrestia/new/balancer", "adrestia", os.Getenv("MASTER_PASSWORD"), balancer, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
 	if err != nil {
 		return "", err
@@ -160,7 +160,7 @@ func (h *HestiaInstance) CreateBalancer(balancer hestia.Balancer) (string, error
 	return doResponseToString(h.do(req))
 }
 
-func (h *HestiaInstance) UpdateDeposit(simpleTx hestia.SimpleTx) (string, error) {
+func (h *HestiaRequests) UpdateDeposit(simpleTx hestia.SimpleTx) (string, error) {
 	req, err := mvt.CreateMVTToken("PUT", h.HestiaURL+"/adrestia/update/deposit", "adrestia", os.Getenv("MASTER_PASSWORD"), simpleTx, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
 	if err != nil {
 		return "", err
@@ -168,7 +168,7 @@ func (h *HestiaInstance) UpdateDeposit(simpleTx hestia.SimpleTx) (string, error)
 	return doResponseToString(h.do(req))
 }
 
-func (h *HestiaInstance) UpdateWithdrawal(simpleTx hestia.SimpleTx) (string, error) {
+func (h *HestiaRequests) UpdateWithdrawal(simpleTx hestia.SimpleTx) (string, error) {
 	req, err := mvt.CreateMVTToken("PUT", h.HestiaURL+"/adrestia/update/withdrawal", "adrestia", os.Getenv("MASTER_PASSWORD"), simpleTx, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
 	if err != nil {
 		return "", err
@@ -176,7 +176,7 @@ func (h *HestiaInstance) UpdateWithdrawal(simpleTx hestia.SimpleTx) (string, err
 	return doResponseToString(h.do(req))
 }
 
-func (h *HestiaInstance) UpdateBalancer(balancer hestia.Balancer) (string, error) {
+func (h *HestiaRequests) UpdateBalancer(balancer hestia.Balancer) (string, error) {
 	req, err := mvt.CreateMVTToken("PUT", h.HestiaURL+"/adrestia/update/balancer", "adrestia", os.Getenv("MASTER_PASSWORD"), balancer, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
 	if err != nil {
 		return "", err
@@ -184,7 +184,7 @@ func (h *HestiaInstance) UpdateBalancer(balancer hestia.Balancer) (string, error
 	return doResponseToString(h.do(req))
 }
 
-func (h *HestiaInstance) UpdateBalancerOrder(order hestia.BalancerOrder) (string, error) {
+func (h *HestiaRequests) UpdateBalancerOrder(order hestia.BalancerOrder) (string, error) {
 	req, err := mvt.CreateMVTToken("PUT", h.HestiaURL+"/adrestia/update/order", "adrestia", os.Getenv("MASTER_PASSWORD"), order, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
 	if err != nil {
 		return "", err
@@ -192,7 +192,7 @@ func (h *HestiaInstance) UpdateBalancerOrder(order hestia.BalancerOrder) (string
 	return doResponseToString(h.do(req))
 }
 
-func (h *HestiaInstance) get(url string, params models.GetFilters) ([]byte, error) {
+func (h *HestiaRequests) get(url string, params models.GetFilters) ([]byte, error) {
 	req, err := mvt.CreateMVTToken(http.MethodGet, h.HestiaURL+url, "adrestia", os.Getenv("MASTER_PASSWORD"), nil, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
 	if err != nil {
 		return nil, err
@@ -206,7 +206,7 @@ func (h *HestiaInstance) get(url string, params models.GetFilters) ([]byte, erro
 	return h.do(req)
 }
 
-func (h *HestiaInstance) do(req *http.Request) ([]byte, error) {
+func (h *HestiaRequests) do(req *http.Request) ([]byte, error) {
 	client := http.Client{
 		Transport:     nil,
 		CheckRedirect: nil,

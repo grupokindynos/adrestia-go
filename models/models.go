@@ -20,3 +20,9 @@ type ExchangeTradeOrder struct {
 type Params struct {
 	Coin string `json:"coin"`
 }
+
+type AddressResponse struct {
+	Coin string `json:"coin"`
+	Address string `json:"address"`
+	Exchange string `json:"exchange"`
+}

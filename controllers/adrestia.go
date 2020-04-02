@@ -28,9 +28,18 @@ func (a *AdrestiaController) GetAddress(_ string, _ []byte, params models.Params
 	if err != nil {
 		return nil, err
 	}
+	exName, err := ex.GetName()
+	if err != nil {
+		return nil, err
+	}
 	address, err := ex.GetAddress(params.Coin)
 	if err != nil {
 		return nil, err
 	}
-	return address, nil
+	response := models.AddressResponse{
+		Coin:     params.Coin,
+		Address:  address,
+		Exchange: exName,
+	}
+	return response, nil
 }

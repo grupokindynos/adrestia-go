@@ -76,3 +76,6 @@ fabric.properties
 .idea/adrestia-go.iml
 .idea/misc.xml
 .idea/modules.xml
+.DS_Store
+.idea/git_toolbox_prj.xml
+.idea/inspectionProfiles/Project_Default.xml

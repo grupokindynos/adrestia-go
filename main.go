@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -11,11 +10,9 @@ import (
 	"github.com/grupokindynos/adrestia-go/models"
 	"github.com/grupokindynos/adrestia-go/processor"
 	"github.com/grupokindynos/adrestia-go/services"
-	"github.com/grupokindynos/common/hestia"
-	"github.com/grupokindynos/common/jwt"
 	"github.com/grupokindynos/common/obol"
 	"github.com/grupokindynos/common/responses"
-	"github.com/grupokindynos/common/tokens/ppat"
+	"github.com/grupokindynos/common/tokens/mrt"
 	"github.com/joho/godotenv"
 	"log"
 	"net/http"
@@ -138,10 +135,13 @@ func ApplyRoutes(r *gin.Engine) {
 		DevMode:	   devMode,
 		ExFactory:     exchanges.NewExchangeFactory(&obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}, &services.HestiaRequests{HestiaURL: os.Getenv(hestiaUrl)}),
 	}
-
-	api := r.Group("/")
+	authUser := os.Getenv("HESTIA_AUTH_USERNAME")
+	authPassword := os.Getenv("HESTIA_AUTH_PASSWORD")
+	api := r.Group("/", gin.BasicAuth(gin.Accounts{
+		authUser: authPassword,
+	}))
 	{
-		api.GET("address/:coin", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.GetAddress) })
+		api.GET("address/:coin", func(context *gin.Context) { ValidateOpenRequest(context, adrestiaCtrl.GetAddress) })
 	}
 	r.NoRoute(func(c *gin.Context) {
 		c.String(http.StatusNotFound, "Not Found")
@@ -158,39 +158,6 @@ func ApplyRoutes(r *gin.Engine) {
 	}
 }
 
-func ValidateRequest(c *gin.Context, method func(uid string, payload []byte, params models.Params) (interface{}, error)) {
-	fbToken := c.GetHeader("token")
-	if fbToken == "" {
-		responses.GlobalResponseNoAuth(c)
-		return
-	}
-	params := models.Params{
-		Coin: c.Param("coin"),
-	}
-	tokenBytes, _ := c.GetRawData()
-	var ReqBody hestia.BodyReq
-	if len(tokenBytes) > 0 {
-		err := json.Unmarshal(tokenBytes, &ReqBody)
-		if err != nil {
-			responses.GlobalResponseError(nil, err, c)
-			return
-		}
-	}
-	valid, payload, uid, err := ppat.VerifyPPATToken(hestiaUrl, "adrestia", os.Getenv("MASTER_PASSWORD"), fbToken, ReqBody.Payload, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"), os.Getenv("HESTIA_PUBLIC_KEY"))
-	if !valid {
-		responses.GlobalResponseNoAuth(c)
-		return
-	}
-	response, err := method(uid, payload, params)
-	if err != nil {
-		responses.GlobalResponseError(nil, err, c)
-		return
-	}
-	token, err := jwt.EncryptJWE(uid, response)
-	responses.GlobalResponseError(token, err, c)
-	return
-}
-
 func ValidateOpenRequest(c *gin.Context, method func(uid string, payload []byte, params models.Params) (interface{}, error)) {
 	uid := c.MustGet(gin.AuthUserKey).(string)
 	if uid == "" {
@@ -205,6 +172,8 @@ func ValidateOpenRequest(c *gin.Context, method func(uid string, payload []byte,
 		responses.GlobalOpenError(nil, err, c)
 		return
 	}
-	responses.GlobalResponse(response, c)
+	header, body, err := mrt.CreateMRTToken("adrestia", os.Getenv("MASTER_PASSWORD"), response, os.Getenv("ADRESTIA_PRIV_KEY"))
+	responses.GlobalResponseMRT(header, body, c)
+	log.Println("responded with: ", response)
 	return
 }

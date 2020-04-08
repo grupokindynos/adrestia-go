@@ -128,12 +128,18 @@ func GetApp() *gin.Engine {
 }
 
 func ApplyRoutes(r *gin.Engine) {
+	auxHestia := services.HestiaRequests{HestiaURL: os.Getenv(hestiaUrl)}
+	exchangeInfo, err := auxHestia.GetExchanges()
+	if err != nil {
+		log.Fatalln(err)
+	}
 	adrestiaCtrl := &controllers.AdrestiaController{
 		Hestia:        services.HestiaRequests{HestiaURL: hestiaUrl},
 		Plutus:        &services.PlutusRequests{},
 		Obol:          &obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")},
 		DevMode:	   devMode,
 		ExFactory:     exchanges.NewExchangeFactory(&obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}, &services.HestiaRequests{HestiaURL: os.Getenv(hestiaUrl)}),
+		ExInfo:        exchangeInfo,
 	}
 	authUser := os.Getenv("HESTIA_AUTH_USERNAME")
 	authPassword := os.Getenv("HESTIA_AUTH_PASSWORD")
@@ -141,7 +147,7 @@ func ApplyRoutes(r *gin.Engine) {
 		authUser: authPassword,
 	}))
 	{
-		api.GET("address/:coin", func(context *gin.Context) { ValidateOpenRequest(context, adrestiaCtrl.GetAddress) })
+		api.GET("address/:coin", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.GetAddress) })
 	}
 	r.NoRoute(func(c *gin.Context) {
 		c.String(http.StatusNotFound, "Not Found")
@@ -155,7 +161,28 @@ func ApplyRoutes(r *gin.Engine) {
 	}))
 	{
 		openApi.GET("address/:coin", func(context *gin.Context) {ValidateOpenRequest(context, adrestiaCtrl.GetAddress)})
+		openApi.POST("path", func(context *gin.Context) {ValidateOpenRequest(context, adrestiaCtrl.GetConversionPath)})
 	}
+}
+
+func ValidateRequest(c *gin.Context, method func(uid string, payload []byte, params models.Params) (interface{}, error)) {
+	uid := c.MustGet(gin.AuthUserKey).(string)
+	if uid == "" {
+		responses.GlobalOpenNoAuth(c)
+	}
+	params := models.Params{
+		Coin: c.Param("coin"),
+	}
+	payload, err := c.GetRawData()
+	response, err := method(uid, payload, params)
+	if err != nil {
+		responses.GlobalOpenError(nil, err, c)
+		return
+	}
+	header, body, err := mrt.CreateMRTToken("adrestia", os.Getenv("MASTER_PASSWORD"), response, os.Getenv("ADRESTIA_PRIV_KEY"))
+	responses.GlobalResponseMRT(header, body, c)
+	log.Println("responded with: ", response)
+	return
 }
 
 func ValidateOpenRequest(c *gin.Context, method func(uid string, payload []byte, params models.Params) (interface{}, error)) {
@@ -172,8 +199,7 @@ func ValidateOpenRequest(c *gin.Context, method func(uid string, payload []byte,
 		responses.GlobalOpenError(nil, err, c)
 		return
 	}
-	header, body, err := mrt.CreateMRTToken("adrestia", os.Getenv("MASTER_PASSWORD"), response, os.Getenv("ADRESTIA_PRIV_KEY"))
-	responses.GlobalResponseMRT(header, body, c)
+	responses.GlobalResponse(response, c)
 	log.Println("responded with: ", response)
 	return
 }

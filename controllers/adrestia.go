@@ -94,7 +94,7 @@ func (a *AdrestiaController) GetConversionPath(_ string, body []byte, _ models.P
 			}
 		}
 		inPath = append(inPath, models.MockTrade{
-			FromCoin: pathParams.FromCoin,
+			FromCoin: "BTC",
 			ToCoin:   exInwardInfo.StockCurrency,
 			Exchange: exName,
 		})
@@ -137,25 +137,31 @@ func (a *AdrestiaController) GetConversionPath(_ string, body []byte, _ models.P
 		}
 	}
 	// If origin coin is not BTC Convert first
-
-
-	/*
-	pairInfo, err := ex.GetPair(pathParams.FromCoin, pathParams.ToCoin)
-	// TODO Sanity check
-	 */
-	/*if err != nil {
-		// TODO pair does not exist
+	tradeFlag := true;
+	log.Println("CHECKING INPUT ORDER")
+	for i, trade := range inPath {
+		pairInfo, err := ex.GetPair(trade.FromCoin, trade.ToCoin)
+		if err != nil{
+			log.Println("could not find the desired trading pair for ", trade)
+			tradeFlag = false
+		} else {
+			inPath[i].Trade = pairInfo
+		}
 	}
-	address, err := ex.GetAddress(pathParams.FromCoin)
-	if err != nil {
-		return nil, err
+
+	log.Println("CHECKING OUTPUT ORDER")
+	for i, trade := range outPath {
+		pairInfo, err := exTarget.GetPair(trade.FromCoin, trade.ToCoin)
+		if err != nil{
+			log.Println("could not find the desired trading pair for ", trade)
+			tradeFlag = false
+		} else {
+			outPath[i].Trade = pairInfo
+		}
 	}
-	response := models.AddressResponse{
-		Coin:     params.Coin,
-		Address:  address,
-		Exchange: exName,
-	} */
+
 	path.InwardOrder = inPath
 	path.OutwardOrder = outPath
+	path.Trade = tradeFlag
 	return path, nil
 }

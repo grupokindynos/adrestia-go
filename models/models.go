@@ -37,9 +37,11 @@ type MockTrade struct {
 	FromCoin string `json:"from_coin"`
 	ToCoin string `json:"to_coin"`
 	Exchange string `json:"exchange"`
+	Trade TradeInfo `json:"trade"`
 }
 
 type PathResponse struct {
 	InwardOrder []MockTrade `json:"in_order"`
 	OutwardOrder []MockTrade `json:"out_order"`
+	Trade bool `json:"trade"`
 }

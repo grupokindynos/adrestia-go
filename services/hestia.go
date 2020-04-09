@@ -115,7 +115,7 @@ func (h *HestiaRequests) GetBalanceOrders(includeComplete bool, sinceTimestamp i
 	return response, nil
 }
 
-func (h *HestiaInstance) GetBalancer() (hestia.Balancer, error) {
+func (h *HestiaRequests) GetBalancer() (hestia.Balancer, error) {
 	payload, err := h.get("/adrestia/balancer", models.GetFilters{IncludeComplete: false})
 	if err != nil {
 		return hestia.Balancer{}, err

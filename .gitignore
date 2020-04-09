@@ -79,3 +79,4 @@ fabric.properties
 .DS_Store
 .idea/git_toolbox_prj.xml
 .idea/inspectionProfiles/Project_Default.xml
+.idea/workspace.xml

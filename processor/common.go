@@ -2,6 +2,7 @@ package processor
 
 import (
 	"errors"
+	"github.com/grupokindynos/adrestia-go/exchanges"
 	"github.com/grupokindynos/adrestia-go/services"
 	"github.com/grupokindynos/common/blockbook"
 	cf "github.com/grupokindynos/common/coin-factory"
@@ -43,4 +44,16 @@ func getPlutusReceivedAmount(addr string, txId string) (float64, error) {
 	}
 
 	return 0.0, errors.New("tx not found or still not confirmed")
+}
+
+func getBalance(exFac *exchanges.ExchangeFactory, exchangeName string, currency string) (float64, error) {
+	exchange, err := exFac.GetExchangeByName(exchangeName)
+	if err != nil {
+		return 0, nil
+	}
+	bal, err := exchange.GetBalance(currency)
+	if err != nil {
+		return 0, nil
+	}
+	return bal, nil
 }

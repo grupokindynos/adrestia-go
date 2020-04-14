@@ -96,8 +96,13 @@ func (hp *HwProcessor) Start() {
 
 func (hp *HwProcessor) withdrawFromExchanges() {
 	for _, exchangeInfo := range hwExchangesInfo {
-		if exchangeInfo.StockAmount > exchangeInfo.StockMaximumAmount {
-			err := hp.createWithdrawalOrder(exchangeInfo, exchangeInfo.StockAmount - exchangeInfo.StockExpectedAmount)
+		bal, err := getBalance(hwExFactory, exchangeInfo.Name, exchangeInfo.StockCurrency)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		if bal > exchangeInfo.StockMaximumAmount {
+			err := hp.createWithdrawalOrder(exchangeInfo, bal - exchangeInfo.StockExpectedAmount)
 			if err != nil {
 				log.Println("Error creating withdrawal order " + err.Error())
 			}

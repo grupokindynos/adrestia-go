@@ -18,19 +18,6 @@ type HestiaRequests struct {
 	HestiaURL string
 }
 
-func (h *HestiaRequests) UpdateExchangeBalance(exchange string, amount float64) (string, error) {
-	exchangeInfo, err := h.GetExchange(exchange)
-	if err != nil{
-		return "", err
-	}
-	exchangeInfo.StockAmount = amount
-	req, err := mvt.CreateMVTToken("PUT", h.HestiaURL+"/exchanges/update", "adrestia", os.Getenv("MASTER_PASSWORD"), exchangeInfo, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
-	if err != nil {
-		return "", err
-	}
-	return doResponseToString(h.do(req))
-}
-
 func (h *HestiaRequests) GetAdrestiaCoins() (availableCoins []hestia.Coin, err error) {
 	payload, err := h.get("/coins", models.GetFilters{})
 	if err != nil {

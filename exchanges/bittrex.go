@@ -31,6 +31,8 @@ func NewBittrex(exchange hestia.ExchangeInfo) (*Bittrex, error) {
 	for _, c := range currencies {
 		minConfs[strings.ToLower(c.Currency)] = c.MinConfirmation
 	}
+	// bittrex returns 0 for USDT
+	minConfs["usdt"] = 36
 
 	return &Bittrex{
 		exchangeInfo: exchange,

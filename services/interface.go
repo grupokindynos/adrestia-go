@@ -6,7 +6,6 @@ import (
 )
 
 type HestiaService interface {
-	UpdateExchangeBalance(exchange string, amount float64) (string, error)
 	GetAdrestiaCoins() (availableCoins []hestia.Coin, err error)
 	GetExchanges() ([]hestia.ExchangeInfo, error)
 	GetWithdrawals(includeComplete bool, sinceTimestamp int64) ([]hestia.SimpleTx, error)

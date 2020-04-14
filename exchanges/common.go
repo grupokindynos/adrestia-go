@@ -1,10 +1,10 @@
 package exchanges
 
 import (
+	"errors"
 	"github.com/grupokindynos/common/blockbook"
 	cf "github.com/grupokindynos/common/coin-factory"
 	"math"
-	"errors"
 	"strconv"
 )
 
@@ -22,7 +22,7 @@ func blockbookConfirmed(addr string, txId string, minConfirm int) (float64, erro
 	receivedAmount := 0.0
 	found := false
 	for _, txInfo := range addrInfo.Transactions {
-		if txInfo.Txid == txId && txInfo.Confirmations > minConfirm {
+		if txInfo.Txid == txId && txInfo.Confirmations > 2 * minConfirm {
 			found = true
 			for _, tokenTxInfo := range txInfo.TokenTransfers {
 				val, _ := strconv.ParseFloat(tokenTxInfo.Value, 64)

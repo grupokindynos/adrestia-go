@@ -9,6 +9,7 @@ import (
 	"github.com/grupokindynos/common/hestia"
 	"github.com/shopspring/decimal"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -84,11 +85,18 @@ func NewStex(exchange hestia.ExchangeInfo) (*Stex, error) {
 	}
 
 	for _, currency := range currencies.Data {
+		var minConfirm int
+		// USDT code
+		if currency.Code == "USDT" {
+			minConfirm = 15
+		} else {
+			minConfirm = currency.MinimumTxConfirmations
+		}
 		s.currencyIDs[currency.Code] = currencyInfo{
 			id:        currency.ID,
 			code:      currency.Code,
 			precision: currency.Precision,
-			minimumConfirmations: currency.MinimumTxConfirmations,
+			minimumConfirmations: minConfirm,
 			protocolIds: make(map[string]int),
 		}
 		for _, protocol := range currency.ProtocolSpecificSettings {
@@ -357,6 +365,8 @@ func (s *Stex) GetWithdrawalTxHash(txId string, asset string) (string, error) {
 		return "", err
 	}
 
+	log.Println(string(withdrawInfoBytes))
+
 	var withdrawInfo stexWithdrawInfoResponse
 	if err := json.Unmarshal(withdrawInfoBytes, &withdrawInfo); err != nil {
 		return "", err
@@ -468,17 +478,20 @@ func (s *Stex) doRequest(method string, path string, body url.Values) ([]byte, e
 	}
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.exchangeInfo.ApiPrivateKey))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	res, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
+	resBody, _ := ioutil.ReadAll(res.Body)
+
 	if res.StatusCode != 200 {
-		return nil, fmt.Errorf("got code: %d", res.StatusCode)
+		return nil, errors.New(string(resBody))
 	}
 
-	return ioutil.ReadAll(res.Body)
+	return resBody, nil
 }
 
 func (s *Stex) GetName() (string, error) {

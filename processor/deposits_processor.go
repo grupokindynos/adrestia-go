@@ -76,16 +76,6 @@ func (p *DepositProcessor) handlePerformedDeposit(wg *sync.WaitGroup) {
 			continue
 		}
 		if depositInfo.Status == hestia.ExchangeOrderStatusCompleted {
-			stock, err := exchange.GetBalance(deposit.Currency)
-			if err != nil {
-				log.Println("Unable to get new balance " + err.Error())
-				continue
-			}
-			_, err = p.Hestia.UpdateExchangeBalance(deposit.Exchange, stock)
-			if err != nil {
-				log.Println("Unable to update new exchange balance on hestia " + err.Error())
-				continue
-			}
 			deposit.ReceivedAmount = depositInfo.ReceivedAmount
 			deposit.FulfilledTime = time.Now().Unix()
 			deposit.Status = hestia.SimpleTxStatusCompleted

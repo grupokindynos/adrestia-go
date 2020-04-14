@@ -39,8 +39,13 @@ func (p *ExchangesProcessor) Start() {
 
 func (p *ExchangesProcessor) balanceExchanges() {
 	for _, exchangeInfo := range exchangesInfo {
-		if exchangeInfo.StockAmount < exchangeInfo.StockMinimumAmount {
-			err := p.createDeposit(exchangeInfo, exchangeInfo.StockExpectedAmount - exchangeInfo.StockAmount)
+		bal, err := getBalance(exchangeFactory, exchangeInfo.Name, exchangeInfo.StockCurrency)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		if bal < exchangeInfo.StockMinimumAmount {
+			err := p.createDeposit(exchangeInfo, exchangeInfo.StockExpectedAmount - bal)
 			if err != nil {
 				// This error is important, we should send a telegram message
 				log.Println(err)

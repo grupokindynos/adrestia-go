@@ -69,7 +69,7 @@ func runHwProcessor() {
 func main() {
 	// Read input flag
 	localRun := flag.Bool("local", false, "set this flag to run adrestia with local db")
-	//port := flag.String("port", os.Getenv("PORT"), "set different port for local run")
+	port := flag.String("port", os.Getenv("PORT"), "set different port for local run")
 	stopProcessor := flag.Bool("stop-proc", false, "set this flag to stop the automatic run of processor")
 	dev := flag.Bool("dev", false, "return shift status as always available")
 	flag.Parse()
@@ -111,16 +111,8 @@ func main() {
 		Balancer: Balancer,
 	}
 
-	//go runExchangesProcessor()
-	// go runDepositProcessor()
-	// go runHwProcessor()
-	//hwProcessor.Start()
-
-	//exchangesProcessor.Start()
-	//select {}
-
-	//App := GetApp()
-	//_ = App.Run(":" + *port)
+	App := GetApp()
+	_ = App.Run(":" + *port)
 
 	if !*stopProcessor {
 		log.Println("Starting processors")

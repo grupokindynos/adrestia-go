@@ -37,7 +37,7 @@ type PathParams struct {
 	ToCoin string `json:"to_coin"`
 }
 
-type MockTrade struct {
+type ExchangeTrade struct {
 	FromCoin string `json:"from_coin"`
 	ToCoin string `json:"to_coin"`
 	Exchange string `json:"exchange"`
@@ -45,7 +45,7 @@ type MockTrade struct {
 }
 
 type PathResponse struct {
-	InwardOrder []MockTrade `json:"in_order"`
-	OutwardOrder []MockTrade `json:"out_order"`
-	Trade bool `json:"trade"`
+	InwardOrder []ExchangeTrade  `json:"in_order"`
+	OutwardOrder []ExchangeTrade `json:"out_order"`
+	Trade bool                   `json:"trade"`
 }

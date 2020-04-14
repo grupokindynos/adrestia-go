@@ -59,8 +59,8 @@ func (a *AdrestiaController) GetConversionPath(_ string, body []byte, _ models.P
 	
 	// Response Object
 	var path models.PathResponse
-	var inPath []models.MockTrade
-	var outPath []models.MockTrade
+	var inPath []models.ExchangeTrade
+	var outPath []models.ExchangeTrade
 
 
 	coinInfo, err := coinfactory.GetCoin(pathParams.FromCoin)
@@ -81,7 +81,7 @@ func (a *AdrestiaController) GetConversionPath(_ string, body []byte, _ models.P
 	} else {
 		if pathParams.FromCoin != "BTC" {
 			log.Println("requires btc conversion")
-			inPath = append(inPath, models.MockTrade{
+			inPath = append(inPath, models.ExchangeTrade{
 				FromCoin: pathParams.FromCoin,
 				ToCoin:   "BTC",
 				Exchange: exName,
@@ -95,7 +95,7 @@ func (a *AdrestiaController) GetConversionPath(_ string, body []byte, _ models.P
 				break
 			}
 		}
-		inPath = append(inPath, models.MockTrade{
+		inPath = append(inPath, models.ExchangeTrade{
 			FromCoin: "BTC",
 			ToCoin:   exInwardInfo.StockCurrency,
 			Exchange: exName,
@@ -125,13 +125,13 @@ func (a *AdrestiaController) GetConversionPath(_ string, body []byte, _ models.P
 	if targetCoinInfo.Info.StableCoin && pathParams.ToCoin == exOutwardInfo.StockCurrency {
 		// target coin is the exchange's stock coin
 	} else {
-		outPath = append(outPath, models.MockTrade{
+		outPath = append(outPath, models.ExchangeTrade{
 			FromCoin: exOutwardInfo.StockCurrency,
 			ToCoin:   "BTC",
 			Exchange: exNameTarget,
 		})
 		if pathParams.ToCoin != "BTC" {
-			outPath = append(outPath, models.MockTrade{
+			outPath = append(outPath, models.ExchangeTrade{
 				FromCoin: "BTC",
 				ToCoin: pathParams.ToCoin,
 				Exchange: exNameTarget,

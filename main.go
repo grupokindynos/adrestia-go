@@ -13,6 +13,7 @@ import (
 	"github.com/grupokindynos/common/obol"
 	"github.com/grupokindynos/common/responses"
 	"github.com/grupokindynos/common/tokens/mrt"
+	"github.com/grupokindynos/common/tokens/mvt"
 	"github.com/joho/godotenv"
 	"log"
 	"net/http"
@@ -166,6 +167,7 @@ func ApplyRoutes(r *gin.Engine) {
 	}))
 	{
 		api.GET("address/:coin", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.GetAddress) })
+		api.POST("path", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.GetConversionPath)})
 	}
 	r.NoRoute(func(c *gin.Context) {
 		c.String(http.StatusNotFound, "Not Found")
@@ -191,7 +193,7 @@ func ValidateRequest(c *gin.Context, method func(uid string, payload []byte, par
 	params := models.Params{
 		Coin: c.Param("coin"),
 	}
-	payload, err := c.GetRawData()
+	payload, err := mvt.VerifyRequest(c)
 	response, err := method(uid, payload, params)
 	if err != nil {
 		responses.GlobalOpenError(nil, err, c)

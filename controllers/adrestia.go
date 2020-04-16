@@ -23,6 +23,34 @@ type AdrestiaController struct {
 	ExInfo 		  []hestia.ExchangeInfo
 }
 
+func (a *AdrestiaController) Withdraw(_ string, body []byte, params models.Params) (interface{}, error) {
+	var withdrawParams models.WithdrawParams
+	err := json.Unmarshal(body, &withdrawParams)
+	if err != nil {
+		return nil, err
+	}
+	coinInfo, err := coinfactory.GetCoin(params.Coin)
+	if err != nil {
+		return nil, err
+	}
+	ex, err := a.ExFactory.GetExchangeByCoin(*coinInfo)
+	if err != nil {
+		return nil, err
+	}
+	txid, err := ex.Withdraw(withdrawParams.Asset, withdrawParams.Address, withdrawParams.Amount)
+	if err != nil {
+		return nil, err
+	}
+	exName, err := ex.GetName()
+	response := models.WithdrawResponse{
+		Exchange: exName,
+		Asset:    withdrawParams.Asset,
+		TxId:     txid,
+	}
+	return response, nil
+}
+
+
 func (a *AdrestiaController) GetAddress(_ string, _ []byte, params models.Params) (interface{}, error) {
 	coinInfo, err := coinfactory.GetCoin(params.Coin)
 	if err != nil {

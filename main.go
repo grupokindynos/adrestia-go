@@ -168,6 +168,7 @@ func ApplyRoutes(r *gin.Engine) {
 	{
 		api.GET("address/:coin", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.GetAddress) })
 		api.POST("path", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.GetConversionPath)})
+		api.POST("trade", func(context *gin.Context) {ValidateRequest(context, adrestiaCtrl.Trade)})
 	}
 	r.NoRoute(func(c *gin.Context) {
 		c.String(http.StatusNotFound, "Not Found")

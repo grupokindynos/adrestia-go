@@ -167,3 +167,24 @@ func (a *AdrestiaController) GetConversionPath(_ string, body []byte, _ models.P
 	path.Trade = tradeFlag
 	return path, nil
 }
+
+func (a *AdrestiaController) Trade(_ string, body []byte, _ models.Params) (interface{}, error) {
+	var trade hestia.Trade
+	err := json.Unmarshal(body, &trade)
+	if err != nil {
+		return "", err
+	}
+	coin, err := coinfactory.GetCoin(trade.FromCoin)
+	if err != nil {
+		return "", err
+	}
+	exchange, err := a.ExFactory.GetExchangeByCoin(*coin)
+	if err != nil {
+		return "", err
+	}
+	txId, err := exchange.SellAtMarketPrice(trade)
+	if err != nil {
+		return "", err
+	}
+	return txId, nil
+}

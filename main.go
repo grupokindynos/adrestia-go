@@ -2,6 +2,11 @@ package main
 
 import (
 	"flag"
+	"log"
+	"net/http"
+	"os"
+	"time"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/grupokindynos/adrestia-go/balancer"
@@ -15,28 +20,23 @@ import (
 	"github.com/grupokindynos/common/tokens/mrt"
 	"github.com/grupokindynos/common/tokens/mvt"
 	"github.com/joho/godotenv"
-	"log"
-	"net/http"
-	"os"
-	"time"
 )
-
 
 func init() {
 	_ = godotenv.Load()
 }
 
 var (
-	exchangesProcessor 	processor.ExchangesProcessor
-	depositProcessor 	processor.DepositProcessor
-	hwProcessor 		processor.HwProcessor
+	exchangesProcessor processor.ExchangesProcessor
+	depositProcessor   processor.DepositProcessor
+	hwProcessor        processor.HwProcessor
 
 	// Flags
-	devMode				bool
+	devMode bool
 
 	// Urls
 	hestiaUrl string
- 	plutusUrl string
+	plutusUrl string
 )
 
 func init() {
@@ -69,7 +69,7 @@ func runHwProcessor() {
 func main() {
 	// Read input flag
 	localRun := flag.Bool("local", false, "set this flag to run adrestia with local db")
-	//port := flag.String("port", os.Getenv("PORT"), "set different port for local run")
+	port := flag.String("port", os.Getenv("PORT"), "set different port for local run")
 	stopProcessor := flag.Bool("stop-proc", false, "set this flag to stop the automatic run of processor")
 	dev := flag.Bool("dev", false, "return shift status as always available")
 	flag.Parse()
@@ -111,16 +111,8 @@ func main() {
 		Balancer: Balancer,
 	}
 
-	//go runExchangesProcessor()
-	// go runDepositProcessor()
-	// go runHwProcessor()
-	//hwProcessor.Start()
-
-	//exchangesProcessor.Start()
-	//select {}
-
-	//App := GetApp()
-	//_ = App.Run(":" + *port)
+	App := GetApp()
+	_ = App.Run(":" + *port)
 
 	if !*stopProcessor {
 		log.Println("Starting processors")
@@ -153,12 +145,12 @@ func ApplyRoutes(r *gin.Engine) {
 		log.Fatalln(err)
 	}
 	adrestiaCtrl := &controllers.AdrestiaController{
-		Hestia:        services.HestiaRequests{HestiaURL: hestiaUrl},
-		Plutus:        &services.PlutusRequests{},
-		Obol:          &obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")},
-		DevMode:	   devMode,
-		ExFactory:     exchanges.NewExchangeFactory(&obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}, &services.HestiaRequests{HestiaURL: os.Getenv(hestiaUrl)}),
-		ExInfo:        exchangeInfo,
+		Hestia:    services.HestiaRequests{HestiaURL: hestiaUrl},
+		Plutus:    &services.PlutusRequests{},
+		Obol:      &obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")},
+		DevMode:   devMode,
+		ExFactory: exchanges.NewExchangeFactory(&obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}, &services.HestiaRequests{HestiaURL: os.Getenv(hestiaUrl)}),
+		ExInfo:    exchangeInfo,
 	}
 	authUser := os.Getenv("HESTIA_AUTH_USERNAME")
 	authPassword := os.Getenv("HESTIA_AUTH_PASSWORD")
@@ -167,13 +159,13 @@ func ApplyRoutes(r *gin.Engine) {
 	}))
 	{
 		api.GET("address/:coin", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.GetAddress) })
-		api.POST("path", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.GetConversionPath)})
-		api.POST("trade", func(context *gin.Context) {ValidateRequest(context, adrestiaCtrl.Trade)})
+		api.POST("path", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.GetConversionPath) })
+		api.POST("trade", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.Trade) })
+		api.POST("withdraw", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.Withdraw) })
 	}
 	r.NoRoute(func(c *gin.Context) {
 		c.String(http.StatusNotFound, "Not Found")
 	})
-
 
 	username := os.Getenv("TEST_API_USER")
 	password := os.Getenv("TEST_API_PASS")
@@ -181,8 +173,8 @@ func ApplyRoutes(r *gin.Engine) {
 		username: password,
 	}))
 	{
-		openApi.GET("address/:coin", func(context *gin.Context) {ValidateOpenRequest(context, adrestiaCtrl.GetAddress)})
-		openApi.POST("path", func(context *gin.Context) {ValidateOpenRequest(context, adrestiaCtrl.GetConversionPath)})
+		openApi.GET("address/:coin", func(context *gin.Context) { ValidateOpenRequest(context, adrestiaCtrl.GetAddress) })
+		openApi.POST("path", func(context *gin.Context) { ValidateOpenRequest(context, adrestiaCtrl.GetConversionPath) })
 	}
 }
 

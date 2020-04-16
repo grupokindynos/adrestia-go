@@ -37,6 +37,18 @@ type PathParams struct {
 	ToCoin string `json:"to_coin"`
 }
 
+type WithdrawParams struct {
+	Asset string `json:"asset"`
+	Address string `json:"address"`
+	Amount float64 `json:"amount"`
+}
+
+type WithdrawResponse struct {
+	Exchange string `json:"exchange"`
+	Asset string `json:"asset"`
+	TxId string `json:"txid"`
+}
+
 type ExchangeTrade struct {
 	FromCoin string `json:"from_coin"`
 	ToCoin string `json:"to_coin"`

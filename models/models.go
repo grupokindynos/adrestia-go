@@ -43,7 +43,7 @@ type WithdrawParams struct {
 	Amount float64 `json:"amount"`
 }
 
-type WithdrawResponse struct {
+type WithdrawInfo struct {
 	Exchange string `json:"exchange"`
 	Asset string `json:"asset"`
 	TxId string `json:"txid"`

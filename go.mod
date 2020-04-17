@@ -11,7 +11,7 @@ require (
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/golang/protobuf v1.3.3 // indirect
 	github.com/google/go-querystring v1.0.0
-	github.com/grupokindynos/common v0.0.0-20200415212846-e48457668465
+	github.com/grupokindynos/common v0.0.0-20200416173907-1ec6bf7a7764
 	github.com/grupokindynos/go-binance v0.0.0-20200218200020-be83de467e5d
 	github.com/joho/godotenv v1.3.0
 	github.com/json-iterator/go v1.1.9 // indirect

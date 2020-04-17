@@ -42,7 +42,7 @@ func (a *AdrestiaController) Withdraw(_ string, body []byte, params models.Param
 		return nil, err
 	}
 	exName, err := ex.GetName()
-	response := models.WithdrawResponse{
+	response := models.WithdrawInfo{
 		Exchange: exName,
 		Asset:    withdrawParams.Asset,
 		TxId:     txid,
@@ -50,6 +50,32 @@ func (a *AdrestiaController) Withdraw(_ string, body []byte, params models.Param
 	return response, nil
 }
 
+
+func (a *AdrestiaController) GetTradeStatus(_ string, body []byte, _ models.Params) (interface{}, error) {
+	var trade hestia.Trade
+	err := json.Unmarshal(body, &trade)
+	if err != nil {
+		return nil, err
+	}
+	exchange, err := a.ExFactory.GetExchangeByName(trade.Exchange)
+	if err != nil {
+		return nil, err
+	}
+	return exchange.GetOrderStatus(trade)
+}
+
+func (a *AdrestiaController) GetWithdrawalTxHash(_ string, body []byte, _ models.Params) (interface{}, error) {
+	var withdrawInfo models.WithdrawInfo
+	err := json.Unmarshal(body, withdrawInfo)
+	if err != nil {
+		return "", err
+	}
+	exchange, err := a.ExFactory.GetExchangeByName(withdrawInfo.Exchange)
+	if err != nil {
+		return "", err
+	}
+	return exchange.GetWithdrawalTxHash(withdrawInfo.TxId, withdrawInfo.Asset)
+}
 
 func (a *AdrestiaController) GetAddress(_ string, _ []byte, params models.Params) (interface{}, error) {
 	coinInfo, err := coinfactory.GetCoin(params.Coin)
@@ -202,11 +228,7 @@ func (a *AdrestiaController) Trade(_ string, body []byte, _ models.Params) (inte
 	if err != nil {
 		return "", err
 	}
-	coin, err := coinfactory.GetCoin(trade.FromCoin)
-	if err != nil {
-		return "", err
-	}
-	exchange, err := a.ExFactory.GetExchangeByCoin(*coin)
+	exchange, err := a.ExFactory.GetExchangeByName(trade.Exchange)
 	if err != nil {
 		return "", err
 	}

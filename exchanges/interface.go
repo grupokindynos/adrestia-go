@@ -13,6 +13,7 @@ type Exchange interface {
 	GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderInfo, error)
 	GetPair(fromCoin string, toCoin string) (models.TradeInfo, error)
 	GetWithdrawalTxHash(txId string, asset string) (string, error)
+	//  Gets the deposit status from an asset's exchange.
 	GetDepositStatus(addr string, txId string, asset string) (hestia.ExchangeOrderInfo, error)
 	GetName() (string, error)
 }

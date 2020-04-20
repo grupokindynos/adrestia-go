@@ -238,3 +238,32 @@ func (a *AdrestiaController) Trade(_ string, body []byte, _ models.Params) (inte
 	}
 	return txId, nil
 }
+
+/*
+Returns the deposit status for a given txid.
+*/
+func (a *AdrestiaController) Deposit(_ string, body []byte, params models.Params) (interface{}, error) {
+	var depositParams models.DepositParams
+	err := json.Unmarshal(body, &depositParams)
+	if err != nil {
+		return nil, err
+	}
+	coinInfo, err := coinfactory.GetCoin(params.Coin)
+	if err != nil {
+		return nil, err
+	}
+	ex, err := a.ExFactory.GetExchangeByCoin(*coinInfo)
+	if err != nil {
+		return nil, err
+	}
+	exOrderInfo, err := ex.GetDepositStatus(depositParams.Address, depositParams.TxId, depositParams.Asset)
+	if err != nil {
+		return nil, err
+	}
+	exName, err := ex.GetName()
+	response := models.DepositInfo{
+		Exchange: exName,
+		DepositInfo:    exOrderInfo,
+	}
+	return response, nil
+}

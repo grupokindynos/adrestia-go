@@ -62,6 +62,12 @@ type DepositInfo struct {
 	DepositInfo hestia.ExchangeOrderInfo `json:"deposit_info"`
 }
 
+type BalanceResponse struct {
+	Exchange string `json:"exchange"`
+	Balance float64 `json:"balance"`
+	Asset string `json:"asset"`
+}
+
 type ExchangeTrade struct {
 	FromCoin string `json:"from_coin"`
 	ToCoin string `json:"to_coin"`

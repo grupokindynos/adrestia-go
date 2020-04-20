@@ -165,6 +165,7 @@ func ApplyRoutes(r *gin.Engine) {
 		api.POST("trade", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.Trade) })
 		api.POST("withdraw", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.Withdraw) })
 		api.POST("deposit", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.Deposit) })
+		api.GET("stock/balance/:coin", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.StockBalance) })
 	}
 	r.NoRoute(func(c *gin.Context) {
 		c.String(http.StatusNotFound, "Not Found")
@@ -178,6 +179,7 @@ func ApplyRoutes(r *gin.Engine) {
 	{
 		openApi.GET("address/:coin", func(context *gin.Context) { ValidateOpenRequest(context, adrestiaCtrl.GetAddress) })
 		openApi.POST("path", func(context *gin.Context) { ValidateOpenRequest(context, adrestiaCtrl.GetConversionPath) })
+		openApi.GET("stock/balance/:coin", func(context *gin.Context) { ValidateOpenRequest(context, adrestiaCtrl.StockBalance) })
 	}
 }
 

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/grupokindynos/adrestia-go/exchanges"
 	"github.com/grupokindynos/adrestia-go/models"
 	"github.com/grupokindynos/adrestia-go/services"
@@ -168,13 +169,7 @@ func (a *AdrestiaController) GetConversionPath(_ string, body []byte, _ models.P
 	if err != nil {
 		return nil, err
 	}
-	var exOutwardInfo hestia.ExchangeInfo
-	for _, ex := range a.ExInfo {
-		if ex.Name == exNameTarget {
-			exOutwardInfo = ex
-			break
-		}
-	}
+	exOutwardInfo, err := a.getExchangeInfo(exNameTarget)
 
 	if targetCoinInfo.Info.StableCoin && pathParams.ToCoin == exOutwardInfo.StockCurrency {
 		// target coin is the exchange's stock coin
@@ -248,7 +243,7 @@ func (a *AdrestiaController) Deposit(_ string, body []byte, params models.Params
 	if err != nil {
 		return nil, err
 	}
-	coinInfo, err := coinfactory.GetCoin(params.Coin)
+	coinInfo, err := coinfactory.GetCoin(depositParams.Asset)
 	if err != nil {
 		return nil, err
 	}
@@ -264,6 +259,49 @@ func (a *AdrestiaController) Deposit(_ string, body []byte, params models.Params
 	response := models.DepositInfo{
 		Exchange: exName,
 		DepositInfo:    exOrderInfo,
+	}
+	return response, nil
+}
+
+func (a *AdrestiaController) getExchangeInfo(exchange string) (info hestia.ExchangeInfo, err error) {
+	for _, ex := range a.ExInfo {
+		if ex.Name == exchange {
+			info = ex
+			return
+		}
+	}
+	return info, errors.New("exchange not found")
+}
+
+/*
+Returns an exchange's stock balance, given an input coin.
+*/
+func (a *AdrestiaController) StockBalance(_ string, body []byte, params models.Params) (interface{}, error) {
+	coinInfo, err := coinfactory.GetCoin(params.Coin)
+	if err != nil {
+		return nil, err
+	}
+	ex, err := a.ExFactory.GetExchangeByCoin(*coinInfo)
+	if err != nil {
+		return nil, err
+	}
+	exName, err := ex.GetName()
+	if err != nil {
+		return nil, err
+	}
+	exInfo, err := a.getExchangeInfo(exName)
+	if err != nil {
+		return nil, err
+	}
+	// stockCoinInfo, err := coinfactory.GetCoin(exInfo.StockCurrency)
+	balance, err := ex.GetBalance(exInfo.StockCurrency)
+	if err != nil {
+		return nil, err
+	}
+	response := models.BalanceResponse{
+		Exchange: exName,
+		Balance:  balance,
+		Asset: exInfo.StockCurrency,
 	}
 	return response, nil
 }

@@ -1,5 +1,7 @@
 package models
 
+import "github.com/grupokindynos/common/hestia"
+
 type GetFilters struct {
 	Id string `json:"id"`
 	IncludeComplete bool `json:"include_complete"`
@@ -43,10 +45,27 @@ type WithdrawParams struct {
 	Amount float64 `json:"amount"`
 }
 
+type DepositParams struct {
+	Asset string `json:"asset"`
+	TxId string `json:"txid"`
+	Address string `json:"address"`
+}
+
 type WithdrawInfo struct {
 	Exchange string `json:"exchange"`
 	Asset string `json:"asset"`
 	TxId string `json:"txid"`
+}
+
+type DepositInfo struct {
+	Exchange string `json:"exchange"`
+	DepositInfo hestia.ExchangeOrderInfo `json:"deposit_info"`
+}
+
+type BalanceResponse struct {
+	Exchange string `json:"exchange"`
+	Balance float64 `json:"balance"`
+	Asset string `json:"asset"`
 }
 
 type ExchangeTrade struct {

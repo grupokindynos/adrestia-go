@@ -262,7 +262,6 @@ func (b *Binance) GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderInfo, 
 			ReceivedAmount:  0,
 		}, err
 	}
-
 	switch res.Status {
 	case binance.StatusFilled:
 		return hestia.ExchangeOrderInfo {
@@ -332,9 +331,28 @@ func roundFixedPrecision(f float64, places int) float64 {
 }
 
 func (b *Binance) getReceivedAmount(order binance.ExecutedOrder) float64 {
+	trades, err := b.binanceApi.MyTrades(binance.MyTradesRequest{
+		Symbol:     order.Symbol,
+		Limit:      20,
+		FromID:     0,
+		RecvWindow: 0,
+		Timestamp:  time.Now(),
+	})
+	if err != nil {
+		l.Println("binance - Unable to retrieve fees")
+		return 0
+	}
+
+	fee := 0.0
+	for _, trade := range trades {
+		if trade.OrderId == int64(order.OrderID) {
+			fee = trade.Commission
+		}
+	}
+
 	if order.Side == binance.SideBuy {
-		return order.ExecutedQty
+		return order.ExecutedQty - fee
 	} else {
-		return order.CummulativeQuoteQty
+		return order.CummulativeQuoteQty - fee
 	}
 }

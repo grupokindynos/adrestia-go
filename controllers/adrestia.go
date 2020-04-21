@@ -29,7 +29,7 @@ func (a *AdrestiaController) Withdraw(_ string, body []byte, params models.Param
 	if err != nil {
 		return nil, err
 	}
-	coinInfo, err := coinfactory.GetCoin(params.Coin)
+	coinInfo, err := coinfactory.GetCoin(withdrawParams.Asset)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (a *AdrestiaController) GetTradeStatus(_ string, body []byte, _ models.Para
 
 func (a *AdrestiaController) GetWithdrawalTxHash(_ string, body []byte, _ models.Params) (interface{}, error) {
 	var withdrawInfo models.WithdrawInfo
-	err := json.Unmarshal(body, withdrawInfo)
+	err := json.Unmarshal(body, &withdrawInfo)
 	if err != nil {
 		return "", err
 	}

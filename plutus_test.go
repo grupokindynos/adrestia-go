@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/grupokindynos/adrestia-go/exchanges"
 	"github.com/grupokindynos/adrestia-go/services"
 	"github.com/grupokindynos/common/blockbook"
 	coinfactory "github.com/grupokindynos/common/coin-factory"
@@ -23,7 +24,7 @@ func TestSendToExchange(t *testing.T) {
 	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}
 	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_LOCAL_URL")}
 	res, err := plutus.WithdrawToAddress(plutus2.SendAddressBodyReq{
-		Address: "0x691dc0be1bdb94f01c7a9be1021a5f7b58fae74f",
+		Address: "0xe9ab13669de1eecc95144bf9999567d38efea159",
 		Coin:    "USDT",
 		Amount:  10,
 	})
@@ -60,4 +61,22 @@ func TestBlockbook(t *testing.T) {
 	log.Println(err)
 	//res, _ := blockExplorer.GetTx("0x475f5d6f71aec76c4f112a0902c7da506f0324504cf521c4fe00dbbabdac2a16")
 	fmt.Printf("%+v\n", res)
+}
+
+func TestBinance(t *testing.T) {
+	hr := services.HestiaRequests{HestiaURL:os.Getenv("HESTIA_LOCAL_URL")}
+	exchange, _ := hr.GetExchange("binance")
+	binance := exchanges.NewBinance(exchange)
+/*	binance.GetOrderStatus(hestia.Trade{
+		OrderId:        "1889742482",
+		Symbol:         "BTCUSDT",
+	})*/
+	trades, err := binance.MyTrades()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	for _, trade := range trades {
+		fmt.Printf("%+v\n", *trade)
+	}
 }

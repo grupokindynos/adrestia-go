@@ -37,6 +37,7 @@ func getPlutusReceivedAmount(addr string, txId string) (float64, error) {
 				val, _ := strconv.ParseFloat(tokenTxInfo.Value, 64)
 				receivedAmount += val / (math.Pow10(tokenTxInfo.Decimals) * 1.0)
 			}
+			break
 		}
 	}
 	if found {

@@ -53,14 +53,14 @@ func runExchangesProcessor() {
 }
 
 func runDepositProcessor() {
-	ticker := time.NewTicker(1 * time.Minute)
+	ticker := time.NewTicker(5 * time.Minute)
 	for _ = range ticker.C {
 		depositProcessor.Start()
 	}
 }
 
 func runHwProcessor() {
-	ticker := time.NewTicker(1 * time.Minute)
+	ticker := time.NewTicker(5 * time.Minute)
 	for _ = range ticker.C {
 		hwProcessor.Start()
 	}
@@ -116,16 +116,12 @@ func main() {
 
 	if !*stopProcessor {
 		log.Println("Starting processors")
-		//go runExchangesProcessor()
-		//go runDepositProcessor()
-		//go runHwProcessor()
+		go runExchangesProcessor()
+		go runDepositProcessor()
+		go runHwProcessor()
 
-		//exchangesProcessor.Start()
-		//depositProcessor.Start()
-		hwProcessor.Start()
-		//select {}
+		select {}
 	}
-
 }
 
 func GetApp() *gin.Engine {
@@ -146,7 +142,7 @@ func ApplyRoutes(r *gin.Engine) {
 	}
 	adrestiaCtrl := &controllers.AdrestiaController{
 		Hestia:    services.HestiaRequests{HestiaURL: hestiaUrl},
-		Plutus:    &services.PlutusRequests{},
+		Plutus:    &services.PlutusRequests{PlutusURL: plutusUrl, Obol: &obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}},
 		Obol:      &obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")},
 		DevMode:   devMode,
 		ExFactory: exchanges.NewExchangeFactory(&obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}, &services.HestiaRequests{HestiaURL: os.Getenv(hestiaUrl)}),
@@ -159,8 +155,8 @@ func ApplyRoutes(r *gin.Engine) {
 	}))
 	{
 		api.GET("address/:coin", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.GetAddress) })
-		api.GET("trade/status", func(context *gin.Context) {ValidateRequest(context, adrestiaCtrl.GetTradeStatus)})
-		api.GET("withdraw/hash", func(context *gin.Context) {ValidateRequest(context, adrestiaCtrl.GetWithdrawalTxHash)})
+		api.POST("trade/status", func(context *gin.Context) {ValidateRequest(context, adrestiaCtrl.GetTradeStatus)})
+		api.POST("withdraw/hash", func(context *gin.Context) {ValidateRequest(context, adrestiaCtrl.GetWithdrawalTxHash)})
 		api.POST("path", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.GetConversionPath) })
 		api.POST("trade", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.Trade) })
 		api.POST("withdraw", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.Withdraw) })

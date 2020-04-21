@@ -11,13 +11,15 @@ require (
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/golang/protobuf v1.3.3 // indirect
 	github.com/google/go-querystring v1.0.0
+	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/grupokindynos/common v0.0.0-20200416173907-1ec6bf7a7764
-	github.com/grupokindynos/go-binance v0.0.0-20200218200020-be83de467e5d
+	github.com/grupokindynos/go-binance v0.0.0-20200421165150-6af2492b8604
 	github.com/joho/godotenv v1.3.0
 	github.com/json-iterator/go v1.1.9 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/oedipusK/go-southxchange v0.0.0-20200306161710-01bc4005c20d
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/shopspring/decimal v0.0.0-20200227202807-02e2044944cc
 	github.com/thebotguys/signalr v0.0.0-20190119054324-787ebe6729fc // indirect
 	golang.org/x/sys v0.0.0-20200202164722-d101bd2416d5 // indirect

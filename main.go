@@ -111,17 +111,15 @@ func main() {
 		Balancer: Balancer,
 	}
 
-	App := GetApp()
-	_ = App.Run(":" + *port)
-
 	if !*stopProcessor {
 		log.Println("Starting processors")
 		go runExchangesProcessor()
 		go runDepositProcessor()
 		go runHwProcessor()
-
-		select {}
 	}
+
+	App := GetApp()
+	_ = App.Run(":" + *port)
 }
 
 func GetApp() *gin.Engine {

@@ -109,6 +109,9 @@ func (b *Balancer) createBalancerOrder(fromCoin string, toCoin string, amount fl
 	if err != nil {
 		return err
 	}
+	if depositAddr == "" {
+		return errors.New("exchange returned empty deposit address")
+	}
 	withdrawAddr, err := b.Plutus.GetAddress(toCoin)
 	if err != nil {
 		return err

@@ -1,6 +1,7 @@
 package processor
 
 import (
+	"errors"
 	"github.com/grupokindynos/adrestia-go/exchanges"
 	"github.com/grupokindynos/adrestia-go/services"
 	"github.com/grupokindynos/common/hestia"
@@ -24,13 +25,31 @@ var(
 
 func (p *ExchangesProcessor) Start() {
 	var err error
+	deposits, err := p.Hestia.GetDeposits(false, 0)
+	if err != nil {
+		log.Println("ex_balancer- Start - unable to get deposits - " + err.Error())
+	}
+	if len(deposits) > 0 {
+		log.Println("There are deposits still running")
+		return
+	}
+	balancer, err := p.Hestia.GetBalancer()
+	if err != nil {
+		log.Println("ex_balancer - Start - unable to get balancer - " + err.Error())
+	}
+	emptyBalancer := hestia.Balancer{}
+	if balancer != emptyBalancer {
+		log.Println("There's a balancer still running")
+		return
+	}
+
 	exchangesInfo, err = p.Hestia.GetExchanges()
 	if err != nil {
-		log.Println("Unable to get exchanges")
+		log.Println("ex_balancer - Start - Unable to get exchanges" + err.Error())
 		return
 	}
 	if len(exchangesInfo) == 0 {
-		log.Println("ExchangesInfo empty")
+		log.Println("ex_balancer - Start - ExchangesInfo empty")
 		return
 	}
 	exchangeFactory = exchanges.NewExchangeFactory(p.Obol, p.Hestia)
@@ -41,21 +60,21 @@ func (p *ExchangesProcessor) balanceExchanges() {
 	for _, exchangeInfo := range exchangesInfo {
 		bal, err := getBalance(exchangeFactory, exchangeInfo.Name, exchangeInfo.StockCurrency)
 		if err != nil {
-			log.Println(err)
+			log.Println("ex_balancer - balanceExchanges - " + err.Error())
 			continue
 		}
 		if bal < exchangeInfo.StockMinimumAmount {
 			err := p.createDeposit(exchangeInfo, exchangeInfo.StockExpectedAmount - bal)
 			if err != nil {
 				// This error is important, we should send a telegram message
-				log.Println(err)
+				log.Println("ex_balancer - balanceExchanges - " + err.Error())
 			}
 		}
 	}
 	
 	isBalanceable, err := p.isDepositPossible()
 	if err != nil {
-		log.Println(err)
+		log.Println("ex_balancer - balanceExchanges - " + err.Error())
 		return
 	}
 	
@@ -63,7 +82,7 @@ func (p *ExchangesProcessor) balanceExchanges() {
 		for _, deposit := range newDeposits {
 			_, err := p.Hestia.CreateDeposit(deposit)
 			if err != nil {
-				log.Println("unable to store deposit order " + err.Error())
+				log.Println("ex_balancer - balanceExchanges - createDeposit - " + err.Error())
 			}
 		}
 	} else {
@@ -75,7 +94,7 @@ func (p *ExchangesProcessor) balanceExchanges() {
 		}
 		_, err := p.Hestia.CreateBalancer(balancer)
 		if err != nil {
-			log.Println("Unable to create balancer " + err.Error())
+			log.Println("ex_balancer - balanceExchanges - createBalancer - " + err.Error())
 		}
 	}
 }
@@ -88,7 +107,11 @@ func (p *ExchangesProcessor) createDeposit(exchangeInfo hestia.ExchangeInfo, amo
 
 	addr, err := exchangeInstance.GetAddress(exchangeInfo.StockCurrency)
 	if err != nil {
-		return err
+		return errors.New("createDeposit - " + err.Error())
+	}
+
+	if addr == "" {
+		return errors.New("createDeposit - empty address returned")
 	}
 
 	deposit := hestia.SimpleTx{
@@ -117,8 +140,7 @@ func (p *ExchangesProcessor) isDepositPossible() (bool, error) {
 		balance, err := p.Plutus.GetWalletBalance(currency)
 		if err != nil {
 			// This message is also important
-			log.Println("unable to get balance for coin " + currency)
-			return false, err
+			return false, errors.New("isDepositPossible - unable to get balance for coin " + currency)
 		}
 		if balance.Confirmed < amount {
 			return false, nil

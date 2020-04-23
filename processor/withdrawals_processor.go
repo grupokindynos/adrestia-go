@@ -33,28 +33,26 @@ func (wp *WithdrawalsProcessor) Start() {
 
 func (wp *WithdrawalsProcessor) handlerCreatedWithdrawal(wg *sync.WaitGroup) {
 	defer wg.Done()
-	log.Println("handlerCreatedWithdrawal start")
 	withdrawals := wp.getWithdrawalsByStatus(hestia.SimpleTxStatusCreated)
 	for _, withdrawal := range withdrawals {
 		exchange, err := hwExFactory.GetExchangeByName(withdrawal.Exchange)
 		if err != nil {
-			log.Println("unable to get exchange for withdrawal " + err.Error())
+			log.Println("withdrawals - handlerCreatedWithdrawal - GetExchangeByName - " + err.Error())
 			continue
 		}
 		log.Println(withdrawal.Exchange)
 		orderId, err := exchange.Withdraw(withdrawal.Currency, withdrawal.Address, withdrawal.Amount)
 		if err != nil {
-			log.Println("Error while trying to withdraw " + err.Error())
+			log.Println("withdrawals - handlerCreatedWithdrawal - withdraw - " + err.Error())
 			continue
 		}
 		withdrawal.TxId = orderId
 		withdrawal.Status = hestia.SimpleTxStatusPerformed
 		_, err = wp.Hestia.UpdateWithdrawal(withdrawal)
 		if err != nil {
-			log.Println("Unable to update withdrawal on db " + err.Error())
+			log.Println("withdrawals - handlerCreatedWithdrawal - UpdateWithdrawal" + err.Error())
 		}
 	}
-	log.Println("Finish handlerCreatedWithdrawal")
 }
 
 func (wp *WithdrawalsProcessor) handlerPerformedWithdrawal(wg *sync.WaitGroup) {
@@ -63,12 +61,12 @@ func (wp *WithdrawalsProcessor) handlerPerformedWithdrawal(wg *sync.WaitGroup) {
 	for _, withdrawal := range withdrawals {
 		exchange, err := hwExFactory.GetExchangeByName(withdrawal.Exchange)
 		if err != nil {
-			log.Println("unable to get exchange for withdrawal txId " + err.Error())
+			log.Println("withdrawals - handlerPerformedWithdrawal - GetExchangeByName - " + err.Error())
 			continue
 		}
 		txId, err := exchange.GetWithdrawalTxHash(withdrawal.TxId, withdrawal.Currency)
 		if err != nil {
-			log.Println("Error while getting txHash " + err.Error())
+			log.Println("withdrawals - handlerPerformedWithdrawals - GetWithdrawalsTxHash " + err.Error())
 			continue
 		}
 		if txId != "" {
@@ -76,7 +74,7 @@ func (wp *WithdrawalsProcessor) handlerPerformedWithdrawal(wg *sync.WaitGroup) {
 			withdrawal.Status = hestia.SimpleTxStatusPlutusDeposit
 			_, err := wp.Hestia.UpdateWithdrawal(withdrawal)
 			if err != nil {
-				log.Println("Error updating txId on withdrawal db " + err.Error())
+				log.Println("withdrawals - handlerPerformedWithdrawals - UpdateWithdrawal - " + err.Error())
 			}
 		}
 	}
@@ -88,7 +86,7 @@ func (wp *WithdrawalsProcessor) handlerWithdrawalPlutusDeposit(wg *sync.WaitGrou
 	for _, withdrawal := range withdrawals {
 		receivedAmount, err := getPlutusReceivedAmount(withdrawal.Address, withdrawal.TxId)
 		if err != nil {
-			log.Println("handlerWithdrawalPlutusDeposit " + err.Error())
+			log.Println("withdrawals - handlerWithdrawalPlutusDeposit - getReceivedAmount - " + err.Error())
 			continue
 		}
 		withdrawal.ReceivedAmount = receivedAmount
@@ -96,7 +94,7 @@ func (wp *WithdrawalsProcessor) handlerWithdrawalPlutusDeposit(wg *sync.WaitGrou
 		withdrawal.Status = hestia.SimpleTxStatusCompleted
 		_, err = wp.Hestia.UpdateWithdrawal(withdrawal)
 		if err != nil {
-			log.Println("Error while updating withdrawal on db " + err.Error())
+			log.Println("withdrawals - handlerWithdrawalPlutusDeposit - UpdateWithdrawal - " + err.Error())
 		}
 	}
 }

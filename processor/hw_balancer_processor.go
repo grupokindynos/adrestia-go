@@ -1,6 +1,7 @@
 package processor
 
 import (
+	"errors"
 	"github.com/grupokindynos/adrestia-go/balancer"
 	"github.com/grupokindynos/adrestia-go/exchanges"
 	"github.com/grupokindynos/adrestia-go/services"
@@ -29,22 +30,22 @@ func (hp *HwProcessor) Start() {
 	var err error
 	pendingWithdrawals, err := hp.Hestia.GetWithdrawals(false, 0)
 	if err != nil {
-		log.Println("Unable to get withdrawals " + err.Error())
+		log.Println("hw_balancer - Start - Unable to get withdrawals " + err.Error())
 		return
 	}
 	pendingBalancerOrders, err := hp.Hestia.GetBalanceOrders(false, 0)
 	if err != nil {
-		log.Println("Unable to get balancer orders" + err.Error())
+		log.Println("hw_balancer - Start - balancerUnable to get balancer orders " + err.Error())
 		return
 	}
 	currentBalancer, err = hp.Hestia.GetBalancer()
 	if err != nil {
-		log.Println("Unable to get balancer " + err.Error())
+		log.Println("hw_balancer - Start - Unable to get balancer " + err.Error())
 		return
 	}
 	hwExchangesInfo, err = hp.Hestia.GetExchanges()
 	if err != nil {
-		log.Println("Unable to get exchanges info " + err.Error())
+		log.Println("hw_balancer - Start - Unable to get exchanges info " + err.Error())
 		return
 	}
 	hwExFactory = exchanges.NewExchangeFactory(hp.Obol, hp.Hestia)
@@ -62,23 +63,25 @@ func (hp *HwProcessor) Start() {
 		currentBalancer.Status = hestia.BalancerStatusWithdrawal
 		_, err := hp.Hestia.UpdateBalancer(currentBalancer)
 		if err != nil {
-			log.Println("Unable to change status to balancer " + err.Error())
+			log.Println("hw_balancer - Start - StatusCreated - Unable to change status to balancer " + err.Error())
 		}
+		break
 	case hestia.BalancerStatusWithdrawal:
 		if len(pendingWithdrawals) > 0 {
 			withdrawalsProcessor.Start()
 		} else {
 			err := hp.Balancer.Start(currentBalancer.Id)
 			if err != nil {
-				log.Println("Balancer error: " + err.Error())
+				log.Println("hw_balancer - Start - StatusWithdrawal - balancer - " + err.Error())
 				return
 			}
 			currentBalancer.Status = hestia.BalancerStatusTradeOrders
 			_, err = hp.Hestia.UpdateBalancer(currentBalancer)
 			if err != nil {
-				log.Println("Unable to change status to balancer " + err.Error())
+				log.Println("hw_balancer - Start - StatusWithdrawal - " + err.Error())
 			}
 		}
+		break
 	case hestia.BalancerStatusTradeOrders:
 		if len(pendingBalancerOrders) > 0 {
 			balancerOrdersProcessor.Start()
@@ -87,10 +90,9 @@ func (hp *HwProcessor) Start() {
 			currentBalancer.FulfilledTime = time.Now().Unix()
 			_, err := hp.Hestia.UpdateBalancer(currentBalancer)
 			if err != nil {
-				log.Println("Unable to change status to balancer " + err.Error())
+				log.Println("hw_balancer - Start - StatusTrade - updateBalancer" + err.Error())
 			}
 		}
-	default:
 	}
 }
 
@@ -98,13 +100,13 @@ func (hp *HwProcessor) withdrawFromExchanges() {
 	for _, exchangeInfo := range hwExchangesInfo {
 		bal, err := getBalance(hwExFactory, exchangeInfo.Name, exchangeInfo.StockCurrency)
 		if err != nil {
-			log.Println(err)
+			log.Println("hw_balancer - withdrawFromExchanges - getBalance - " + err.Error())
 			continue
 		}
 		if bal > exchangeInfo.StockMaximumAmount {
 			err := hp.createWithdrawalOrder(exchangeInfo, bal - exchangeInfo.StockExpectedAmount)
 			if err != nil {
-				log.Println("Error creating withdrawal order " + err.Error())
+				log.Println("hw_balancer - withdrawFromExchanges - createWithdrawalOrder " + err.Error())
 			}
 		}
 	}
@@ -113,7 +115,7 @@ func (hp *HwProcessor) withdrawFromExchanges() {
 func (hp *HwProcessor) createWithdrawalOrder(exchangeInfo hestia.ExchangeInfo, amount float64) error {
 	addr, err := hp.Plutus.GetAddress(exchangeInfo.StockCurrency)
 	if err != nil {
-		return err
+		return errors.New("createWithdrawalOrder - GetAddress - " + err.Error())
 	}
 	withdrawal := hestia.SimpleTx{
 		Id:             utils.RandomString(),
@@ -130,7 +132,7 @@ func (hp *HwProcessor) createWithdrawalOrder(exchangeInfo hestia.ExchangeInfo, a
 	}
 	_, err = hp.Hestia.CreateWithdrawal(withdrawal)
 	if err != nil {
-		return err
+		return errors.New("createWithdrawalOrder - CreateWithdrawal - " + err.Error())
 	}
 	return nil
 }

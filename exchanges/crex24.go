@@ -91,8 +91,6 @@ func (c *Crex24) doRequest(method string, path string, body []byte) ([]byte, err
 	req.Header.Set("x-crex24-api-nonce", nonce)
 	req.Header.Set("x-crex24-api-sign", base64.StdEncoding.EncodeToString(sig))
 
-	fmt.Println(req.Header)
-
 	resp, err := c.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -102,8 +100,6 @@ func (c *Crex24) doRequest(method string, path string, body []byte) ([]byte, err
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println(string(respBody))
 
 	switch resp.StatusCode {
 	case 400:

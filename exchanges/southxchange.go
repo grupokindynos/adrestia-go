@@ -31,7 +31,7 @@ func (s *SouthXchange) GetName() (string, error) {
 
 func (s *SouthXchange) GetAddress(coin string) (string, error) {
 	// southxchange doesn't allow to have more than one address of tusd
-	if coin == "tusd" {
+	if strings.ToLower(coin) == "tusd" {
 		return os.Getenv("SOUTH_TUSD_ADDRESS"), nil
 	}
 	var address string

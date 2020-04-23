@@ -49,14 +49,14 @@ func (p *DepositProcessor) handleCreatedDeposit(wg *sync.WaitGroup) {
 			Amount:  deposit.Amount,
 		})
 		if err != nil {
-			log.Println("Unable to deposit to exchange " + err.Error())
+			log.Println("deposits - handlerCreatedDeposit - WithdrawToAddress - " + err.Error())
 			continue
 		}
 		deposit.TxId = txId
 		deposit.Status = hestia.SimpleTxStatusPerformed
 		_, err = p.Hestia.UpdateDeposit(deposit)
 		if err != nil {
-			log.Println("Unable to update deposit on db.", err.Error())
+			log.Println("deposits - handlerCreatedDeposit - UpdateDeposit - ", err.Error())
 		}
 	}
 }
@@ -67,12 +67,12 @@ func (p *DepositProcessor) handlePerformedDeposit(wg *sync.WaitGroup) {
 	for _, deposit := range deposits {
 		exchange, err := depositstExFactory.GetExchangeByName(deposit.Exchange)
 		if err != nil {
-			log.Println("Unable to get exchange " + err.Error())
+			log.Println("deposits - handlePerformedDeposit - GetExchangeByName - " + err.Error())
 			continue
 		}
 		depositInfo, err := exchange.GetDepositStatus(deposit.Address, deposit.TxId, deposit.Currency)
 		if err != nil {
-			log.Println("Unable to get order status " + err.Error())
+			log.Println("deposits - handlePerformedDeposit - GetDepositStatus - " + err.Error())
 			continue
 		}
 		if depositInfo.Status == hestia.ExchangeOrderStatusCompleted {
@@ -81,7 +81,7 @@ func (p *DepositProcessor) handlePerformedDeposit(wg *sync.WaitGroup) {
 			deposit.Status = hestia.SimpleTxStatusCompleted
 			_, err = p.Hestia.UpdateDeposit(deposit)
 			if err != nil {
-				log.Println("Unable to update deposit on db.", err.Error())
+				log.Println("deposits - handlerPerformedDeposit - UpdateDeposit - " + err.Error())
 			}
 		}
 	}

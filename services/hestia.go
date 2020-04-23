@@ -115,6 +115,10 @@ func (h *HestiaRequests) GetBalancer() (hestia.Balancer, error) {
 	if len(response) > 1 {
 		return hestia.Balancer{}, errors.New("there's more than one balancer")
 	}
+	if len(response) == 0 {
+		return hestia.Balancer{}, nil
+	}
+
 	return response[0], nil
 }
 

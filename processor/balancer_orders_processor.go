@@ -47,14 +47,14 @@ func (bp *BalancerOrderProcessor) handlerBalancerOrdersCreated(wg *sync.WaitGrou
 			Amount:  order.OriginalAmount,
 		})
 		if err != nil {
-			log.Println("Unable to withdraw to address " + err.Error())
+			log.Println("balancer_orders - handlerBalancerOrdersCreated - WithdrawToAddress - " + err.Error())
 			continue
 		}
 		order.Status = hestia.BalancerOrderStatusExchangeDepositSent
 		order.DepositTxId = txId
 		_, err = bp.Hestia.UpdateBalancerOrder(order)
 		if err != nil {
-			log.Println("Unable to update balancerOrder " + err.Error())
+			log.Println("balancer_orders - handlerBalancerOrdersCreated - UpdateBalancerOrder - " + err.Error())
 		}
 	}
 }
@@ -65,12 +65,12 @@ func (bp *BalancerOrderProcessor) handlerBalancerOrdersExchangeDepositSent(wg *s
 	for _, order := range balancerOrders {
 		exchange, err := hwExFactory.GetExchangeByName(order.Exchange)
 		if err != nil {
-			log.Println("Unable to get balancer by exchange")
+			log.Println("balancer_orders - handlerBalancerOrdersExchangeDepositSent - GetExchangeByName - " + err.Error())
 			continue
 		}
 		depositInfo, err := exchange.GetDepositStatus(order.DepositAddress, order.DepositTxId, order.FromCoin)
 		if err != nil {
-			log.Println("Unable to get deposit info " + err.Error())
+			log.Println("balancer_orders - handlerBalancerOrdersExchangeDepositSent - GetDepositStatus - " + err.Error())
 			continue
 		}
 		if depositInfo.Status == hestia.ExchangeOrderStatusCompleted {
@@ -79,16 +79,16 @@ func (bp *BalancerOrderProcessor) handlerBalancerOrdersExchangeDepositSent(wg *s
 			order.Status = hestia.BalancerOrderStatusFirstTrade
 			orderId, err := exchange.SellAtMarketPrice(order.FirstTrade)
 			if err != nil {
-				log.Println("Error while placing trading order " + err.Error())
+				log.Println("balancer_orders - handlerBalancerOrdersExchangeDepositSent - SellAtMarketPrice - " + err.Error())
 				continue
 			}
 			order.FirstTrade.OrderId = orderId
 			_, err = bp.Hestia.UpdateBalancerOrder(order)
 			if err != nil {
-				log.Println("unable to update balancerOrder " + err.Error())
+				log.Println("balancer_orders - handlerBalancerOrdersExchangeDepositSent - UpdateBalancerOrder - " + err.Error())
 			}
 		} else if depositInfo.Status == hestia.ExchangeOrderStatusError {
-			log.Println("depositInfo status returned error status")
+			log.Println("balancer_orders - handlerBalancerOrdersExchangeDepositSent - depositInfo status returned error status")
 		}
 	}
 }
@@ -102,7 +102,7 @@ func (bp *BalancerOrderProcessor) handlerBalancerOrdersTrades(wg *sync.WaitGroup
 	for _, order := range balancerOrders {
 		exchange, err := hwExFactory.GetExchangeByName(order.Exchange)
 		if err != nil {
-			log.Println("Unable to get exchange by name " + err.Error())
+			log.Println("balancer_orders - handlerBalancerOrdersTrades - GetExchangeByName - " + err.Error())
 			continue
 		}
 		if order.Status == hestia.BalancerOrderStatusFirstTrade {
@@ -112,18 +112,18 @@ func (bp *BalancerOrderProcessor) handlerBalancerOrdersTrades(wg *sync.WaitGroup
 		}
 		orderInfo, err := exchange.GetOrderStatus(*tradeOrder)
 		if err != nil {
-			log.Println("Unable to get order status " + err.Error())
+			log.Println("balancer_orders - handlerBalancerOrdersTrades - GetOrderStatus - " + err.Error())
 			continue
 		}
 		if orderInfo.Status == hestia.ExchangeOrderStatusCompleted {
-			tradeOrder.ReceivedAmount = orderInfo.ReceivedAmount - 0.1
+			tradeOrder.ReceivedAmount = orderInfo.ReceivedAmount
 			tradeOrder.FulfilledTime = time.Now().Unix()
 			if order.Status == hestia.BalancerOrderStatusFirstTrade && order.DualConversion {
 				order.SecondTrade.Amount = orderInfo.ReceivedAmount
 				order.SecondTrade.CreatedTime = time.Now().Unix()
 				orderId, err := exchange.SellAtMarketPrice(order.SecondTrade)
 				if err != nil {
-					log.Println("Error placing second trading order " + err.Error())
+					log.Println("balancer_orders - handlerBalancerOrdersTrades - SellAtMarketPrice - " + err.Error())
 					continue
 				}
 				order.SecondTrade.OrderId = orderId
@@ -131,7 +131,7 @@ func (bp *BalancerOrderProcessor) handlerBalancerOrdersTrades(wg *sync.WaitGroup
 			} else {
 				orderId, err := exchange.Withdraw(order.ToCoin, order.WithdrawAddress, tradeOrder.ReceivedAmount)
 				if err != nil {
-					log.Println("Error while trying to withdraw to hot wallet " + err.Error())
+					log.Println("balancer_orders - handlerBalancerOrdersTrades - Withdraw - " + err.Error())
 					continue
 				}
 				order.WithdrawTxId = orderId
@@ -139,10 +139,10 @@ func (bp *BalancerOrderProcessor) handlerBalancerOrdersTrades(wg *sync.WaitGroup
 			}
 			_, err := bp.Hestia.UpdateBalancerOrder(order)
 			if err != nil {
-				log.Println("Unable to update balancer order on db " + err.Error())
+				log.Println("balancer_orders - handlerBalancerOrdersTrades - UpdateBalancerOrder - " + err.Error())
 			}
 		} else if orderInfo.Status ==  hestia.ExchangeOrderStatusError {
-			log.Println("Order status returned error code")
+			log.Println("balancer_orders - handlerBalancerOrdersTrades - Order status returned error code")
 		}
 	}
 }
@@ -153,12 +153,12 @@ func (bp *BalancerOrderProcessor) handlerBalancerOrdersWithdrawal(wg *sync.WaitG
 	for _, order := range balancerOrders {
 		exchange, err := hwExFactory.GetExchangeByName(order.Exchange)
 		if err != nil {
-			log.Println("Unable to get exchange by name" + err.Error())
+			log.Println("balancer_orders - handlerBalancerOrdersWithdrawal - GetExchangeByName - " + err.Error())
 			continue
 		}
 		txId, err := exchange.GetWithdrawalTxHash(order.WithdrawTxId, order.ToCoin)
 		if err != nil {
-			log.Println("Error while getting txHash " + err.Error())
+			log.Println("balancer_orders - handlerBalancerOrdersWithdrawal - GetWithdrawalTxHash - " + err.Error())
 			continue
 		}
 		if txId != "" {
@@ -166,7 +166,7 @@ func (bp *BalancerOrderProcessor) handlerBalancerOrdersWithdrawal(wg *sync.WaitG
 			order.Status = hestia.BalancerOrderStatusPlutusDeposit
 			_, err := bp.Hestia.UpdateBalancerOrder(order)
 			if err != nil {
-				log.Println("Unable to update withdrawTxId on db " + err.Error())
+				log.Println("balancer_orders - handlerBalancerOrdersWithdrawal - UpdateBalancerOrder - " + err.Error())
 			}
 		}
 	}
@@ -178,7 +178,7 @@ func (bp *BalancerOrderProcessor) handlerBalancerOrdersPlutusDeposit(wg *sync.Wa
 	for _, order := range balancerOrders {
 		receivedAmount, err := getPlutusReceivedAmount(order.WithdrawAddress, order.WithdrawTxId)
 		if err != nil {
-			log.Println("Error while getting blockbook received amount " + err.Error())
+			log.Println("balancer_order - handlerBalancerOrdersPlutusDeposit - getPlutusReceivedAmount - " + err.Error())
 			continue
 		}
 		order.ReceivedAmount = receivedAmount
@@ -186,7 +186,7 @@ func (bp *BalancerOrderProcessor) handlerBalancerOrdersPlutusDeposit(wg *sync.Wa
 		order.FulfilledTime = time.Now().Unix()
 		_, err = bp.Hestia.UpdateBalancerOrder(order)
 		if err != nil {
-			log.Println("Error while updating withdrawal on db " + err.Error())
+			log.Println("balancer_order - handlerBalancerOrdersPlutusDeposit - UpdateBalancerOrder - " + err.Error())
 		}
 	}
 }

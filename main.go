@@ -134,6 +134,7 @@ func GetApp() *gin.Engine {
 }
 
 func ApplyRoutes(r *gin.Engine) {
+	fmt.Println("PORT: ", os.Getenv("PORT"))
 	auxHestia := services.HestiaRequests{HestiaURL: os.Getenv(hestiaUrl)}
 	exchangeInfo, err := auxHestia.GetExchanges()
 	fmt.Println("Exchanges Info", exchangeInfo)

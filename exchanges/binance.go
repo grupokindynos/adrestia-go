@@ -166,6 +166,12 @@ func (b *Binance) SellAtMarketPrice(order hestia.Trade) (string, error) {
 		return "", err
 	}
 	if order.Side == "buy" && quoteOrderAvailable {
+		precision, err := b.getTradePrecision(order.Symbol, "quote")
+		if err != nil {
+			l.Println("binance - SellAtMarketPrice - getTradePrecision() - " + err.Error())
+			return "", err
+		}
+		order.Amount = roundFixedPrecision(order.Amount, precision)
 		side = binance.SideBuy
 		newOrder, err = b.binanceApi.NewOrder(binance.NewOrderRequest{
 			Symbol:           order.Symbol,
@@ -194,7 +200,7 @@ func (b *Binance) SellAtMarketPrice(order hestia.Trade) (string, error) {
 			side = binance.SideSell
 			amount = order.Amount
 		}
-		precision, err := b.getTradePrecision(order.Symbol)
+		precision, err := b.getTradePrecision(order.Symbol, "base")
 		if err != nil {
 			l.Println("binance - SellAtMarketPrice - getTradePrecision() - " + err.Error())
 			return "", err
@@ -297,7 +303,7 @@ func (b *Binance) isQuoteOrderAvailable(symbol string) (bool, error) {
 	return false, errors.New("symbol not found")
 }
 
-func (b *Binance) getTradePrecision(symbol string) (int, error) {
+func (b *Binance) getTradePrecision(symbol string, option string) (int, error) {
 	info, err := b.binanceApi.ExchangeInfo()
 	if err != nil {
 		return 0, err
@@ -306,6 +312,9 @@ func (b *Binance) getTradePrecision(symbol string) (int, error) {
 
 	for _, market := range info.Symbols {
 		if strings.ToLower(market.Symbol) == symbol {
+			if option == "quote" {
+				return market.QuotePrecision, nil
+			}
 			for _, filter := range market.Filters {
 				if filter.FilterType == "LOT_SIZE" {
 					step, err := strconv.ParseFloat(filter.StepSize, 64)

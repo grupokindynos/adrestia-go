@@ -11,10 +11,15 @@ import (
 	"strings"
 )
 
+type bittrexCurrrencyInfo struct {
+	minConfirms int
+	txFee float64
+}
+
 type Bittrex struct {
 	exchangeInfo hestia.ExchangeInfo
 	exchange *bittrex.Bittrex
-	minConfs map[string]int
+	minConfs map[string]bittrexCurrrencyInfo
 }
 
 func NewBittrex(exchange hestia.ExchangeInfo) (*Bittrex, error) {
@@ -26,13 +31,19 @@ func NewBittrex(exchange hestia.ExchangeInfo) (*Bittrex, error) {
 		return nil, err
 	}
 
-	minConfs := make(map[string]int)
+	minConfs := make(map[string]bittrexCurrrencyInfo)
 
 	for _, c := range currencies {
-		minConfs[strings.ToLower(c.Currency)] = c.MinConfirmation
+		fee, _ :=  c.TxFee.Float64()
+		minConfs[strings.ToLower(c.Currency)] = bittrexCurrrencyInfo {
+			minConfirms: c.MinConfirmation,
+			txFee: fee,
+		}
 	}
 	// bittrex returns 0 for USDT
-	minConfs["usdt"] = 36
+	ci := minConfs["usdt"]
+	ci.minConfirms = 36
+	minConfs["usdt"] = ci
 
 	return &Bittrex{
 		exchangeInfo: exchange,
@@ -57,7 +68,7 @@ func (b *Bittrex) GetAddress(coin string) (string, error) {
 func (b *Bittrex) GetDepositStatus(addr string, txId string, asset string) (orderStatus hestia.ExchangeOrderInfo, err error) {
 	coinInfo, _ := coinfactory.GetCoin(asset)
 	if coinInfo.Info.Token {
-		if val, err := blockbookConfirmed(addr, txId, b.minConfs[asset]); err == nil {
+		if val, err := blockbookConfirmed(addr, txId, b.minConfs[asset].minConfirms); err == nil {
 			return hestia.ExchangeOrderInfo{
 				Status: hestia.ExchangeOrderStatusCompleted,
 				ReceivedAmount: val,
@@ -76,7 +87,7 @@ func (b *Bittrex) GetDepositStatus(addr string, txId string, asset string) (orde
 
 	for _, d := range deposits {
 		if d.TxId == txId {
-			if b.minConfs[strings.ToLower(d.Currency)] >= d.Confirmations {
+			if b.minConfs[strings.ToLower(d.Currency)].minConfirms >= d.Confirmations {
 				orderStatus.Status = hestia.ExchangeOrderStatusCompleted
 				orderStatus.ReceivedAmount, _ = d.Amount.Float64()
 			}
@@ -117,8 +128,11 @@ func (b *Bittrex) SellAtMarketPrice(order hestia.Trade) (string, error) {
 		}
 		price := summary[0].Ask
 		buyAmount := decimal.NewFromFloat(order.Amount).Div(price)
+		fee := decimal.NewFromFloat( b.minConfs[strings.ToLower(order.ToCoin)].txFee)
+		buyAmount.Add(fee.Neg())
 		return b.exchange.BuyLimit(marketName, buyAmount, price)
 	} else {
+		order.Amount -= b.minConfs[strings.ToLower(order.FromCoin)].txFee
 		return b.exchange.SellLimit(marketName, decimal.NewFromFloat(order.Amount), decimal.Zero)
 	}
 }

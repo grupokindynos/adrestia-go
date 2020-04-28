@@ -124,8 +124,6 @@ func NewStex(exchange hestia.ExchangeInfo) (*Stex, error) {
 		}
 	}
 
-
-
 	return s, nil
 }
 
@@ -197,17 +195,16 @@ type stexResponseOrder struct {
 }
 
 func (s *Stex) SellAtMarketPrice(sellOrder hestia.Trade) (string, error) {
-	market, base := sellOrder.GetTradingPair()
 	amount := decimal.NewFromFloat(sellOrder.Amount)
 
-	marketPair := fmt.Sprintf("%s_%s", strings.ToUpper(market), strings.ToUpper(base))
+	marketPair := sellOrder.Symbol
 
 	pairInfo := s.pairIDs[marketPair]
 
 	var orderBytes []byte
 
 	if sellOrder.Side == "buy" {
-		price, err := s.getMarketPrice(marketPair)
+		price, err := s.getMarketPrice(fmt.Sprintf("%d", pairInfo.id))
 		if err != nil {
 			return "", err
 		}
@@ -219,22 +216,22 @@ func (s *Stex) SellAtMarketPrice(sellOrder hestia.Trade) (string, error) {
 		values.Set("amount", buyAmount.StringFixed(pairInfo.marketPrecision))
 		values.Set("price", price.String())
 
-		orderBytes, err = s.doRequest("POST", fmt.Sprintf("/trading/orders/%d", pairInfo.id), nil)
+		orderBytes, err = s.doRequest("POST", fmt.Sprintf("/trading/orders/%d", pairInfo.id), values)
 		if err != nil {
 			return "", err
 		}
 	} else {
-		price, err := s.getMarketPrice(marketPair)
+		price, err := s.getMarketPrice(fmt.Sprintf("%d", pairInfo.id))
 		if err != nil {
 			return "", err
 		}
 
 		values := url.Values{}
-		values.Set("type", "BUY")
+		values.Set("type", "SELL")
 		values.Set("amount", amount.StringFixed(pairInfo.marketPrecision))
 		values.Set("price", price.String())
 
-		orderBytes, err = s.doRequest("POST", fmt.Sprintf("/trading/orders/%d", pairInfo.id), nil)
+		orderBytes, err = s.doRequest("POST", fmt.Sprintf("/trading/orders/%d", pairInfo.id), values)
 		if err != nil {
 			return "", err
 		}
@@ -299,16 +296,28 @@ type stexResponseOrderStatus struct {
 	} `json:"data"`
 }
 
+type stexResponseOrderStatusEmpty struct {
+	Success bool          `json:"success"`
+	Data    []interface{} `json:"data"`
+}
+
+
 func (s *Stex) GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderInfo, error) {
 	statusBytes, err := s.doRequest("GET", fmt.Sprintf("/trading/orders/%s", order.OrderId), nil)
 	if err != nil {
 		return hestia.ExchangeOrderInfo{}, err
 	}
 
+	log.Println(string(statusBytes))
+
 	var status stexResponseOrderStatus
+	var emptyStatus stexResponseOrderStatusEmpty
 
 	if err := json.Unmarshal(statusBytes, &status); err != nil {
-		return hestia.ExchangeOrderInfo{}, err
+		if err = json.Unmarshal(statusBytes, &emptyStatus); err != nil {
+			return hestia.ExchangeOrderInfo{}, err
+		}
+		return hestia.ExchangeOrderInfo{Status: hestia.ExchangeOrderStatusOpen}, nil
 	}
 
 	orderStatus := hestia.ExchangeOrderInfo{
@@ -329,9 +338,11 @@ func (s *Stex) GetPair(fromCoin string, toCoin string) (models.TradeInfo, error)
 	toUpper := strings.ToUpper(toCoin)
 
 	var book *pairInfo
-	for _, pair := range s.pairIDs {
+	var symbol string
+	for key, pair := range s.pairIDs {
 		if (fromUpper == pair.market && toUpper == pair.base) || (fromUpper == pair.base && toUpper == pair.market) {
 			book = &pair
+			symbol = key
 			break
 		}
 	}
@@ -341,7 +352,7 @@ func (s *Stex) GetPair(fromCoin string, toCoin string) (models.TradeInfo, error)
 	}
 
 	var orderSide models.TradeInfo
-	orderSide.Book = book.market + book.base
+	orderSide.Book = symbol
 	if book.market == fromCoin {
 		orderSide.Type = "sell"
 	} else {

@@ -49,7 +49,7 @@ func NewCrex24(exchange hestia.ExchangeInfo) *Crex24 {
 }
 
 func (c *Crex24) GetName() (string, error) {
-	return "Crex24", nil
+	return c.exchangeInfo.Name, nil
 }
 
 type errorDescriptionResponse struct {

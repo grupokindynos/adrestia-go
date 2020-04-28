@@ -26,7 +26,7 @@ func NewSouthXchange(exchange hestia.ExchangeInfo) *SouthXchange {
 }
 
 func (s *SouthXchange) GetName() (string, error) {
-	return "southxchange", nil
+	return s.exchangeInfo.Name, nil
 }
 
 func (s *SouthXchange) GetAddress(coin string) (string, error) {

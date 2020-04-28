@@ -170,10 +170,12 @@ type stexResponseTicker struct {
 		Ask    decimal.Decimal `json:"ask"`
 		Bid    decimal.Decimal `json:"bid"`
 		Last   decimal.Decimal `json:"last"`
+		Low    decimal.Decimal `json:"low"`
+		High   decimal.Decimal `json:"high"`
 	} `json:"data"`
 }
 
-func (s *Stex) getMarketPrice(pair string) (*decimal.Decimal, error) {
+func (s *Stex) getMarketPrice(pair string, side string) (*decimal.Decimal, error) {
 	tickerBytes, err := s.doRequest("GET", fmt.Sprintf("/public/ticker/%s", pair), nil)
 	if err != nil {
 		return nil, err
@@ -184,7 +186,60 @@ func (s *Stex) getMarketPrice(pair string) (*decimal.Decimal, error) {
 		return nil, err
 	}
 
-	return &ticker.Data.Bid, nil
+	if side == "buy" {
+		return &ticker.Data.High, nil
+	} else {
+		return &ticker.Data.Low, nil
+	}
+}
+
+type stexOrder struct {
+	CurrencyPairID   int     `json:"currency_pair_id"`
+	Amount           string  `json:"amount"`
+	Price            string  `json:"price"`
+	Amount2          string  `json:"amount2"`
+	Count            int     `json:"count"`
+	CumulativeAmount float64 `json:"cumulative_amount"`
+	Type             string  `json:"type,omitempty"`
+}
+
+type stexOrderBookResponse struct {
+	Success bool `json:"success"`
+	Data    struct {
+		Ask []stexOrder `json:"ask"`
+		Bid []stexOrder `json:"bid"`
+	} `json:"data"`
+}
+
+func (s *Stex) getBestPrice(amount decimal.Decimal, market string, side string) (decimal.Decimal, error) {
+	respBytes, err := s.doRequest("GET", fmt.Sprintf("/public/orderbook/%d", s.pairIDs[market].id), nil)
+	if err != nil {
+		return decimal.Decimal{}, err
+	}
+	var res stexOrderBookResponse
+	if err := json.Unmarshal(respBytes, &res); err != nil {
+		return decimal.Decimal{}, err
+	}
+	var orders []stexOrder
+	if side == "buy" {
+		orders = res.Data.Ask
+	} else {
+		orders = res.Data.Bid
+	}
+
+	cumulativeAmount := decimal.NewFromFloat(0)
+	var price decimal.Decimal
+	for _, order := range orders {
+		cumulativeAmount = cumulativeAmount.Add(decimal.NewFromFloat(order.CumulativeAmount))
+		if cumulativeAmount.GreaterThan(amount) {
+			price, err = decimal.NewFromString(order.Price)
+			if err != nil {
+				return price, err
+			}
+			break
+		}
+	}
+	return price, nil
 }
 
 type stexResponseOrder struct {
@@ -204,24 +259,27 @@ func (s *Stex) SellAtMarketPrice(sellOrder hestia.Trade) (string, error) {
 	var orderBytes []byte
 
 	if sellOrder.Side == "buy" {
-		price, err := s.getMarketPrice(fmt.Sprintf("%d", pairInfo.id))
+		price, err := s.getMarketPrice(fmt.Sprintf("%d", pairInfo.id), sellOrder.Side)
+		if err != nil {
+			return "", err
+		}
+		buyAmount := amount.Div(*price)
+		bestPrice, err := s.getBestPrice(buyAmount, marketPair, "buy")
 		if err != nil {
 			return "", err
 		}
 
-		buyAmount := amount.Div(*price)
-
 		values := url.Values{}
 		values.Set("type", "BUY")
 		values.Set("amount", buyAmount.StringFixed(pairInfo.marketPrecision))
-		values.Set("price", price.String())
+		values.Set("price", bestPrice.String())
 
 		orderBytes, err = s.doRequest("POST", fmt.Sprintf("/trading/orders/%d", pairInfo.id), values)
 		if err != nil {
 			return "", err
 		}
 	} else {
-		price, err := s.getMarketPrice(fmt.Sprintf("%d", pairInfo.id))
+		bestPrice, err := s.getBestPrice(amount, marketPair, "sell")
 		if err != nil {
 			return "", err
 		}
@@ -229,7 +287,7 @@ func (s *Stex) SellAtMarketPrice(sellOrder hestia.Trade) (string, error) {
 		values := url.Values{}
 		values.Set("type", "SELL")
 		values.Set("amount", amount.StringFixed(pairInfo.marketPrecision))
-		values.Set("price", price.String())
+		values.Set("price", bestPrice.String())
 
 		orderBytes, err = s.doRequest("POST", fmt.Sprintf("/trading/orders/%d", pairInfo.id), values)
 		if err != nil {
@@ -303,7 +361,7 @@ type stexResponseOrderStatusEmpty struct {
 
 
 func (s *Stex) GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderInfo, error) {
-	statusBytes, err := s.doRequest("GET", fmt.Sprintf("/trading/orders/%s", order.OrderId), nil)
+	statusBytes, err := s.doRequest("GET", fmt.Sprintf("/trading/order/%s", order.OrderId), nil)
 	if err != nil {
 		return hestia.ExchangeOrderInfo{}, err
 	}

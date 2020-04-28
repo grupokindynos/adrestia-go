@@ -113,6 +113,32 @@ func (b *Bittrex) GetBalance(coin string) (float64, error) {
 	return 0, errors.New("coin not found")
 }
 
+// cantidad a comprar/vender
+func (b *Bittrex) getBestPrice(amount decimal.Decimal, market string, side string) (decimal.Decimal, error) {
+	var err error
+	var orders []bittrex.Orderb
+	if side == "buy" {
+		orders, err = b.exchange.GetOrderBookBuySell(market, "sell")
+	} else {
+		orders, err = b.exchange.GetOrderBookBuySell(market, "buy")
+	}
+
+	if err != nil {
+		return decimal.Decimal{}, err
+	}
+	cumulativeAmount := decimal.NewFromFloat(0)
+	var price decimal.Decimal
+	for _, order := range orders {
+		cumulativeAmount = cumulativeAmount.Add(order.Quantity)
+		if cumulativeAmount.GreaterThan(amount) {
+			price = order.Rate
+			break
+		}
+	}
+
+	return price, nil
+}
+
 func getMarketName(base string, market string) string {
 	return fmt.Sprintf("%s-%s", strings.ToUpper(base), strings.ToUpper(market))
 }
@@ -121,19 +147,29 @@ func (b *Bittrex) SellAtMarketPrice(order hestia.Trade) (string, error) {
 	market, base := order.GetTradingPair()
 	marketName := getMarketName(base, market)
 
+	summary, err := b.exchange.GetMarketSummary(marketName)
+	if err != nil {
+		return "", err
+	}
+
 	if order.Side == "buy" {
-		summary, err := b.exchange.GetMarketSummary(marketName)
+		bidPrice := summary[0].High
+		buyAmount := decimal.NewFromFloat(order.Amount).Div(bidPrice)
+		fee := decimal.NewFromFloat( b.minConfs[strings.ToLower(order.ToCoin)].txFee)
+		buyAmount.Add(fee.Neg())
+
+		bestPrice, err := b.getBestPrice(buyAmount, marketName, "buy")
 		if err != nil {
 			return "", err
 		}
-		price := summary[0].Ask
-		buyAmount := decimal.NewFromFloat(order.Amount).Div(price)
-		fee := decimal.NewFromFloat( b.minConfs[strings.ToLower(order.ToCoin)].txFee)
-		buyAmount.Add(fee.Neg())
-		return b.exchange.BuyLimit(marketName, buyAmount, price)
+		return b.exchange.BuyLimit(marketName, buyAmount, bestPrice)
 	} else {
 		order.Amount -= b.minConfs[strings.ToLower(order.FromCoin)].txFee
-		return b.exchange.SellLimit(marketName, decimal.NewFromFloat(order.Amount), decimal.Zero)
+		bestPrice, err := b.getBestPrice(decimal.NewFromFloat(order.Amount), marketName, "sell")
+		if err != nil {
+			return "", err
+		}
+		return b.exchange.SellLimit(marketName, decimal.NewFromFloat(order.Amount), bestPrice)
 	}
 }
 

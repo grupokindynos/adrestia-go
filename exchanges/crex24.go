@@ -13,6 +13,7 @@ import (
 	"github.com/grupokindynos/common/hestia"
 	"github.com/shopspring/decimal"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -181,9 +182,11 @@ type crex24PriceResponse struct {
 	Last decimal.Decimal `json:"last"`
 	Bid decimal.Decimal `json:"bid"`
 	Ask decimal.Decimal `json:"ask"`
+	Low decimal.Decimal `json:"low"`
+	High decimal.Decimal `json:"high"`
 }
 
-func (c *Crex24) getMarketPrice(market string) (out decimal.Decimal, err error) {
+func (c *Crex24) getMarketPrice(market string, side string) (out decimal.Decimal, err error) {
 	resBytes, err := c.doRequest("GET", "/v2/public/tickers", []byte{})
 	if err != nil {
 		return
@@ -198,7 +201,11 @@ func (c *Crex24) getMarketPrice(market string) (out decimal.Decimal, err error) 
 	marketLower := strings.ToLower(market)
 	for _, p := range prices {
 		if strings.ToLower(p.Instrument) == marketLower {
-			return p.Bid, nil
+			if side == "buy" {
+				return p.High, nil
+			} else {
+				return p.Low, nil
+			}
 		}
 	}
 
@@ -206,30 +213,74 @@ func (c *Crex24) getMarketPrice(market string) (out decimal.Decimal, err error) 
 	return
 }
 
+type crex24Order struct {
+	Price  float64 `json:"price"`
+	Volume float64 `json:"volume"`
+}
+
+type crex24OrderBookResponse struct {
+	BuyLevels  []crex24Order `json:"buyLevels"`
+	SellLevels []crex24Order `json:"sellLevels"`
+}
+
+func (c *Crex24) getBestPrice(amount decimal.Decimal, market string, side string) (decimal.Decimal, error) {
+	resBytes, err := c.doRequest("GET", "/v2/public/orderBook?instrument="+ market, []byte{})
+	if err != nil {
+		return decimal.Decimal{}, err
+	}
+	var res crex24OrderBookResponse
+	if err := json.Unmarshal(resBytes, &res); err != nil {
+		return decimal.Decimal{}, err
+	}
+
+	var orders []crex24Order
+
+	if side == "buy" {
+		orders = res.SellLevels
+	} else {
+		orders = res.BuyLevels
+	}
+
+	cumulativeAmount := decimal.NewFromFloat(0)
+	var price decimal.Decimal
+	for _, order := range orders {
+		cumulativeAmount = cumulativeAmount.Add(decimal.NewFromFloat(order.Volume))
+		if cumulativeAmount.GreaterThan(amount) {
+			price = decimal.NewFromFloat(order.Price)
+			break
+		}
+	}
+
+	return price, nil
+}
+
 type crex24IDResponse struct {
 	ID int `json:"id"`
 }
 
 func (c *Crex24) SellAtMarketPrice(sellOrder hestia.Trade) (string, error) {
-	market, base := sellOrder.GetTradingPair()
 	amount := decimal.NewFromFloat(sellOrder.Amount)
 
 	var resBytes []byte
+	name := sellOrder.Symbol
 
 	if sellOrder.Side == "buy" {
-		name := strings.ToUpper(getMarketName(base, market))
-		price, err := c.getMarketPrice(name)
+		price, err := c.getMarketPrice(name, "buy")
 		if err != nil {
 			return "", err
 		}
 		buyAmount := amount.Div(price)
+		bestPrice, err := c.getBestPrice(buyAmount, name, "buy")
+		if err != nil {
+			return "", err
+		}
 
 		req := crex24SellRequest{
 			Instrument: name,
 			Side:       "buy",
 			Volume:     buyAmount,
 			Type:       "limit",
-			Price:      price,
+			Price:      bestPrice,
 		}
 
 		reqBytes, err := json.Marshal(req)
@@ -242,14 +293,17 @@ func (c *Crex24) SellAtMarketPrice(sellOrder hestia.Trade) (string, error) {
 			return "", err
 		}
 	} else {
-		name := strings.ToUpper(getMarketName(base, market))
+		bestPrice, err := c.getBestPrice(amount, name, "sell")
+		if err != nil {
+			return "", err
+		}
 
 		req := crex24SellRequest{
 			Instrument: name,
-			Side:       "buy",
+			Side:       "sell",
 			Volume:     amount,
 			Type:       "limit",
-			Price:      decimal.Zero,
+			Price:		bestPrice,
 		}
 
 		reqBytes, err := json.Marshal(req)
@@ -279,6 +333,7 @@ type crex24WithdrawRequest struct {
 
 func (c *Crex24) Withdraw(coin string, address string, amount float64) (string, error) {
 	amountDec := decimal.NewFromFloat(amount)
+	amountDec = amountDec.Mul(decimal.NewFromFloat(1 - 0.00004))
 	req := crex24WithdrawRequest{
 		Currency: coin,
 		Amount:   amountDec,
@@ -315,24 +370,33 @@ func (c *Crex24) GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderInfo, e
 		return hestia.ExchangeOrderInfo{}, err
 	}
 
-	var orderStatus crex24OrderStatus
+	log.Println(string(resBytes))
+
+	var orderStatus []crex24OrderStatus
 	if err := json.Unmarshal(resBytes, &orderStatus); err != nil {
 		return hestia.ExchangeOrderInfo{}, err
+	}
+
+	if len(orderStatus) < 1 {
+		return hestia.ExchangeOrderInfo{}, errors.New("crex order not found")
 	}
 
 	status := hestia.ExchangeOrderInfo{}
 	status.Status = hestia.ExchangeOrderStatusError
 
-	switch orderStatus.Status {
+	switch orderStatus[0].Status {
 	case "submitting":
 	case "unfilledActive":
-		status.Status = hestia.ExchangeOrderStatusOpen
 	case "partiallyFilledActive":
 		status.Status = hestia.ExchangeOrderStatusOpen
-		availableFloat, _ := orderStatus.Volume.Sub(orderStatus.RemainingVolume).Float64()
+	case "partiallyFilledCancelled":
+		status.Status = hestia.ExchangeOrderStatusCompleted
+		availableFloat, _ := orderStatus[0].Volume.Sub(orderStatus[0].RemainingVolume).Float64()
 		status.ReceivedAmount = availableFloat
 	case "filled":
 		status.Status = hestia.ExchangeOrderStatusCompleted
+		availableFloat, _ := orderStatus[0].Volume.Sub(orderStatus[0].RemainingVolume).Float64()
+		status.ReceivedAmount = availableFloat
 	}
 
 	return status, nil
@@ -371,11 +435,11 @@ func (c *Crex24) GetPair(fromCoin string, toCoin string) (models.TradeInfo, erro
 	}
 
 	var orderSide models.TradeInfo
-	orderSide.Book = book.QuoteCurrency + book.BaseCurrency
+	orderSide.Book = book.Symbol
 	if book.QuoteCurrency == fromCoin {
-		orderSide.Type = "sell"
-	} else {
 		orderSide.Type = "buy"
+	} else {
+		orderSide.Type = "sell"
 	}
 
 	return orderSide, nil

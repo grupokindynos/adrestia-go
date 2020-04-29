@@ -231,7 +231,8 @@ func (s *Stex) getBestPrice(amount decimal.Decimal, market string, side string) 
 	cumulativeAmount := decimal.NewFromFloat(0)
 	var price decimal.Decimal
 	for _, order := range orders {
-		cumulativeAmount = cumulativeAmount.Add(decimal.NewFromFloat(order.CumulativeAmount))
+		amount, _ := decimal.NewFromString(order.Amount2)
+		cumulativeAmount = cumulativeAmount.Add(amount)
 		if cumulativeAmount.GreaterThan(amount) {
 			price, err = decimal.NewFromString(order.Price)
 			if err != nil {
@@ -352,6 +353,9 @@ type stexResponseOrderStatus struct {
 		Status          string          `json:"status"`
 		ProcessedAmount decimal.Decimal `json:"processed_amount"`
 		InitialAmount   decimal.Decimal `json:"initial_amount"`
+		Fees []struct {
+			Amount string `json:"amount"`
+		} `json:"fees"`
 	} `json:"data"`
 }
 
@@ -362,7 +366,7 @@ type stexResponseOrderStatusEmpty struct {
 
 
 func (s *Stex) GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderInfo, error) {
-	statusBytes, err := s.doRequest("GET", fmt.Sprintf("/trading/order/%s", order.OrderId), nil)
+	statusBytes, err := s.doRequest("GET", fmt.Sprintf("/reports/orders/%s", order.OrderId), nil)
 	if err != nil {
 		return hestia.ExchangeOrderInfo{}, err
 	}
@@ -388,6 +392,10 @@ func (s *Stex) GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderInfo, err
 	}
 
 	orderStatus.ReceivedAmount, _ = status.Data.ProcessedAmount.Float64()
+	for _, fee := range status.Data.Fees {
+		amount, _ := strconv.ParseFloat(fee.Amount, 64)
+		orderStatus.ReceivedAmount -= amount
+	}
 
 	return orderStatus, nil
 }
@@ -413,9 +421,9 @@ func (s *Stex) GetPair(fromCoin string, toCoin string) (models.TradeInfo, error)
 	var orderSide models.TradeInfo
 	orderSide.Book = symbol
 	if book.market == fromCoin {
-		orderSide.Type = "sell"
-	} else {
 		orderSide.Type = "buy"
+	} else {
+		orderSide.Type = "sell"
 	}
 
 	return orderSide, nil

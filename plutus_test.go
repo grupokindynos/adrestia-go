@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/Toorop/go-bittrex"
 	"github.com/grupokindynos/adrestia-go/exchanges"
 	"github.com/grupokindynos/adrestia-go/services"
 	"github.com/grupokindynos/common/blockbook"
@@ -65,13 +66,8 @@ func TestBlockbook(t *testing.T) {
 
 func TestExchange(t *testing.T) {
 	hr := services.HestiaRequests{HestiaURL:os.Getenv("HESTIA_LOCAL_URL")}
-	exchange, _ := hr.GetExchange("bittrex")
-	bittrex, _ := exchanges.NewBittrex(exchange)
-	bal, _ := bittrex.GetBalance("USDT")
-	addr, _ := bittrex.GetAddress("USDT")
-
-	log.Println(bal)
-	log.Println(addr)
+	exchange, _ := hr.GetExchange("southxchange")
+	_ := exchanges.NewSouthXchange(exchange)
 /*	trades, err := binance.MyTrades()
 	if err != nil {
 		log.Println(err)

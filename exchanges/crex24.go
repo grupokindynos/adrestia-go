@@ -322,6 +322,10 @@ func (c *Crex24) SellAtMarketPrice(sellOrder hestia.Trade) (string, error) {
 		return "", err
 	}
 
+	if res.ID == 0 {
+		return "", errors.New("returned id 0 for trade - " + string(resBytes))
+	}
+
 	return fmt.Sprintf("%d", res.ID), nil
 }
 
@@ -353,6 +357,10 @@ func (c *Crex24) Withdraw(coin string, address string, amount float64) (string, 
 	var res crex24IDResponse
 	if err := json.Unmarshal(resBytes, &res); err != nil {
 		return "", err
+	}
+
+	if res.ID == 0 {
+		return "", errors.New("returned id 0 on withdrawal - " + string(resBytes))
 	}
 
 	return fmt.Sprintf("%d", res.ID), nil

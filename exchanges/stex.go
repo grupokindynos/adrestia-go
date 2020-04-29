@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -512,27 +513,52 @@ type stexWalletResponse struct {
 	} `json:"data"`
 }
 
+type stexAddressResponse struct {
+	Success bool `json:"success"`
+	Data    struct {
+		Address                        string      `json:"address"`
+		AddressName                    string      `json:"address_name"`
+		AdditionalAddressParameter     interface{} `json:"additional_address_parameter"`
+		AdditionalAddressParameterName interface{} `json:"additional_address_parameter_name"`
+		Notification                   string      `json:"notification"`
+		ProtocolID                     interface{} `json:"protocol_id"`
+		ProtocolName                   interface{} `json:"protocol_name"`
+		SupportsNewAddressCreation     bool        `json:"supports_new_address_creation"`
+	} `json:"data"`
+}
+
 func (s *Stex) GetAddress(asset string) (string, error) {
 	coinUpper := strings.ToUpper(asset)
-	info := s.currencyIDs[coinUpper]
-
-	walletResponseBytes, err := s.doRequest("POST", fmt.Sprintf("/profile/wallets/%d", info.id), nil)
+	out, err := s.doRequest("GET", "/profile/wallets", nil)
 	if err != nil {
 		return "", err
 	}
-
-	var walletResponse stexWalletResponse
-
-	if err := json.Unmarshal(walletResponseBytes, &walletResponse); err != nil {
+	var stexBalances stexResponseBalances
+	if err := json.Unmarshal(out, &stexBalances); err != nil {
 		return "", err
 	}
-
-	for _, depositAddress := range walletResponse.Data.MultiDepositAddresses {
-		if depositAddress.ProtocolName == "ERC20" {
-			return depositAddress.Address, nil
+	if !stexBalances.Success {
+		return "", errors.New("STEX retrieving balances unsuccessful for " + asset)
+	}
+	var walletId int
+	for _, wallet := range stexBalances.Data {
+		if wallet.Currency == coinUpper {
+			walletId = wallet.ID
+			break
 		}
 	}
-
+	id := strconv.Itoa(walletId)
+	address, err := s.doRequest("POST", "/profile/wallets/address/" + id, nil)
+	if err != nil {
+		return "", err
+	}
+	var stexAddress stexAddressResponse
+	if err := json.Unmarshal(address, &stexAddress); err != nil {
+		return "", err
+	}
+	if stexAddress.Success {
+		return stexAddress.Data.Address, nil
+	}
 	return "", errors.New("coin not found")
 }
 

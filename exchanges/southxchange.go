@@ -82,17 +82,18 @@ func (s *SouthXchange) SellAtMarketPrice(order hestia.Trade) (string, error) {
 	l, r := order.GetTradingPair()
 	var res string
 	var err error
+	var price south.MarketPrice
 
 	var orderType south.OrderType
 	if order.Side == "buy" {
 		orderType = south.Buy
-		price, err := s.southClient.GetMarketPrice(l, r)
+		price, err = s.southClient.GetMarketPrice(l, r)
 		if err != nil {
 			log.Println("south - SellAtMarketPrice - GetMarketPrice - ", err.Error())
 			return "", err
 		}
-		buyAmount := order.Amount / price.Bid
-		res, err = s.southClient.PlaceOrder(l, r, orderType, buyAmount, price.Bid, true)
+		buyAmount := order.Amount / price.Ask
+		res, err = s.southClient.PlaceOrder(l, r, orderType, buyAmount, price.Ask, false)
 	} else {
 		orderType = south.Sell
 		res, err = s.southClient.PlaceOrder(l, r, orderType, order.Amount, 0.0, true)
@@ -152,12 +153,12 @@ func (s *SouthXchange) GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderI
 	}
 	if southOrder.Status == "executed" || southOrder.Status == "confirmed" {
 		status.Status = hestia.ExchangeOrderStatusCompleted
-		amount, err := s.getAvailableAmount(order)
+		//_, err := s.getAvailableAmount(order)
 		if err != nil {
 			log.Println("south - GetOrderStatus - getAvailableAmount() - ", err.Error())
 			return status, err
 		}
-		status.ReceivedAmount = amount
+		status.ReceivedAmount = southOrder.Amount * (1.0 - 0.003) // maker fee
 	} else if southOrder.Status == "pending" || southOrder.Status == "booked" {
 		status.Status = hestia.ExchangeOrderStatusOpen
 	} else {
@@ -212,6 +213,10 @@ func (s *SouthXchange) GetPair(fromCoin string, toCoin string) (models.TradeInfo
 	}
 
 	return orderSide, nil
+}
+
+func (s *SouthXchange) GetAvailableAmount(orderId string) (float64, error) {
+	return s.getAvailableAmount(hestia.Trade{OrderId:orderId})
 }
 
 func (s *SouthXchange) getAvailableAmount(order hestia.Trade) (float64, error) {

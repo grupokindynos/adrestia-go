@@ -12,8 +12,8 @@ require (
 	github.com/golang/protobuf v1.3.3 // indirect
 	github.com/google/go-querystring v1.0.0
 	github.com/gorilla/websocket v1.4.2 // indirect
-	github.com/grupokindynos/go-binance v0.0.0-20200430034119-30d9d0485f22
 	github.com/grupokindynos/common v0.0.0-20200430052234-244bc2fd6726
+	github.com/grupokindynos/go-binance v0.0.0-20200430034119-30d9d0485f22
 	github.com/joho/godotenv v1.3.0
 	github.com/json-iterator/go v1.1.9 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect

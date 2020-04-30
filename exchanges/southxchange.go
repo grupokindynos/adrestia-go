@@ -160,7 +160,7 @@ func (s *SouthXchange) GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderI
 		} else {
 			status.ReceivedAmount = southOrder.Amount * southOrder.LimitPrice * (1.0 - 0.003)
 		}
-	} else if southOrder.Status == "pending" || southOrder.Status == "booked" {
+	} else if southOrder.Status == "pending" || southOrder.Status == "booked" || southOrder.Status == "partiallyexecuted"{
 		status.Status = hestia.ExchangeOrderStatusOpen
 	} else {
 		status.Status = hestia.ExchangeOrderStatusError

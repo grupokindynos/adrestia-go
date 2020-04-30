@@ -337,7 +337,8 @@ type crex24WithdrawRequest struct {
 
 func (c *Crex24) Withdraw(coin string, address string, amount float64) (string, error) {
 	amountDec := decimal.NewFromFloat(amount)
-	amountDec = amountDec.Mul(decimal.NewFromFloat(1 - 0.00004))
+	amountDec = amountDec.Mul(decimal.NewFromFloat(1 - 0.001))
+
 	req := crex24WithdrawRequest{
 		Currency: coin,
 		Amount:   amountDec,

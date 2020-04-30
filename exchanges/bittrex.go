@@ -87,7 +87,7 @@ func (b *Bittrex) GetDepositStatus(addr string, txId string, asset string) (orde
 
 	for _, d := range deposits {
 		if d.TxId == txId {
-			if b.minConfs[strings.ToLower(d.Currency)].minConfirms >= d.Confirmations {
+			if d.Confirmations >= b.minConfs[strings.ToLower(d.Currency)].minConfirms {
 				orderStatus.Status = hestia.ExchangeOrderStatusCompleted
 				orderStatus.ReceivedAmount, _ = d.Amount.Float64()
 			}
@@ -187,7 +187,11 @@ func (b *Bittrex) GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderInfo, 
 	status.Status = hestia.ExchangeOrderStatusOpen
 
 	amountExecuted, _ := o.Quantity.Sub(o.QuantityRemaining).Float64()
-	status.ReceivedAmount = amountExecuted
+	if o.Type == "LIMIT_BUY" {
+		status.ReceivedAmount = amountExecuted
+	} else {
+		status.ReceivedAmount, _ = o.Limit.Mul(decimal.NewFromFloat(amountExecuted)).Float64()
+	}
 
 	if o.QuantityRemaining.Equals(decimal.Zero) {
 		status.Status = hestia.ExchangeOrderStatusCompleted

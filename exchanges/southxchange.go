@@ -85,18 +85,20 @@ func (s *SouthXchange) SellAtMarketPrice(order hestia.Trade) (string, error) {
 	var price south.MarketPrice
 
 	var orderType south.OrderType
+
+	price, err = s.southClient.GetMarketPrice(l, r)
+	if err != nil {
+		log.Println("south - SellAtMarketPrice - GetMarketPrice - ", err.Error())
+		return "", err
+	}
+
 	if order.Side == "buy" {
 		orderType = south.Buy
-		price, err = s.southClient.GetMarketPrice(l, r)
-		if err != nil {
-			log.Println("south - SellAtMarketPrice - GetMarketPrice - ", err.Error())
-			return "", err
-		}
 		buyAmount := order.Amount / price.Ask
 		res, err = s.southClient.PlaceOrder(l, r, orderType, buyAmount, price.Ask, false)
 	} else {
 		orderType = south.Sell
-		res, err = s.southClient.PlaceOrder(l, r, orderType, order.Amount, 0.0, true)
+		res, err = s.southClient.PlaceOrder(l, r, orderType, order.Amount, price.Bid, false)
 	}
 
 	if err != nil {
@@ -153,12 +155,11 @@ func (s *SouthXchange) GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderI
 	}
 	if southOrder.Status == "executed" || southOrder.Status == "confirmed" {
 		status.Status = hestia.ExchangeOrderStatusCompleted
-		//_, err := s.getAvailableAmount(order)
-		if err != nil {
-			log.Println("south - GetOrderStatus - getAvailableAmount() - ", err.Error())
-			return status, err
+		if southOrder.Type == "buy" {
+			status.ReceivedAmount = southOrder.Amount * (1.0 - 0.003) // maker fee
+		} else {
+			status.ReceivedAmount = southOrder.Amount * southOrder.LimitPrice * (1.0 - 0.003)
 		}
-		status.ReceivedAmount = southOrder.Amount * (1.0 - 0.003) // maker fee
 	} else if southOrder.Status == "pending" || southOrder.Status == "booked" {
 		status.Status = hestia.ExchangeOrderStatusOpen
 	} else {
@@ -213,40 +214,4 @@ func (s *SouthXchange) GetPair(fromCoin string, toCoin string) (models.TradeInfo
 	}
 
 	return orderSide, nil
-}
-
-func (s *SouthXchange) GetAvailableAmount(orderId string) (float64, error) {
-	return s.getAvailableAmount(hestia.Trade{OrderId:orderId})
-}
-
-func (s *SouthXchange) getAvailableAmount(order hestia.Trade) (float64, error) {
-	txs, err := s.southClient.GetTransactions("", 0, 1000, "", true)
-	if err != nil {
-		return 0, err
-	}
-
-	availableAmount := 0.0
-	set := make(map[int]bool)
-
-	for _, tx := range txs {
-		if tx.OrderCode == order.OrderId {
-			set[tx.TradeId] = true
-		}
-	}
-
-	for _, tx := range txs {
-		if set[tx.TradeId] {
-			availableAmount += tx.Amount
-		}
-	}
-
-	if availableAmount == 0.0 {
-		return 0.0, errors.New("tx not found")
-	}
-
-	if order.Side == "sell" {
-		availableAmount += order.Amount
-	}
-
-	return availableAmount, nil
 }

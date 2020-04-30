@@ -353,6 +353,8 @@ type stexResponseOrderStatus struct {
 		Status          string          `json:"status"`
 		ProcessedAmount decimal.Decimal `json:"processed_amount"`
 		InitialAmount   decimal.Decimal `json:"initial_amount"`
+		Price           decimal.Decimal `json:"price"`
+		Type            string          `json:"type"`
 		Fees []struct {
 			Amount string `json:"amount"`
 		} `json:"fees"`
@@ -391,7 +393,11 @@ func (s *Stex) GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderInfo, err
 		orderStatus.Status = hestia.ExchangeOrderStatusCompleted
 	}
 
-	orderStatus.ReceivedAmount, _ = status.Data.ProcessedAmount.Float64()
+	if status.Data.Type == "BUY" {
+		orderStatus.ReceivedAmount, _ = status.Data.ProcessedAmount.Float64()
+	} else {
+		orderStatus.ReceivedAmount, _ = status.Data.ProcessedAmount.Mul(status.Data.Price).Float64()
+	}
 	for _, fee := range status.Data.Fees {
 		amount, _ := strconv.ParseFloat(fee.Amount, 64)
 		orderStatus.ReceivedAmount -= amount
@@ -489,16 +495,15 @@ func (s *Stex) GetDepositStatus(addr string, txId string, asset string) (hestia.
 	for _, d := range depositResponse.Data {
 		if d.TxID == txId {
 			amount, _ := d.Amount.Float64()
-			if d.Status == "Finished" {
+			if d.Status == "FINISHED" {
 				return hestia.ExchangeOrderInfo{
 					Status: hestia.ExchangeOrderStatusCompleted,
 					ReceivedAmount: amount,
 				}, nil
 			}
-			if d.Status == "Processing" || d.Status == "Checking by System" {
+			if d.Status == "PROCESSING" || d.Status == "CHECKING BY SYSTEM" {
 				return hestia.ExchangeOrderInfo {
-					Status: hestia.ExchangeOrderStatusCompleted,
-					ReceivedAmount: amount,
+					Status: hestia.ExchangeOrderStatusOpen,
 				}, nil
 			}
 			return hestia.ExchangeOrderInfo{

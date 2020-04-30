@@ -358,10 +358,12 @@ func (b *Binance) getReceivedAmount(order binance.ExecutedOrder) float64 {
 			fee = trade.Commission
 		}
 	}
-
+	var amount float64
 	if order.Side == binance.SideBuy {
-		return order.ExecutedQty - fee
+		amount = order.ExecutedQty - fee
 	} else {
-		return order.CummulativeQuoteQty - fee
+		amount = order.CummulativeQuoteQty - fee
 	}
+
+	return amount * (1.0 - 0.001) // binance fee
 }

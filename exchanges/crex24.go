@@ -370,6 +370,8 @@ type crex24OrderStatus struct {
 	Volume decimal.Decimal `json:"volume"`
 	RemainingVolume decimal.Decimal `json:"remainingVolume"`
 	Status string `json:"status"`
+	Side   string `json:"side"`
+	Price  decimal.Decimal `json:"price"`
 }
 
 func (c *Crex24) GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderInfo, error) {
@@ -400,11 +402,19 @@ func (c *Crex24) GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderInfo, e
 	case "partiallyFilledCancelled":
 		status.Status = hestia.ExchangeOrderStatusCompleted
 		availableFloat, _ := orderStatus[0].Volume.Sub(orderStatus[0].RemainingVolume).Float64()
-		status.ReceivedAmount = availableFloat
+		if orderStatus[0].Side == "buy" {
+			status.ReceivedAmount = availableFloat
+		} else {
+			status.ReceivedAmount, _ = orderStatus[0].Price.Mul(decimal.NewFromFloat(availableFloat)).Float64()
+		}
 	case "filled":
 		status.Status = hestia.ExchangeOrderStatusCompleted
 		availableFloat, _ := orderStatus[0].Volume.Sub(orderStatus[0].RemainingVolume).Float64()
-		status.ReceivedAmount = availableFloat
+		if orderStatus[0].Side == "buy" {
+			status.ReceivedAmount = availableFloat
+		} else {
+			status.ReceivedAmount, _ = orderStatus[0].Price.Mul(decimal.NewFromFloat(availableFloat)).Float64()
+		}
 	}
 
 	return status, nil
@@ -480,7 +490,7 @@ type crex24DepositStatus struct {
 	TxID string `json:"txId"`
 	ConfirmationsRequired int `json:"confirmationsRequired"`
 	Confirmations int `json:"confirmationCount"`
-	Status string `json:"string"`
+	Status string `json:"status"`
 	Amount decimal.Decimal `json:"amount"`
 }
 

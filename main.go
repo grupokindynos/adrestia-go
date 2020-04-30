@@ -114,9 +114,9 @@ func main() {
 
 	if !*stopProcessor {
 		log.Println("Starting processors")
-		go runExchangesProcessor()
-		go runDepositProcessor()
-		go runHwProcessor()
+		//go runExchangesProcessor()
+		//go runDepositProcessor()
+		//go runHwProcessor()
 	}
 
 	App := GetApp()

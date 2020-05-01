@@ -93,7 +93,7 @@ func NewStex(exchange hestia.ExchangeInfo) (*Stex, error) {
 		} else {
 			minConfirm = currency.MinimumTxConfirmations
 		}
-		s.currencyIDs[currency.Code] = currencyInfo{
+		s.currencyIDs[currency.Code] = currencyInfo {
 			id:        currency.ID,
 			code:      currency.Code,
 			precision: currency.Precision,
@@ -519,6 +519,9 @@ type stexWalletResponse struct {
 	Success bool `json:"success"`
 	Data    struct {
 		ID              int             `json:"id"`
+		DepositAddress struct {
+			Address string `json:"address"`
+		} `json:"deposit_address"`
 		MultiDepositAddresses [] struct {
 			Address string `json:"address"`
 			ProtocolName string `json:"protocol_name"`
@@ -526,52 +529,31 @@ type stexWalletResponse struct {
 	} `json:"data"`
 }
 
-type stexAddressResponse struct {
-	Success bool `json:"success"`
-	Data    struct {
-		Address                        string      `json:"address"`
-		AddressName                    string      `json:"address_name"`
-		AdditionalAddressParameter     interface{} `json:"additional_address_parameter"`
-		AdditionalAddressParameterName interface{} `json:"additional_address_parameter_name"`
-		Notification                   string      `json:"notification"`
-		ProtocolID                     interface{} `json:"protocol_id"`
-		ProtocolName                   interface{} `json:"protocol_name"`
-		SupportsNewAddressCreation     bool        `json:"supports_new_address_creation"`
-	} `json:"data"`
-}
-
 func (s *Stex) GetAddress(asset string) (string, error) {
 	coinUpper := strings.ToUpper(asset)
-	out, err := s.doRequest("GET", "/profile/wallets", nil)
+	info := s.currencyIDs[coinUpper]
+
+	walletResponseBytes, err := s.doRequest("POST", fmt.Sprintf("/profile/wallets/%d", info.id), nil)
 	if err != nil {
 		return "", err
 	}
-	var stexBalances stexResponseBalances
-	if err := json.Unmarshal(out, &stexBalances); err != nil {
+	var walletResponse stexWalletResponse
+
+	if err := json.Unmarshal(walletResponseBytes, &walletResponse); err != nil {
 		return "", err
 	}
-	if !stexBalances.Success {
-		return "", errors.New("STEX retrieving balances unsuccessful for " + asset)
-	}
-	var walletId int
-	for _, wallet := range stexBalances.Data {
-		if wallet.Currency == coinUpper {
-			walletId = wallet.ID
-			break
+
+	coinInfo, err := coinfactory.GetCoin(asset)
+	if coinInfo.Info.Token {
+		for _, depositAddress := range walletResponse.Data.MultiDepositAddresses {
+			if depositAddress.ProtocolName == "ERC20" {
+				return depositAddress.Address, nil
+			}
 		}
+	} else {
+		return walletResponse.Data.DepositAddress.Address, nil
 	}
-	id := strconv.Itoa(walletId)
-	address, err := s.doRequest("POST", "/profile/wallets/address/" + id, nil)
-	if err != nil {
-		return "", err
-	}
-	var stexAddress stexAddressResponse
-	if err := json.Unmarshal(address, &stexAddress); err != nil {
-		return "", err
-	}
-	if stexAddress.Success {
-		return stexAddress.Data.Address, nil
-	}
+
 	return "", errors.New("coin not found")
 }
 

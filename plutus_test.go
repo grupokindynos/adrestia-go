@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/Toorop/go-bittrex"
 	"github.com/grupokindynos/adrestia-go/exchanges"
 	"github.com/grupokindynos/adrestia-go/services"
 	"github.com/grupokindynos/common/blockbook"
@@ -25,9 +24,9 @@ func TestSendToExchange(t *testing.T) {
 	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}
 	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_LOCAL_URL")}
 	res, err := plutus.WithdrawToAddress(plutus2.SendAddressBodyReq{
-		Address: "0x9814a32dc94b7d507433c616c4774eac702a6e5a",
+		Address: "0x82ed4a3CAA3A67F56FdbB225002E204D332457CF",
 		Coin:    "USDT",
-		Amount:  15,
+		Amount:  2500,
 	})
 	if err != nil {
 		fmt.Println("error", err)
@@ -40,7 +39,7 @@ func TestSendToExchange(t *testing.T) {
 func TestGetBalance(t *testing.T) {
 	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}
 	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_PRODUCTION_URL")}
-	bal, err := plutus.GetWalletBalance("usdt")
+	bal, err := plutus.GetWalletBalance("usdc")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -66,8 +65,10 @@ func TestBlockbook(t *testing.T) {
 
 func TestExchange(t *testing.T) {
 	hr := services.HestiaRequests{HestiaURL:os.Getenv("HESTIA_LOCAL_URL")}
-	exchange, _ := hr.GetExchange("southxchange")
-	_ := exchanges.NewSouthXchange(exchange)
+	exchange, _ := hr.GetExchange("stex")
+	ex, _ := exchanges.NewStex(exchange)
+	addr, _ := ex.GetAddress("DIVI")
+	log.Println(addr)
 /*	trades, err := binance.MyTrades()
 	if err != nil {
 		log.Println(err)

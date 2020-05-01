@@ -17,9 +17,14 @@ import (
 	"github.com/grupokindynos/go-binance"
 )
 
+type binanceCurrencyInfo struct {
+	withdrawalPrecision int
+}
+
 type Binance struct {
 	exchangeInfo hestia.ExchangeInfo
 	binanceApi  binance.Binance
+	currenciesInfo map[string]binanceCurrencyInfo
 }
 
 func NewBinance(exchange hestia.ExchangeInfo) *Binance {
@@ -41,6 +46,17 @@ func NewBinance(exchange hestia.ExchangeInfo) *Binance {
 		ctx,
 	)
 	c.binanceApi = binance.NewBinance(binanceService)
+	//hardcoded withdrawal precision. Change when there's a better solution
+	c.currenciesInfo = make(map[string]binanceCurrencyInfo)
+	c.currenciesInfo["USDC"] = binanceCurrencyInfo{withdrawalPrecision:6}
+	c.currenciesInfo["USDT"] = binanceCurrencyInfo{withdrawalPrecision:6}
+	c.currenciesInfo["TUSD"] = binanceCurrencyInfo{withdrawalPrecision:8}
+	c.currenciesInfo["BTC"] = binanceCurrencyInfo{withdrawalPrecision:8}
+	c.currenciesInfo["DASH"] = binanceCurrencyInfo{withdrawalPrecision:8}
+	c.currenciesInfo["ETH"] = binanceCurrencyInfo{withdrawalPrecision:8}
+	c.currenciesInfo["GRS"] = binanceCurrencyInfo{withdrawalPrecision:8}
+	c.currenciesInfo["LTC"] = binanceCurrencyInfo{withdrawalPrecision:8}
+	c.currenciesInfo["XZC"] = binanceCurrencyInfo{withdrawalPrecision:8}
 	return c
 }
 
@@ -224,7 +240,7 @@ func (b *Binance) SellAtMarketPrice(order hestia.Trade) (string, error) {
 }
 
 func (b *Binance) Withdraw(coin string, address string, amount float64) (string, error) {
-	amount = roundFixedPrecision(amount, 8)
+	amount = roundFixedPrecision(amount, b.currenciesInfo[coin].withdrawalPrecision)
 	withdrawal, err := b.binanceApi.Withdraw(binance.WithdrawRequest{
 		Asset:      strings.ToLower(coin),
 		Address:    address,

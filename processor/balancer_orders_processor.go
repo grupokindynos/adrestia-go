@@ -50,6 +50,7 @@ func (bp *BalancerOrderProcessor) handlerBalancerOrdersCreated(wg *sync.WaitGrou
 			log.Println("balancer_orders - handlerBalancerOrdersCreated - WithdrawToAddress - " + err.Error())
 			continue
 		}
+
 		order.Status = hestia.BalancerOrderStatusExchangeDepositSent
 		order.DepositTxId = txId
 		_, err = bp.Hestia.UpdateBalancerOrder(order)

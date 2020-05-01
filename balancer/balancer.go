@@ -40,7 +40,7 @@ func (b *Balancer) Start(id string) error {
 	exFactory = exchanges.NewExchangeFactory(b.Obol, b.Hestia)
 	balancerId = id
 	totalHwStock := 0.0
-	totalCoins := 0
+	totalCoins := 0.0
 	stockByCoin := make(map[string]float64)
 	for _, coin := range coinsProp{
 		balance, err := b.Plutus.GetWalletBalance(coin.Ticker)
@@ -55,7 +55,7 @@ func (b *Balancer) Start(id string) error {
 
 	var balances []balance
 	for _, coin := range coinsProp {
-		stockExpected := math.Floor(totalHwStock * float64(coin.Adrestia.CoinUsage) / float64(totalCoins)) // floor to give a threshold of error for precision problems
+		stockExpected := math.Floor(totalHwStock * coin.Adrestia.CoinUsage / totalCoins) // floor to give a threshold of error for precision problems
 		balances = append(balances, balance{coin:coin.Ticker, difference: stockByCoin[coin.Ticker] - stockExpected})
 	}
 	sort.Slice(balances, func(i, j int) bool{

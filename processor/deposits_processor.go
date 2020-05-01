@@ -52,6 +52,8 @@ func (p *DepositProcessor) handleCreatedDeposit(wg *sync.WaitGroup) {
 			log.Println("deposits - handlerCreatedDeposit - WithdrawToAddress - " + err.Error())
 			continue
 		}
+		// to avoid overlapping of nonce
+		time.Sleep(30 * time.Second)
 		deposit.TxId = txId
 		deposit.Status = hestia.SimpleTxStatusPerformed
 		_, err = p.Hestia.UpdateDeposit(deposit)

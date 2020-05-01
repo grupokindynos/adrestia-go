@@ -22,12 +22,14 @@ import (
 type Crex24 struct {
 	exchangeInfo hestia.ExchangeInfo
 	client *http.Client
-	minConfirmations map[string]int
+	crexCurrenciesInfo map[string]currenciesResponse
 }
 
 type currenciesResponse struct {
 	Symbol string `json:"symbol"`
 	DepositConfirmationCount int `json:"depositConfirmationCount"`
+	WithdrawalFee float64 `json:"flatWithdrawalFee"`
+	WithdrawalPrecision int `json:"withdrawalPrecision"`
 }
 
 func NewCrex24(exchange hestia.ExchangeInfo) *Crex24 {
@@ -35,7 +37,7 @@ func NewCrex24(exchange hestia.ExchangeInfo) *Crex24 {
 	crex := Crex24{
 		exchangeInfo: exchange,
 		client: &http.Client{},
-		minConfirmations: make(map[string]int),
+		crexCurrenciesInfo: make(map[string]currenciesResponse),
 	}
 
 	res, _ := crex.doRequest("GET", "/v2/public/currencies", []byte{})
@@ -43,7 +45,7 @@ func NewCrex24(exchange hestia.ExchangeInfo) *Crex24 {
 	_ = json.Unmarshal(res, &currenciesRes)
 
 	for _, currency := range currenciesRes {
-		crex.minConfirmations[currency.Symbol] = currency.DepositConfirmationCount
+		crex.crexCurrenciesInfo[strings.ToUpper(currency.Symbol)] = currency
 	}
 
 	return &crex
@@ -337,7 +339,9 @@ type crex24WithdrawRequest struct {
 
 func (c *Crex24) Withdraw(coin string, address string, amount float64) (string, error) {
 	amountDec := decimal.NewFromFloat(amount)
-	amountDec = amountDec.Mul(decimal.NewFromFloat(1 - 0.001))
+	amountDec = amountDec.Sub(decimal.NewFromFloat(c.crexCurrenciesInfo[coin].WithdrawalFee))
+	amountDec = amountDec.Truncate(int32(c.crexCurrenciesInfo[coin].WithdrawalPrecision))
+
 
 	req := crex24WithdrawRequest{
 		Currency: coin,
@@ -498,7 +502,7 @@ type crex24DepositStatus struct {
 func (c *Crex24) GetDepositStatus(addr string, txId string, asset string) (hestia.ExchangeOrderInfo, error) {
 	coinInfo, _ := coinfactory.GetCoin(asset)
 	if coinInfo.Info.Token {
-		if val, err := blockbookConfirmed(addr, txId, c.minConfirmations[asset]); err == nil {
+		if val, err := blockbookConfirmed(addr, txId, c.crexCurrenciesInfo[asset].DepositConfirmationCount); err == nil {
 			return hestia.ExchangeOrderInfo{
 				Status: hestia.ExchangeOrderStatusCompleted,
 				ReceivedAmount: val,

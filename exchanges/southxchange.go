@@ -3,6 +3,7 @@ package exchanges
 import (
 	"errors"
 	"github.com/grupokindynos/adrestia-go/models"
+	"github.com/shopspring/decimal"
 	"log"
 	"os"
 	"strconv"
@@ -78,27 +79,60 @@ func (s *SouthXchange) GetBalance(coin string) (float64, error) {  // tal vez la
 	return 0, errors.New("coin not found")
 }
 
+func (s *SouthXchange) getBestPrice(amount decimal.Decimal, listing string, reference string, side string) (float64, error) {
+	book, err := s.southClient.GetBookOrders(listing, reference)
+	if err != nil {
+		return 0, err
+	}
+
+	var orders []south.BookOrder
+
+	if side == "buy" {
+		orders = book.SellOrders
+	} else {
+		orders = book.BuyOrders
+	}
+
+	cumulativeAmount := decimal.NewFromFloat(0)
+
+	for _, order := range orders {
+		if side == "buy" {
+			cumulativeAmount = cumulativeAmount.Add(decimal.NewFromFloat(order.Price).Mul(decimal.NewFromFloat(order.Amount)))
+		} else {
+			cumulativeAmount = cumulativeAmount.Add(decimal.NewFromFloat(order.Amount))
+		}
+		cumulativeAmount = cumulativeAmount.Add(decimal.NewFromFloat(order.Amount))
+		if cumulativeAmount.GreaterThan(amount) {
+			return order.Price, nil
+		}
+	}
+
+	return 0, nil
+}
+
+
 func (s *SouthXchange) SellAtMarketPrice(order hestia.Trade) (string, error) {
 	l, r := order.GetTradingPair()
 	var res string
 	var err error
-	var price south.MarketPrice
 
 	var orderType south.OrderType
 
-	price, err = s.southClient.GetMarketPrice(l, r)
-	if err != nil {
-		log.Println("south - SellAtMarketPrice - GetMarketPrice - ", err.Error())
-		return "", err
-	}
-
 	if order.Side == "buy" {
 		orderType = south.Buy
-		buyAmount := order.Amount / price.Ask
-		res, err = s.southClient.PlaceOrder(l, r, orderType, buyAmount, price.Ask, false)
+		bestPrice, err := s.getBestPrice(decimal.NewFromFloat(order.Amount), l, r, "buy")
+		if err != nil {
+			return "", err
+		}
+		buyAmount, _ := decimal.NewFromFloat(order.Amount).Div(decimal.NewFromFloat(bestPrice)).Float64()
+		res, err = s.southClient.PlaceOrder(l, r, orderType, buyAmount, bestPrice, false)
 	} else {
 		orderType = south.Sell
-		res, err = s.southClient.PlaceOrder(l, r, orderType, order.Amount, price.Bid, false)
+		bestPrice, err := s.getBestPrice(decimal.NewFromFloat(order.Amount), l, r, "sell")
+		if err != nil {
+			return "", err
+		}
+		res, err = s.southClient.PlaceOrder(l, r, orderType, order.Amount, bestPrice, false)
 	}
 
 	if err != nil {

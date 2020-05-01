@@ -224,6 +224,7 @@ func (b *Binance) SellAtMarketPrice(order hestia.Trade) (string, error) {
 }
 
 func (b *Binance) Withdraw(coin string, address string, amount float64) (string, error) {
+	amount = roundFixedPrecision(amount, 8)
 	withdrawal, err := b.binanceApi.Withdraw(binance.WithdrawRequest{
 		Asset:      strings.ToLower(coin),
 		Address:    address,
@@ -328,15 +329,6 @@ func (b *Binance) getTradePrecision(symbol string, option string) (int, error) {
 	}
 
 	return 0, errors.New("symbol not found")
-}
-
-func round(f float64) float64 {
-	return math.Floor(f + .5)
-}
-
-func roundFixedPrecision(f float64, places int) float64 {
-	shift := math.Pow(10, float64(places))
-	return round(f*shift) / shift
 }
 
 func (b *Binance) getReceivedAmount(order binance.ExecutedOrder) float64 {

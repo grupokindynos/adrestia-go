@@ -101,7 +101,6 @@ func (s *SouthXchange) getBestPrice(amount decimal.Decimal, listing string, refe
 		} else {
 			cumulativeAmount = cumulativeAmount.Add(decimal.NewFromFloat(order.Amount))
 		}
-		cumulativeAmount = cumulativeAmount.Add(decimal.NewFromFloat(order.Amount))
 		if cumulativeAmount.GreaterThan(amount) {
 			return order.Price, nil
 		}

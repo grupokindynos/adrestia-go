@@ -18,7 +18,7 @@ require (
 	github.com/json-iterator/go v1.1.9 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
-	github.com/oedipusK/go-southxchange v0.0.0-20200501030749-03dd16f84efb
+	github.com/oedipusK/go-southxchange v0.0.0-20200505211816-fa6cf6edc378
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/shopspring/decimal v0.0.0-20200427060321-c939845a686f
 	github.com/thebotguys/signalr v0.0.0-20190119054324-787ebe6729fc // indirect

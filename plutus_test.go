@@ -6,6 +6,7 @@ import (
 	"github.com/grupokindynos/adrestia-go/services"
 	"github.com/grupokindynos/common/blockbook"
 	coinfactory "github.com/grupokindynos/common/coin-factory"
+	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/obol"
 	plutus2 "github.com/grupokindynos/common/plutus"
 	"github.com/joho/godotenv"
@@ -50,7 +51,7 @@ func TestGetBalance(t *testing.T) {
 func TestGetAddress(t *testing.T) {
 	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}
 	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_PRODUCTION_URL")}
-	fmt.Println(plutus.GetAddress("tusd"))
+	fmt.Println(plutus.GetAddress("dash"))
 }
 
 func TestBlockbook(t *testing.T) {
@@ -65,16 +66,30 @@ func TestBlockbook(t *testing.T) {
 
 func TestExchange(t *testing.T) {
 	hr := services.HestiaRequests{HestiaURL:os.Getenv("HESTIA_LOCAL_URL")}
-	exchange, _ := hr.GetExchange("stex")
-	ex, _ := exchanges.NewStex(exchange)
-	addr, _ := ex.GetAddress("DIVI")
-	log.Println(addr)
-/*	trades, err := binance.MyTrades()
+	exchange, _ := hr.GetExchange("southxchange")
+	ex := exchanges.NewSouthXchange(exchange)
+	buy := hestia.Trade{
+		OrderId:        "",
+		Amount:         18,
+		FromCoin:       "TUSD",
+		ToCoin:         "BTC",
+		Symbol:         "BTCTUSD",
+		Side:           "buy",
+	}
+
+	sell := hestia.Trade{
+		OrderId:        "",
+		Amount:         0.002,
+		FromCoin:       "BTC",
+		ToCoin:         "TUSD",
+		Symbol:         "BTCTUSD",
+		Side:           "sell",
+	}
+	log.Println(buy.Amount)
+	txId, err := ex.SellAtMarketPrice(sell)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	for _, trade := range trades {
-		fmt.Printf("%+v\n", *trade)
-	}*/
+	log.Println(txId)
 }

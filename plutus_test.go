@@ -22,11 +22,11 @@ func init() {
 
 func TestSendToExchange(t *testing.T) {
 	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}
-	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_LOCAL_URL")}
+	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_PRODUCTION_URL")}
 	res, err := plutus.WithdrawToAddress(plutus2.SendAddressBodyReq{
-		Address: "0x82ed4a3CAA3A67F56FdbB225002E204D332457CF",
-		Coin:    "USDT",
-		Amount:  2500,
+		Address: "D8aCppPvAV3nJUHA1BApDaZ7mfR2diJErY",
+		Coin:    "DIVI",
+		Amount:  3402.98,
 	})
 	if err != nil {
 		fmt.Println("error", err)
@@ -39,18 +39,43 @@ func TestSendToExchange(t *testing.T) {
 func TestGetBalance(t *testing.T) {
 	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}
 	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_PRODUCTION_URL")}
-	bal, err := plutus.GetWalletBalance("usdc")
+	bal, err := plutus.GetWalletBalance("DASH")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(bal)
+	fmt.Println("Balance", bal)
+}
+
+func TestSendAllBalanceToExchange(t *testing.T) {
+	address := "PHg666Ef8Zz32y8V2i4essNMBSsDwXfr1q"
+	asset := "POLIS"
+
+	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}
+	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_PRODUCTION_URL")}
+	bal, err := plutus.GetWalletBalance(asset)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("Balance: ", bal)
+
+	res, err := plutus.WithdrawToAddress(plutus2.SendAddressBodyReq{
+		Address: address,
+		Coin:    asset,
+		Amount:  bal.Confirmed * 0.9999,
+	})
+	if err != nil {
+		fmt.Println("error", err)
+		return
+	}
+	fmt.Println(res)
 }
 
 func TestGetAddress(t *testing.T) {
 	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}
 	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_PRODUCTION_URL")}
-	fmt.Println(plutus.GetAddress("tusd"))
+	fmt.Println(plutus.GetAddress("DASH"))
 }
 
 func TestBlockbook(t *testing.T) {

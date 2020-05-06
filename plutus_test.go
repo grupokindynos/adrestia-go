@@ -36,7 +36,6 @@ func TestSendToExchange(t *testing.T) {
 	fmt.Println(res)
 }
 
-
 func TestGetBalance(t *testing.T) {
 	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}
 	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_PRODUCTION_URL")}

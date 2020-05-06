@@ -154,8 +154,6 @@ github.com/gorilla/websocket v1.4.2/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/ad
 github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190118093823-f849b5445de4/go.mod h1:FiyG127CGDf3tlThmgyCl78X/SZQqEOJBCDaAfeWzPs=
 github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0/go.mod h1:8NvIoxWQoOIhqOTXgfV/d3M/q6VIi02HzZEHgUlZvzk=
 github.com/grpc-ecosystem/grpc-gateway v1.9.5/go.mod h1:vNeuVxBJEsws4ogUvrchl83t/GYV9WGTSLVdBhOQFDY=
-github.com/grupokindynos/common v0.0.0-20200430052234-244bc2fd6726 h1:RqHbKyvvO+/QRvUCdUa7fKc15q2/XjbQi7mlYGyssnM=
-github.com/grupokindynos/common v0.0.0-20200430052234-244bc2fd6726/go.mod h1:TmP70nKfgs35046GoB8TIq1r1OFvEHYaaEvaPs6PayM=
 github.com/grupokindynos/common v0.0.0-20200501195405-3604aabfdc29 h1:DhLnj8Ae36sqabpcifXPkddr4gIWn1TBFlL4CyWYqRY=
 github.com/grupokindynos/common v0.0.0-20200501195405-3604aabfdc29/go.mod h1:TmP70nKfgs35046GoB8TIq1r1OFvEHYaaEvaPs6PayM=
 github.com/grupokindynos/go-binance v0.0.0-20200430034119-30d9d0485f22 h1:C48WvEz0LdfkYMj7/TToANULCmAQi13A6JvFAUtgukc=
@@ -260,10 +258,8 @@ github.com/nats-io/nats.go v1.9.1/go.mod h1:ZjDU1L/7fJ09jvUSRVBR2e7+RnLiiIQyqyzE
 github.com/nats-io/nkeys v0.1.0/go.mod h1:xpnFELMwJABBLVhffcfd1MZx6VsNRFpEugbxziKVo7w=
 github.com/nats-io/nkeys v0.1.3/go.mod h1:xpnFELMwJABBLVhffcfd1MZx6VsNRFpEugbxziKVo7w=
 github.com/nats-io/nuid v1.0.1/go.mod h1:19wcPz3Ph3q0Jbyiqsd0kePYG7A95tJPxeL+1OSON2c=
-github.com/oedipusK/go-southxchange v0.0.0-20200306161710-01bc4005c20d h1:UKJK0kB2EyAZaPgmtSJpOlEqZ5Up1szYl/iqxwzbnHw=
-github.com/oedipusK/go-southxchange v0.0.0-20200306161710-01bc4005c20d/go.mod h1:F3maalQptou4ZKoLp7LPX7NG2TF1RTP2q8P2ENweXvo=
-github.com/oedipusK/go-southxchange v0.0.0-20200501030749-03dd16f84efb h1:WHtcU6mDM3V7JE1fEhYg9NNWVgn/C41zqkSmLmKW2sI=
-github.com/oedipusK/go-southxchange v0.0.0-20200501030749-03dd16f84efb/go.mod h1:F3maalQptou4ZKoLp7LPX7NG2TF1RTP2q8P2ENweXvo=
+github.com/oedipusK/go-southxchange v0.0.0-20200505211816-fa6cf6edc378 h1:LfNXSb0amTXd/dRelq65AmHX8XPokSh2O4I8H5QjmXk=
+github.com/oedipusK/go-southxchange v0.0.0-20200505211816-fa6cf6edc378/go.mod h1:F3maalQptou4ZKoLp7LPX7NG2TF1RTP2q8P2ENweXvo=
 github.com/oklog/oklog v0.3.2/go.mod h1:FCV+B7mhrz4o+ueLpx+KqkyXRGMWOYEvfiXtdGtbWGs=
 github.com/oklog/run v1.0.0/go.mod h1:dlhp/R75TPv97u0XWUtDeV/lRKWPKSdTuV0TZvrmrQA=
 github.com/olekukonko/tablewriter v0.0.0-20170122224234-a0225b3f23b5/go.mod h1:vsDQFd/mU46D+Z4whnwzcISnGGzXWMclvtLoiIKAKIo=

@@ -80,3 +80,5 @@ fabric.properties
 .idea/git_toolbox_prj.xml
 .idea/inspectionProfiles/Project_Default.xml
 .idea/workspace.xml
+main_log.log
+telegram_log.log

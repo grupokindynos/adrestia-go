@@ -39,6 +39,10 @@ type PathParams struct {
 	ToCoin string `json:"to_coin"`
 }
 
+type VoucherPathParams struct {
+	FromCoin string `json:"from_coin"`
+}
+
 type WithdrawParams struct {
 	Asset string `json:"asset"`
 	Address string `json:"address"`
@@ -79,4 +83,10 @@ type PathResponse struct {
 	InwardOrder []ExchangeTrade  `json:"in_order"`
 	OutwardOrder []ExchangeTrade `json:"out_order"`
 	Trade bool                   `json:"trade"`
+}
+
+type VoucherPathResponse struct {
+	InwardOrder []ExchangeTrade  `json:"in_order"`
+	Trade bool                   `json:"trade"`
+	TargetStableCoin string `json:"target"`
 }

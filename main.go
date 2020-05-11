@@ -160,6 +160,7 @@ func ApplyRoutes(r *gin.Engine) {
 		api.POST("trade/status", func(context *gin.Context) {ValidateRequest(context, adrestiaCtrl.GetTradeStatus)})
 		api.POST("withdraw/hash", func(context *gin.Context) {ValidateRequest(context, adrestiaCtrl.GetWithdrawalTxHash)})
 		api.POST("path", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.GetConversionPath) })
+		api.POST("voucher/path", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.GetVoucherConversionPath) })
 		api.POST("trade", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.Trade) })
 		api.POST("withdraw", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.Withdraw) })
 		api.POST("deposit", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.Deposit) })
@@ -178,6 +179,7 @@ func ApplyRoutes(r *gin.Engine) {
 		openApi.GET("address/:coin", func(context *gin.Context) { ValidateOpenRequest(context, adrestiaCtrl.GetAddress) })
 		openApi.POST("path", func(context *gin.Context) { ValidateOpenRequest(context, adrestiaCtrl.GetConversionPath) })
 		openApi.GET("stock/balance/:coin", func(context *gin.Context) { ValidateOpenRequest(context, adrestiaCtrl.StockBalance) })
+		openApi.POST("voucher/path", func(context *gin.Context) { ValidateOpenRequest(context, adrestiaCtrl.GetVoucherConversionPath) })
 	}
 }
 

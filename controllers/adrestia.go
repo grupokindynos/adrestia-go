@@ -250,14 +250,12 @@ func (a *AdrestiaController) GetVoucherConversionPath(_ string, body []byte, _ m
 		log.Println("payment already in stable coin")
 	} else {
 		if pathParams.FromCoin != "BTC" {
-			log.Println("requires btc conversion")
 			inPath = append(inPath, models.ExchangeTrade{
 				FromCoin: pathParams.FromCoin,
 				ToCoin:   "BTC",
 				Exchange: exName,
 			})
 		}
-		log.Println("requires btc to stable coin conversion")
 		for _, ex := range a.ExInfo {
 			if ex.Name == exName {
 				exInwardInfo = ex

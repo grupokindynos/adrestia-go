@@ -198,7 +198,6 @@ func ValidateRequest(c *gin.Context, method func(uid string, payload []byte, par
 	}
 	header, body, err := mrt.CreateMRTToken("adrestia", os.Getenv("MASTER_PASSWORD"), response, os.Getenv("ADRESTIA_PRIV_KEY"))
 	responses.GlobalResponseMRT(header, body, c)
-	log.Println("responded with: ", response)
 	return
 }
 
@@ -217,6 +216,5 @@ func ValidateOpenRequest(c *gin.Context, method func(uid string, payload []byte,
 		return
 	}
 	responses.GlobalResponse(response, c)
-	log.Println("responded with: ", response)
 	return
 }

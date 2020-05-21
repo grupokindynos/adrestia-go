@@ -217,6 +217,77 @@ func (a *AdrestiaController) GetConversionPath(_ string, body []byte, _ models.P
 	return path, nil
 }
 
+func (a *AdrestiaController) GetVoucherConversionPath(_ string, body []byte, _ models.Params) (interface{}, error) {
+	var pathParams models.VoucherPathParams
+	err := json.Unmarshal(body, &pathParams)
+	if err != nil {
+		return nil, err
+	}
+
+	// Response Object
+	var path models.VoucherPathResponse
+	var inPath []models.ExchangeTrade
+	var exInwardInfo hestia.ExchangeInfo
+
+	coinInfo, err := coinfactory.GetCoin(pathParams.FromCoin)
+	if err != nil {
+		return nil, err
+	}
+	ex, err := a.ExFactory.GetExchangeByCoin(*coinInfo)
+	if err != nil {
+		return nil, err
+	}
+	exName, err := ex.GetName()
+	if err != nil {
+		return nil, err
+	}
+
+	address, err := ex.GetAddress(pathParams.FromCoin)
+	if err != nil || address == "" {
+		return nil, errors.New("adrestia could not retrieve address")
+	}
+	if coinInfo.Info.StableCoin {
+		log.Println("payment already in stable coin")
+	} else {
+		if pathParams.FromCoin != "BTC" {
+			inPath = append(inPath, models.ExchangeTrade{
+				FromCoin: pathParams.FromCoin,
+				ToCoin:   "BTC",
+				Exchange: exName,
+			})
+		}
+		for _, ex := range a.ExInfo {
+			if ex.Name == exName {
+				exInwardInfo = ex
+				break
+			}
+		}
+		inPath = append(inPath, models.ExchangeTrade{
+			FromCoin: "BTC",
+			ToCoin:   exInwardInfo.StockCurrency,
+			Exchange: exName,
+		})
+	}
+	// If origin coin is not BTC Convert first
+	tradeFlag := true
+	for i, trade := range inPath {
+		pairInfo, err := ex.GetPair(trade.FromCoin, trade.ToCoin)
+		if err != nil{
+			log.Println("could not find the desired trading pair for ", trade)
+			tradeFlag = false
+		} else {
+			inPath[i].Trade = pairInfo
+		}
+	}
+
+	path.InwardOrder = inPath
+	path.Trade = tradeFlag
+	path.TargetStableCoin = exInwardInfo.StockCurrency
+	path.Address = address
+	return path, nil
+}
+
+
 func (a *AdrestiaController) Trade(_ string, body []byte, _ models.Params) (interface{}, error) {
 	var trade hestia.Trade
 	err := json.Unmarshal(body, &trade)

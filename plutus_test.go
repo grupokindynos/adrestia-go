@@ -2,6 +2,10 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"testing"
+
 	"github.com/grupokindynos/adrestia-go/exchanges"
 	"github.com/grupokindynos/adrestia-go/services"
 	"github.com/grupokindynos/common/blockbook"
@@ -10,9 +14,6 @@ import (
 	"github.com/grupokindynos/common/obol"
 	plutus2 "github.com/grupokindynos/common/plutus"
 	"github.com/joho/godotenv"
-	"log"
-	"os"
-	"testing"
 )
 
 func init() {
@@ -23,11 +24,11 @@ func init() {
 
 func TestSendToExchange(t *testing.T) {
 	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}
-	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_LOCAL_URL")}
+	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_PRODUCTION_URL")}
 	res, err := plutus.WithdrawToAddress(plutus2.SendAddressBodyReq{
-		Address: "0x82ed4a3CAA3A67F56FdbB225002E204D332457CF",
-		Coin:    "USDT",
-		Amount:  2500,
+		Address: "D8aCppPvAV3nJUHA1BApDaZ7mfR2diJErY",
+		Coin:    "DIVI",
+		Amount:  3402.98,
 	})
 	if err != nil {
 		fmt.Println("error", err)
@@ -35,7 +36,6 @@ func TestSendToExchange(t *testing.T) {
 	}
 	fmt.Println(res)
 }
-
 
 func TestGetBalance(t *testing.T) {
 	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}
@@ -45,7 +45,32 @@ func TestGetBalance(t *testing.T) {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(bal)
+	fmt.Println("Balance", bal)
+}
+
+func TestSendAllBalanceToExchange(t *testing.T) {
+	address := "PHg666Ef8Zz32y8V2i4essNMBSsDwXfr1q"
+	asset := "POLIS"
+
+	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}
+	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_PRODUCTION_URL")}
+	bal, err := plutus.GetWalletBalance(asset)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("Balance: ", bal)
+
+	res, err := plutus.WithdrawToAddress(plutus2.SendAddressBodyReq{
+		Address: address,
+		Coin:    asset,
+		Amount:  bal.Confirmed * 0.9999,
+	})
+	if err != nil {
+		fmt.Println("error", err)
+		return
+	}
+	fmt.Println(res)
 }
 
 func TestGetAddress(t *testing.T) {
@@ -65,25 +90,25 @@ func TestBlockbook(t *testing.T) {
 }
 
 func TestExchange(t *testing.T) {
-	hr := services.HestiaRequests{HestiaURL:os.Getenv("HESTIA_LOCAL_URL")}
+	hr := services.HestiaRequests{HestiaURL: os.Getenv("HESTIA_LOCAL_URL")}
 	exchange, _ := hr.GetExchange("southxchange")
 	ex := exchanges.NewSouthXchange(exchange)
 	buy := hestia.Trade{
-		OrderId:        "",
-		Amount:         18,
-		FromCoin:       "TUSD",
-		ToCoin:         "BTC",
-		Symbol:         "BTCTUSD",
-		Side:           "buy",
+		OrderId:  "",
+		Amount:   18,
+		FromCoin: "TUSD",
+		ToCoin:   "BTC",
+		Symbol:   "BTCTUSD",
+		Side:     "buy",
 	}
 
 	sell := hestia.Trade{
-		OrderId:        "",
-		Amount:         0.002,
-		FromCoin:       "BTC",
-		ToCoin:         "TUSD",
-		Symbol:         "BTCTUSD",
-		Side:           "sell",
+		OrderId:  "",
+		Amount:   0.002,
+		FromCoin: "BTC",
+		ToCoin:   "TUSD",
+		Symbol:   "BTCTUSD",
+		Side:     "sell",
 	}
 	log.Println(buy.Amount)
 	txId, err := ex.SellAtMarketPrice(sell)

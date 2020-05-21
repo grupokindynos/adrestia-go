@@ -137,8 +137,7 @@ func ApplyRoutes(r *gin.Engine) {
 	fmt.Println("PORT: ", os.Getenv("PORT"))
 	auxHestia := services.HestiaRequests{HestiaURL: os.Getenv(hestiaUrl)}
 	exchangeInfo, err := auxHestia.GetExchanges()
-	fmt.Println("Exchanges Info", exchangeInfo)
-	fmt.Println(os.Getenv(hestiaUrl))
+
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -160,6 +159,7 @@ func ApplyRoutes(r *gin.Engine) {
 		api.POST("trade/status", func(context *gin.Context) {ValidateRequest(context, adrestiaCtrl.GetTradeStatus)})
 		api.POST("withdraw/hash", func(context *gin.Context) {ValidateRequest(context, adrestiaCtrl.GetWithdrawalTxHash)})
 		api.POST("path", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.GetConversionPath) })
+		api.POST("voucher/path", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.GetVoucherConversionPath) })
 		api.POST("trade", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.Trade) })
 		api.POST("withdraw", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.Withdraw) })
 		api.POST("deposit", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.Deposit) })
@@ -178,6 +178,7 @@ func ApplyRoutes(r *gin.Engine) {
 		openApi.GET("address/:coin", func(context *gin.Context) { ValidateOpenRequest(context, adrestiaCtrl.GetAddress) })
 		openApi.POST("path", func(context *gin.Context) { ValidateOpenRequest(context, adrestiaCtrl.GetConversionPath) })
 		openApi.GET("stock/balance/:coin", func(context *gin.Context) { ValidateOpenRequest(context, adrestiaCtrl.StockBalance) })
+		openApi.POST("voucher/path", func(context *gin.Context) { ValidateOpenRequest(context, adrestiaCtrl.GetVoucherConversionPath) })
 	}
 }
 
@@ -197,7 +198,6 @@ func ValidateRequest(c *gin.Context, method func(uid string, payload []byte, par
 	}
 	header, body, err := mrt.CreateMRTToken("adrestia", os.Getenv("MASTER_PASSWORD"), response, os.Getenv("ADRESTIA_PRIV_KEY"))
 	responses.GlobalResponseMRT(header, body, c)
-	log.Println("responded with: ", response)
 	return
 }
 
@@ -216,6 +216,5 @@ func ValidateOpenRequest(c *gin.Context, method func(uid string, payload []byte,
 		return
 	}
 	responses.GlobalResponse(response, c)
-	log.Println("responded with: ", response)
 	return
 }

@@ -242,6 +242,10 @@ func (a *AdrestiaController) GetVoucherConversionPath(_ string, body []byte, _ m
 		return nil, err
 	}
 
+	address, err := ex.GetAddress(pathParams.FromCoin)
+	if err != nil || address == "" {
+		return nil, errors.New("adrestia could not retrieve address")
+	}
 	if coinInfo.Info.StableCoin {
 		log.Println("payment already in stable coin")
 	} else {
@@ -281,6 +285,7 @@ func (a *AdrestiaController) GetVoucherConversionPath(_ string, body []byte, _ m
 	path.InwardOrder = inPath
 	path.Trade = tradeFlag
 	path.TargetStableCoin = exInwardInfo.StockCurrency
+	path.Address = address
 	return path, nil
 }
 

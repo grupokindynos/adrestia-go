@@ -40,7 +40,6 @@ func (wp *WithdrawalsProcessor) handlerCreatedWithdrawal(wg *sync.WaitGroup) {
 			log.Println("withdrawals - handlerCreatedWithdrawal - GetExchangeByName - " + err.Error())
 			continue
 		}
-		log.Println(withdrawal.Exchange)
 		orderId, err := exchange.Withdraw(withdrawal.Currency, withdrawal.Address, withdrawal.Amount)
 		if err != nil {
 			log.Println("withdrawals - handlerCreatedWithdrawal - withdraw - " + err.Error())

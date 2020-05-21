@@ -40,7 +40,7 @@ func TestSendToExchange(t *testing.T) {
 func TestGetBalance(t *testing.T) {
 	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}
 	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_PRODUCTION_URL")}
-	bal, err := plutus.GetWalletBalance("usdc")
+	bal, err := plutus.GetWalletBalance("dash")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -51,7 +51,7 @@ func TestGetBalance(t *testing.T) {
 func TestGetAddress(t *testing.T) {
 	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}
 	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_PRODUCTION_URL")}
-	fmt.Println(plutus.GetAddress("dash"))
+	fmt.Println(plutus.GetAddress("polis"))
 }
 
 func TestBlockbook(t *testing.T) {

@@ -6,6 +6,7 @@ import (
 	"github.com/grupokindynos/adrestia-go/exchanges"
 	"github.com/grupokindynos/adrestia-go/models"
 	"github.com/grupokindynos/adrestia-go/services"
+	cerror "github.com/grupokindynos/common/errors"
 	coinfactory "github.com/grupokindynos/common/coin-factory"
 	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/obol"
@@ -240,6 +241,22 @@ func (a *AdrestiaController) GetVoucherConversionPath(_ string, body []byte, _ m
 	exName, err := ex.GetName()
 	if err != nil {
 		return nil, err
+	}
+
+	// Conversion of values less than 10 USDT is not possible on binance
+	if exName == "binance" && pathParams.AmountEuro < 1000 {
+		if coinInfo.Rates.FallBackExchange == "" {
+			return nil, cerror.ErrorNotSupportedAmount
+		}
+
+		ex, err = a.ExFactory.GetExchangeByName(coinInfo.Rates.FallBackExchange)
+		if err != nil {
+			return nil, err
+		}
+		exName, err = ex.GetName()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	address, err := ex.GetAddress(pathParams.FromCoin)

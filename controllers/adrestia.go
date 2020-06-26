@@ -244,7 +244,7 @@ func (a *AdrestiaController) GetVoucherConversionPath(_ string, body []byte, _ m
 	}
 
 	// Conversion of values less than 10 USDT is not possible on binance
-	if exName == "binance" && pathParams.AmountEuro < 1000 {
+	if exName == "binance" && pathParams.AmountEuro < 10.0 {
 		if coinInfo.Rates.FallBackExchange == "" {
 			return nil, cerror.ErrorNotSupportedAmount
 		}

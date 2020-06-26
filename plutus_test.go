@@ -8,8 +8,8 @@ import (
 
 	"github.com/grupokindynos/adrestia-go/exchanges"
 	"github.com/grupokindynos/adrestia-go/services"
-	"github.com/grupokindynos/common/blockbook"
 	coinfactory "github.com/grupokindynos/common/coin-factory"
+	"github.com/grupokindynos/common/explorer"
 	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/obol"
 	plutus2 "github.com/grupokindynos/common/plutus"
@@ -81,7 +81,7 @@ func TestGetAddress(t *testing.T) {
 
 func TestBlockbook(t *testing.T) {
 	coin, _ := coinfactory.GetCoin("ETH")
-	var blockExplorer blockbook.BlockBook
+	var blockExplorer explorer.BlockBook
 	blockExplorer.Url = "https://" + coin.BlockchainInfo.ExternalSource
 	res, err := blockExplorer.GetEthAddress("0xaDaE31C0b1857A5c4B1b0e48128A22a6b11d8bdB")
 	log.Println(err)

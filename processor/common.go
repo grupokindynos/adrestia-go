@@ -4,8 +4,8 @@ import (
 	"errors"
 	"github.com/grupokindynos/adrestia-go/exchanges"
 	"github.com/grupokindynos/adrestia-go/services"
-	"github.com/grupokindynos/common/blockbook"
 	cf "github.com/grupokindynos/common/coin-factory"
+	"github.com/grupokindynos/common/explorer"
 	"github.com/grupokindynos/common/obol"
 	"math"
 	"strconv"
@@ -14,11 +14,11 @@ import (
 type Params struct {
 	Hestia services.HestiaService
 	Plutus services.PlutusService
-	Obol obol.ObolService
+	Obol   obol.ObolService
 }
 
 func getPlutusReceivedAmount(addr string, txId string) (float64, error) {
-	var blockExplorer blockbook.BlockBook
+	var blockExplorer explorer.BlockBook
 	coin, err := cf.GetCoin("ETH")
 	if err != nil {
 		return 0.0, errors.New("Unable to get ETH coin")

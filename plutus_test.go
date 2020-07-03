@@ -22,13 +22,19 @@ func init() {
 	}
 }
 
+func TestGetAddress(t *testing.T) {
+	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}
+	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_PRODUCTION_URL")}
+	fmt.Println(plutus.GetAddress("dash"))
+}
+
 func TestSendToExchange(t *testing.T) {
 	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}
 	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_PRODUCTION_URL")}
 	res, err := plutus.WithdrawToAddress(plutus2.SendAddressBodyReq{
-		Address: "D8aCppPvAV3nJUHA1BApDaZ7mfR2diJErY",
-		Coin:    "DIVI",
-		Amount:  3402.98,
+		Address: "XuXVd7D4Ef8ZHEVKWmGhvMDvuXP4GEPkyM",
+		Coin:    "DASH",
+		Amount:  0.2,
 	})
 	if err != nil {
 		fmt.Println("error", err)
@@ -71,12 +77,6 @@ func TestSendAllBalanceToExchange(t *testing.T) {
 		return
 	}
 	fmt.Println(res)
-}
-
-func TestGetAddress(t *testing.T) {
-	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}
-	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_PRODUCTION_URL")}
-	fmt.Println(plutus.GetAddress("polis"))
 }
 
 func TestBlockbook(t *testing.T) {

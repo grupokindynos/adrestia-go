@@ -273,7 +273,7 @@ func (b *Binance) GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderInfo, 
 	res, err := b.binanceApi.QueryOrder(binance.QueryOrderRequest{
 		Symbol:     order.Symbol,
 		OrderID:    orderId,
-		RecvWindow: 5 * time.Second,
+		RecvWindow: 10 * time.Second,
 		Timestamp:  time.Now(),
 	})
 

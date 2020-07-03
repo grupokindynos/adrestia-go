@@ -37,11 +37,7 @@ func blockbookConfirmed(addr string, txId string, minConfirm int) (float64, erro
 	return 0.0, errors.New("tx not found or still not confirmed")
 }
 
-func round(f float64) float64 {
-	return math.Floor(f + .5)
-}
-
 func roundFixedPrecision(f float64, places int) float64 {
 	shift := math.Pow(10, float64(places))
-	return round(f*shift) / shift
+	return math.Floor(f * shift) / shift
 }

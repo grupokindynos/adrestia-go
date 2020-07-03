@@ -7,6 +7,7 @@ import (
 	"github.com/grupokindynos/adrestia-go/models"
 	"github.com/grupokindynos/adrestia-go/services"
 	coinfactory "github.com/grupokindynos/common/coin-factory"
+	cerror "github.com/grupokindynos/common/errors"
 	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/obol"
 	"log"
@@ -275,6 +276,112 @@ func (a *AdrestiaController) GetVoucherConversionPath(_ string, body []byte, _ m
 			ToCoin:   exInwardInfo.StockCurrency,
 			Exchange: exName,
 		})
+	}
+	// If origin coin is not BTC Convert first
+	tradeFlag := true
+	for i, trade := range inPath {
+		pairInfo, err := ex.GetPair(trade.FromCoin, trade.ToCoin)
+		if err != nil{
+			log.Println("could not find the desired trading pair for ", trade)
+			tradeFlag = false
+		} else {
+			inPath[i].Trade = pairInfo
+		}
+	}
+
+	path.InwardOrder = inPath
+	path.Trade = tradeFlag
+	path.TargetStableCoin = exInwardInfo.StockCurrency
+	path.Address = address
+	return path, nil
+}
+
+
+func (a *AdrestiaController) GetVoucherConversionPathV2(_ string, body []byte, _ models.Params) (interface{}, error) {
+	var pathParams models.VoucherPathParamsV2
+	err := json.Unmarshal(body, &pathParams)
+	if err != nil {
+		log.Println("GetVoucherConversionPath::Unmarshal::", body)
+		return nil, err
+	}
+
+	// Response Object
+	var path models.VoucherPathResponse
+	var inPath []models.ExchangeTrade
+	var exInwardInfo hestia.ExchangeInfo
+
+	coinInfo, err := coinfactory.GetCoin(pathParams.FromCoin)
+	if err != nil {
+		log.Println("GetVoucherConversionPath::GetCoin::", pathParams)
+		return nil, err
+	}
+	ex, err := a.ExFactory.GetExchangeByCoin(*coinInfo)
+	if err != nil {
+		log.Println("GetVoucherConversionPath::GetExchangeByCoin::", coinInfo.Info.Name, "::", ex)
+		return nil, err
+	}
+	exName, err := ex.GetName()
+	if err != nil {
+		log.Println("GetVoucherConversionPath::GetName::", err)
+		return nil, err
+	}
+
+	// Conversion of values less than 10 USDT is not possible on binance
+	if exName == "binance" && pathParams.AmountEuro < 10.0 {
+		if coinInfo.Rates.FallBackExchange == "" {
+			return nil, cerror.ErrorNotSupportedAmount
+		}
+
+		ex, err = a.ExFactory.GetExchangeByName(coinInfo.Rates.FallBackExchange)
+		if err != nil {
+			return nil, err
+		}
+		exName, err = ex.GetName()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	directConversion := HasDirectConversionToStableCoin(exName, pathParams.FromCoin)
+
+	address, err := ex.GetAddress(pathParams.FromCoin)
+	if err != nil || address == "" {
+		log.Println("GetVoucherConversionPath::GetAddress::", exName)
+		if err != nil {
+			log.Println(err)
+		}
+		return nil, errors.New("adrestia could not retrieve address")
+	}
+	if coinInfo.Info.StableCoin {
+		log.Println("payment already in stable coin")
+	} else {
+		for _, ex := range a.ExInfo {
+			if ex.Name == exName {
+				exInwardInfo = ex
+				break
+			}
+		}
+
+		if directConversion {
+			inPath = append(inPath, models.ExchangeTrade{
+				FromCoin: pathParams.FromCoin,
+				ToCoin:   exInwardInfo.StockCurrency,
+				Exchange: exName,
+			})
+		} else {
+			if pathParams.FromCoin != "BTC" {
+				inPath = append(inPath, models.ExchangeTrade{
+					FromCoin: pathParams.FromCoin,
+					ToCoin:   "BTC",
+					Exchange: exName,
+				})
+			}
+			inPath = append(inPath, models.ExchangeTrade{
+				FromCoin: "BTC",
+				ToCoin:   exInwardInfo.StockCurrency,
+				Exchange: exName,
+			})
+		}
 	}
 	// If origin coin is not BTC Convert first
 	tradeFlag := true

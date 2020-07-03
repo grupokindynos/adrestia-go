@@ -165,6 +165,13 @@ func ApplyRoutes(r *gin.Engine) {
 		api.POST("deposit", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.Deposit) })
 		api.GET("stock/balance/:coin", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.StockBalance) })
 	}
+	apiV2 := r.Group("/v2/", gin.BasicAuth(gin.Accounts{
+		authUser: authPassword,
+	}))
+	{
+		apiV2.POST("voucher/path", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.GetVoucherConversionPathV2) })
+	}
+
 	r.NoRoute(func(c *gin.Context) {
 		c.String(http.StatusNotFound, "Not Found")
 	})

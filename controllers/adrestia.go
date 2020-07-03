@@ -259,6 +259,8 @@ func (a *AdrestiaController) GetVoucherConversionPath(_ string, body []byte, _ m
 		}
 	}
 
+	directConversion := HasDirectConversionToStableCoin(exName, pathParams.FromCoin)
+
 	address, err := ex.GetAddress(pathParams.FromCoin)
 	if err != nil || address == "" {
 		return nil, errors.New("adrestia could not retrieve address")
@@ -266,24 +268,33 @@ func (a *AdrestiaController) GetVoucherConversionPath(_ string, body []byte, _ m
 	if coinInfo.Info.StableCoin {
 		log.Println("payment already in stable coin")
 	} else {
-		if pathParams.FromCoin != "BTC" {
-			inPath = append(inPath, models.ExchangeTrade{
-				FromCoin: pathParams.FromCoin,
-				ToCoin:   "BTC",
-				Exchange: exName,
-			})
-		}
 		for _, ex := range a.ExInfo {
 			if ex.Name == exName {
 				exInwardInfo = ex
 				break
 			}
 		}
-		inPath = append(inPath, models.ExchangeTrade{
-			FromCoin: "BTC",
-			ToCoin:   exInwardInfo.StockCurrency,
-			Exchange: exName,
-		})
+
+		if directConversion {
+			inPath = append(inPath, models.ExchangeTrade{
+				FromCoin: pathParams.FromCoin,
+				ToCoin:   exInwardInfo.StockCurrency,
+				Exchange: exName,
+			})
+		} else {
+			if pathParams.FromCoin != "BTC" {
+				inPath = append(inPath, models.ExchangeTrade{
+					FromCoin: pathParams.FromCoin,
+					ToCoin:   "BTC",
+					Exchange: exName,
+				})
+			}
+			inPath = append(inPath, models.ExchangeTrade{
+				FromCoin: "BTC",
+				ToCoin:   exInwardInfo.StockCurrency,
+				Exchange: exName,
+			})
+		}
 	}
 	// If origin coin is not BTC Convert first
 	tradeFlag := true

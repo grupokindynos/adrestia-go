@@ -386,3 +386,33 @@ func (a *AdrestiaController) StockBalance(_ string, body []byte, params models.P
 	}
 	return response, nil
 }
+
+func (a *AdrestiaController) Balances(_ string, body []byte, params models.Params) (interface{}, error) {
+	var response models.GlobalBalanceResponse
+
+	for coinName, coinInfo := range coinfactory.Coins {
+		coinTicker := coinInfo.Info.Tag
+		asset := models.AssetGlobalBalance{
+			Asset:  coinName + " (" + coinTicker + ")",
+			Balances: nil,
+			Total: 0.0,
+		}
+		// Main Exchange
+		mainExchange, err := a.ExFactory.GetExchangeByName(coinInfo.Rates.Exchange)
+		if err == nil {
+			name, _ := mainExchange.GetName()
+			coinBalance, err := mainExchange.GetBalance(coinTicker)
+			if err == nil {
+				balanceMain := models.BalanceResponse{
+					Exchange: name,
+					Balance:  coinBalance,
+					Asset:    coinTicker,
+				}
+				asset.Balances = append(asset.Balances, balanceMain)
+				asset.Total += balanceMain.Balance
+			}
+		}
+		response.Assets = append(response.Assets, asset)
+	}
+	return response, nil
+}

@@ -179,6 +179,7 @@ func ApplyRoutes(r *gin.Engine) {
 		openApi.POST("path", func(context *gin.Context) { ValidateOpenRequest(context, adrestiaCtrl.GetConversionPath) })
 		openApi.GET("stock/balance/:coin", func(context *gin.Context) { ValidateOpenRequest(context, adrestiaCtrl.StockBalance) })
 		openApi.POST("voucher/path", func(context *gin.Context) { ValidateOpenRequest(context, adrestiaCtrl.GetVoucherConversionPath) })
+		openApi.GET("balance", func(context *gin.Context) { ValidateOpenRequest(context, adrestiaCtrl.Balances) })
 	}
 }
 

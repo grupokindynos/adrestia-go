@@ -90,3 +90,13 @@ type VoucherPathResponse struct {
 	TargetStableCoin string          `json:"target"`
 	Address          string          `json:"address"`
 }
+
+type GlobalBalanceResponse struct {
+	Assets []AssetGlobalBalance `json:"assets"`
+}
+
+type AssetGlobalBalance struct {
+	Asset string `json:"asset"`
+	Balances []BalanceResponse `json:"balances"`
+	Total float64 `json:"total"`
+}

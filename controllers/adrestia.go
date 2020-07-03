@@ -222,6 +222,7 @@ func (a *AdrestiaController) GetVoucherConversionPath(_ string, body []byte, _ m
 	var pathParams models.VoucherPathParams
 	err := json.Unmarshal(body, &pathParams)
 	if err != nil {
+		log.Println("GetVoucherConversionPath::Unmarshal::", body)
 		return nil, err
 	}
 
@@ -232,14 +233,17 @@ func (a *AdrestiaController) GetVoucherConversionPath(_ string, body []byte, _ m
 
 	coinInfo, err := coinfactory.GetCoin(pathParams.FromCoin)
 	if err != nil {
+		log.Println("GetVoucherConversionPath::GetCoin::", pathParams)
 		return nil, err
 	}
 	ex, err := a.ExFactory.GetExchangeByCoin(*coinInfo)
 	if err != nil {
+		log.Println("GetVoucherConversionPath::GetExchangeByCoin::", coinInfo.Info.Name, "::", ex)
 		return nil, err
 	}
 	exName, err := ex.GetName()
 	if err != nil {
+		log.Println("GetVoucherConversionPath::GetName::", err)
 		return nil, err
 	}
 
@@ -261,6 +265,10 @@ func (a *AdrestiaController) GetVoucherConversionPath(_ string, body []byte, _ m
 
 	address, err := ex.GetAddress(pathParams.FromCoin)
 	if err != nil || address == "" {
+		log.Println("GetVoucherConversionPath::GetAddress::", exName)
+		if err != nil {
+			log.Println(err)
+		}
 		return nil, errors.New("adrestia could not retrieve address")
 	}
 	if coinInfo.Info.StableCoin {
@@ -341,6 +349,8 @@ func (a *AdrestiaController) Deposit(_ string, body []byte, params models.Params
 	}
 	exOrderInfo, err := ex.GetDepositStatus(depositParams.Address, depositParams.TxId, depositParams.Asset)
 	if err != nil {
+		name, _ := ex.GetName()
+		log.Println("Deposit::GetDepositStatus::", name, "::", err)
 		return nil, err
 	}
 	exName, err := ex.GetName()

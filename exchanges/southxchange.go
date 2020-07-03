@@ -176,6 +176,7 @@ func (s *SouthXchange) GetDepositStatus(_ string, txId string, _ string) (hestia
 			}
 		}
 	}
+	log.Println("Southxchange::GetDepositStatus::GetTransactions:: transaction not found:: ", txId)
 	return status, errors.New("south - transaction not found")
 }
 

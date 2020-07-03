@@ -40,6 +40,10 @@ type PathParams struct {
 
 type VoucherPathParams struct {
 	FromCoin string `json:"from_coin"`
+}
+
+type VoucherPathParamsV2 struct {
+	FromCoin string `json:"from_coin"`
 	AmountEuro float64 `json:"amount_euro"`
 }
 

@@ -53,6 +53,13 @@ type WithdrawParams struct {
 	Amount  float64 `json:"amount"`
 }
 
+type WithdrawParamsV2 struct {
+	Asset   string  `json:"asset"`
+	Address string  `json:"address"`
+	Amount  float64 `json:"amount"`
+	Exchange string `json:"exchange"`
+}
+
 type DepositParams struct {
 	Asset   string `json:"asset"`
 	TxId    string `json:"txid"`

@@ -52,6 +52,43 @@ func (a *AdrestiaController) Withdraw(_ string, body []byte, params models.Param
 	return response, nil
 }
 
+func (a *AdrestiaController) WithdrawV2(_ string, body []byte, params models.Params) (interface{}, error) {
+	var withdrawParams models.WithdrawParamsV2
+	var exchange exchanges.Exchange
+	var err error
+
+	err = json.Unmarshal(body, &withdrawParams)
+	if err != nil {
+		return nil, err
+	}
+	if withdrawParams.Exchange == "" {
+		coinInfo, err := coinfactory.GetCoin(withdrawParams.Asset)
+		if err != nil {
+			return nil, err
+		}
+		exchange, err = a.ExFactory.GetExchangeByCoin(*coinInfo)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		exchange, err = a.ExFactory.GetExchangeByName(withdrawParams.Exchange)
+		if err != nil {
+			return nil, err
+		}
+	}
+	txid, err := exchange.Withdraw(withdrawParams.Asset, withdrawParams.Address, withdrawParams.Amount)
+	if err != nil {
+		return nil, err
+	}
+	exName, err := exchange.GetName()
+	response := models.WithdrawInfo{
+		Exchange: exName,
+		Asset:    withdrawParams.Asset,
+		TxId:     txid,
+	}
+	return response, nil
+}
+
 
 func (a *AdrestiaController) GetTradeStatus(_ string, body []byte, _ models.Params) (interface{}, error) {
 	var trade hestia.Trade

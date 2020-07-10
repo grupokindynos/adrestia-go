@@ -170,6 +170,7 @@ func ApplyRoutes(r *gin.Engine) {
 	}))
 	{
 		apiV2.POST("voucher/path", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.GetVoucherConversionPathV2) })
+		apiV2.POST("withdraw", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.WithdrawV2) })
 	}
 
 	r.NoRoute(func(c *gin.Context) {

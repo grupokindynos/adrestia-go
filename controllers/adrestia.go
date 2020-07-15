@@ -292,6 +292,8 @@ func (a *AdrestiaController) GetVoucherConversionPath(_ string, body []byte, _ m
 		}
 		return nil, errors.New("adrestia could not retrieve address")
 	}
+
+	stayInBTC := StayInBTC(exName, pathParams.FromCoin)
 	if coinInfo.Info.StableCoin {
 		log.Println("payment already in stable coin")
 	} else {
@@ -302,17 +304,19 @@ func (a *AdrestiaController) GetVoucherConversionPath(_ string, body []byte, _ m
 				Exchange: exName,
 			})
 		}
-		for _, ex := range a.ExInfo {
-			if ex.Name == exName {
-				exInwardInfo = ex
-				break
+		if !stayInBTC {
+			for _, ex := range a.ExInfo {
+				if ex.Name == exName {
+					exInwardInfo = ex
+					break
+				}
 			}
+			inPath = append(inPath, models.ExchangeTrade{
+				FromCoin: "BTC",
+				ToCoin:   exInwardInfo.StockCurrency,
+				Exchange: exName,
+			})
 		}
-		inPath = append(inPath, models.ExchangeTrade{
-			FromCoin: "BTC",
-			ToCoin:   exInwardInfo.StockCurrency,
-			Exchange: exName,
-		})
 	}
 	// If origin coin is not BTC Convert first
 	tradeFlag := true
@@ -328,7 +332,11 @@ func (a *AdrestiaController) GetVoucherConversionPath(_ string, body []byte, _ m
 
 	path.InwardOrder = inPath
 	path.Trade = tradeFlag
-	path.TargetStableCoin = exInwardInfo.StockCurrency
+	if stayInBTC {
+		path.TargetStableCoin = "BTC"
+	} else {
+		path.TargetStableCoin = exInwardInfo.StockCurrency
+	}
 	path.Address = address
 	return path, nil
 }
@@ -380,6 +388,7 @@ func (a *AdrestiaController) GetVoucherConversionPathV2(_ string, body []byte, _
 	}
 
 	directConversion := HasDirectConversionToStableCoin(exName, pathParams.FromCoin)
+	stayInBTC := StayInBTC(exName, pathParams.FromCoin)
 
 	address, err := ex.GetAddress(pathParams.FromCoin)
 	if err != nil || address == "" {
@@ -413,11 +422,14 @@ func (a *AdrestiaController) GetVoucherConversionPathV2(_ string, body []byte, _
 					Exchange: exName,
 				})
 			}
-			inPath = append(inPath, models.ExchangeTrade{
-				FromCoin: "BTC",
-				ToCoin:   exInwardInfo.StockCurrency,
-				Exchange: exName,
-			})
+
+			if !stayInBTC {
+				inPath = append(inPath, models.ExchangeTrade{
+					FromCoin: "BTC",
+					ToCoin:   exInwardInfo.StockCurrency,
+					Exchange: exName,
+				})
+			}
 		}
 	}
 	// If origin coin is not BTC Convert first

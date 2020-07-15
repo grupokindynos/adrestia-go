@@ -10,6 +10,10 @@ func HasDirectConversionToStableCoin(exchange string, coin string) bool {
 	return whiteList[coin]
 }
 
+func StayInBTC(exchange string, coin string) bool {
+	return exchange == "southxchange"
+}
+
 func getWhiteListMarketsMap(exchange string) map[string]bool {
 	whiteList := map[string]map[string]bool{
 		"binance": {

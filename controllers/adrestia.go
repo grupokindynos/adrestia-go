@@ -333,7 +333,6 @@ func (a *AdrestiaController) GetVoucherConversionPath(_ string, body []byte, _ m
 	return path, nil
 }
 
-
 func (a *AdrestiaController) GetVoucherConversionPathV2(_ string, body []byte, _ models.Params) (interface{}, error) {
 	var pathParams models.VoucherPathParamsV2
 	err := json.Unmarshal(body, &pathParams)
@@ -439,7 +438,6 @@ func (a *AdrestiaController) GetVoucherConversionPathV2(_ string, body []byte, _
 	return path, nil
 }
 
-
 func (a *AdrestiaController) Trade(_ string, body []byte, _ models.Params) (interface{}, error) {
 	var trade hestia.Trade
 	err := json.Unmarshal(body, &trade)
@@ -529,4 +527,43 @@ func (a *AdrestiaController) StockBalance(_ string, body []byte, params models.P
 		Asset: exInfo.StockCurrency,
 	}
 	return response, nil
+}
+
+func (a *AdrestiaController) CoinBalance(_ string, body []byte, params models.ParamsV2) (interface{}, error) {
+	var asset string
+	var exchange exchanges.Exchange
+	var err error
+	if params.Coin != "" && params.Exchange != "" {
+		exchange, err = a.ExFactory.GetExchangeByName(params.Exchange)
+		if err != nil {
+			return nil, err
+		}
+		asset = params.Coin
+	} else if params.Coin != "" {
+		coinInfo, err := coinfactory.GetCoin(params.Coin)
+		if err != nil {
+			return nil, err
+		}
+		exchange, err = a.ExFactory.GetExchangeByCoin(*coinInfo)
+		if err != nil {
+			return nil, err
+		}
+		asset = params.Coin
+	} else {
+		exchange, err = a.ExFactory.GetExchangeByName(params.Exchange)
+		if err != nil {
+			return nil, err
+		}
+		exInfo, err := a.getExchangeInfo(params.Exchange)
+		if err != nil {
+			return nil, err
+		}
+		asset = exInfo.StockCurrency
+	}
+
+	bal, err := exchange.GetBalance(asset)
+	if err != nil {
+		return nil, err
+	}
+	return bal, nil
 }

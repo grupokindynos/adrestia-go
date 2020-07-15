@@ -73,6 +73,12 @@ func (b *Binance) GetAddress(coin string) (string, error) {
 		l.Println("binance - GetAddress - DepositAddress() - ", err.Error())
 		return "", err
 	}
+
+	if address.Address == "" {
+		l.Println("binance::GetAddress::EmptyAddress")
+		return "", errors.New("empty address")
+	}
+
 	return address.Address, nil
 }
 

@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/grupokindynos/adrestia-go/ladon"
+	"github.com/grupokindynos/common/hestia"
 	"log"
 	"net/http"
 	"os"
@@ -31,6 +33,8 @@ var (
 	exchangesProcessor processor.ExchangesProcessor
 	depositProcessor   processor.DepositProcessor
 	hwProcessor        processor.HwProcessor
+	bitcouPayment	   ladon.BitcouPayment
+	exchangeInfo       []hestia.ExchangeInfo
 
 	// Flags
 	devMode bool
@@ -67,6 +71,23 @@ func runHwProcessor() {
 	}
 }
 
+func runBitcouPayment() {
+	ticker := time.NewTicker(5 * time.Minute)
+	generatedWithdrawals := false
+	for _ = range ticker.C {
+		if time.Now().Hour() != 9 {
+			generatedWithdrawals = false
+		}
+
+		if time.Now().Hour() == 9 && !generatedWithdrawals {
+			bitcouPayment.GenerateWithdrawals()
+			generatedWithdrawals = true
+		} else {
+			bitcouPayment.Start()
+		}
+	}
+}
+
 func main() {
 	// Read input flag
 	localRun := flag.Bool("local", false, "set this flag to run adrestia with local db")
@@ -85,6 +106,13 @@ func main() {
 		plutusUrl = "PLUTUS_PRODUCTION_URL"
 	}
 	devMode = *dev
+
+	var err error
+	auxHestia := services.HestiaRequests{HestiaURL: os.Getenv(hestiaUrl)}
+	exchangeInfo, err = auxHestia.GetExchanges()
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	Obol := obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}
 	Hestia := services.HestiaRequests{HestiaURL: os.Getenv(hestiaUrl)}
@@ -112,11 +140,23 @@ func main() {
 		Balancer: Balancer,
 	}
 
+	bitcouPayment = ladon.BitcouPayment{
+		Hestia:         &Hestia,
+		Obol:           &Obol,
+		ExFactory:      exchanges.NewExchangeFactory(&obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}, &services.HestiaRequests{HestiaURL: os.Getenv(hestiaUrl)}),
+		ExInfo:         exchangeInfo,
+		PaymentCoin:    "USDT",
+		BTCExchanges:   map[string]bool{"southxchange": true},
+		PaymentAddress: "",
+		BTCAddress:     "",
+	}
+
 	if !*stopProcessor {
 		log.Println("Starting processors")
 		//go runExchangesProcessor()
 		//go runDepositProcessor()
 		//go runHwProcessor()
+		go runBitcouPayment()
 	}
 
 	App := GetApp()
@@ -135,12 +175,6 @@ func GetApp() *gin.Engine {
 
 func ApplyRoutes(r *gin.Engine) {
 	fmt.Println("PORT: ", os.Getenv("PORT"))
-	auxHestia := services.HestiaRequests{HestiaURL: os.Getenv(hestiaUrl)}
-	exchangeInfo, err := auxHestia.GetExchanges()
-
-	if err != nil {
-		log.Fatalln(err)
-	}
 	adrestiaCtrl := &controllers.AdrestiaController{
 		Hestia:    services.HestiaRequests{HestiaURL: hestiaUrl},
 		Plutus:    &services.PlutusRequests{PlutusURL: plutusUrl, Obol: &obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}},
@@ -164,6 +198,7 @@ func ApplyRoutes(r *gin.Engine) {
 		api.POST("withdraw", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.Withdraw) })
 		api.POST("deposit", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.Deposit) })
 		api.GET("stock/balance/:coin", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.StockBalance) })
+		api.GET("exchange/balance/:exchange/:coin", func(context *gin.Context) { ValidateRequestV2(context, adrestiaCtrl.CoinBalance) })
 	}
 	apiV2 := r.Group("/v2/", gin.BasicAuth(gin.Accounts{
 		authUser: authPassword,
@@ -188,6 +223,26 @@ func ApplyRoutes(r *gin.Engine) {
 		openApi.GET("stock/balance/:coin", func(context *gin.Context) { ValidateOpenRequest(context, adrestiaCtrl.StockBalance) })
 		openApi.POST("voucher/path", func(context *gin.Context) { ValidateOpenRequest(context, adrestiaCtrl.GetVoucherConversionPath) })
 	}
+}
+
+func ValidateRequestV2(c *gin.Context, method func(uid string, payload []byte, params models.ParamsV2) (interface{}, error)) {
+	uid := c.MustGet(gin.AuthUserKey).(string)
+	if uid == "" {
+		responses.GlobalOpenNoAuth(c)
+	}
+	params := models.ParamsV2{
+		Coin: c.Param("coin"),
+		Exchange: c.Param("exchange"),
+	}
+	payload, err := mvt.VerifyRequest(c)
+	response, err := method(uid, payload, params)
+	if err != nil {
+		responses.GlobalOpenError(nil, err, c)
+		return
+	}
+	header, body, err := mrt.CreateMRTToken("adrestia", os.Getenv("MASTER_PASSWORD"), response, os.Getenv("ADRESTIA_PRIV_KEY"))
+	responses.GlobalResponseMRT(header, body, c)
+	return
 }
 
 func ValidateRequest(c *gin.Context, method func(uid string, payload []byte, params models.Params) (interface{}, error)) {

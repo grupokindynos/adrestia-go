@@ -2,14 +2,14 @@ package exchanges
 
 import (
 	"errors"
-	"github.com/grupokindynos/common/blockbook"
 	cf "github.com/grupokindynos/common/coin-factory"
+	"github.com/grupokindynos/common/explorer"
 	"math"
 	"strconv"
 )
 
 func blockbookConfirmed(addr string, txId string, minConfirm int) (float64, error) {
-	var blockExplorer blockbook.BlockBook
+	var blockExplorer explorer.BlockBook
 	coin, err := cf.GetCoin("ETH")
 	if err != nil {
 		return 0.0, errors.New("Unable to get ETH coin")
@@ -22,7 +22,7 @@ func blockbookConfirmed(addr string, txId string, minConfirm int) (float64, erro
 	receivedAmount := 0.0
 	found := false
 	for _, txInfo := range addrInfo.Transactions {
-		if txInfo.Txid == txId && txInfo.Confirmations > 2 * minConfirm {
+		if txInfo.Txid == txId && txInfo.Confirmations > 2*minConfirm {
 			found = true
 			for _, tokenTxInfo := range txInfo.TokenTransfers {
 				val, _ := strconv.ParseFloat(tokenTxInfo.Value, 64)

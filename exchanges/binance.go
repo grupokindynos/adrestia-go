@@ -163,7 +163,7 @@ func (b *Binance) GetPair(fromCoin string, toCoin string) (models.TradeInfo, err
 
 func (b *Binance) GetBalance(coin string) (float64, error) {
 	res, err := b.binanceApi.Account(binance.AccountRequest{
-		RecvWindow: 5 * time.Second,
+		RecvWindow: 6 * time.Second,
 		Timestamp:  time.Now(),
 	})
 

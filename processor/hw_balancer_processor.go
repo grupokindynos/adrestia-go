@@ -28,7 +28,7 @@ var(
 
 func (hp *HwProcessor) Start() {
 	var err error
-	pendingWithdrawals, err := hp.Hestia.GetWithdrawals(false, 0)
+	pendingWithdrawals, err := hp.Hestia.GetWithdrawals(false, 0, currentBalancer.Id)
 	if err != nil {
 		log.Println("hw_balancer - Start - Unable to get withdrawals " + err.Error())
 		return

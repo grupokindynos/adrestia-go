@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/grupokindynos/adrestia-go/ladon"
 	"github.com/grupokindynos/common/hestia"
+	"github.com/grupokindynos/common/telegram"
 	"log"
 	"net/http"
 	"os"
@@ -147,8 +148,9 @@ func main() {
 		ExInfo:         exchangeInfo,
 		PaymentCoin:    "USDT",
 		BTCExchanges:   map[string]bool{"southxchange": true},
-		PaymentAddress: "",
-		BTCAddress:     "",
+		PaymentAddress: "0x9d7c5c959ee456654992d3ba5915f6f4a4dc9542",
+		BTCAddress:     "3PSRznWSgpxmYbSuCvERhp3zNKmxXEkeVV",
+		TgBot:  telegram.NewTelegramBot(os.Getenv("BITCOU_TELEGRAM_KEY"), os.Getenv("BITCOU_CHAT_ID")),
 	}
 
 	if !*stopProcessor {

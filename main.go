@@ -199,6 +199,7 @@ func ValidateRequest(c *gin.Context, method func(uid string, payload []byte, par
 	}
 	params := models.Params{
 		Coin: c.Param("coin"),
+		Service: c.GetHeader("service"),
 	}
 	payload, err := mvt.VerifyRequest(c)
 	response, err := method(uid, payload, params)

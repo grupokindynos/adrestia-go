@@ -146,6 +146,12 @@ github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0/go.mod h1:8NvIoxWQoOIhqOTXgf
 github.com/grpc-ecosystem/grpc-gateway v1.9.5/go.mod h1:vNeuVxBJEsws4ogUvrchl83t/GYV9WGTSLVdBhOQFDY=
 github.com/grupokindynos/common v0.0.0-20200703163451-3d73d75560fb h1:/UXXmPRaScZNc7Japzvt47HyQgHd8oQTKwZzcEdOUFI=
 github.com/grupokindynos/common v0.0.0-20200703163451-3d73d75560fb/go.mod h1:lCXEoFdFmLhbC6bGfhkByFYv6ndS+j+qr+SUBZ4ryx0=
+github.com/grupokindynos/common v0.0.0-20200719205225-0d62926cc998 h1:zRPn2P8m6Jxcp8zegknBtGn+Q1Q+mbXWwWghR8oVNro=
+github.com/grupokindynos/common v0.0.0-20200719205225-0d62926cc998/go.mod h1:lCXEoFdFmLhbC6bGfhkByFYv6ndS+j+qr+SUBZ4ryx0=
+github.com/grupokindynos/common v0.0.0-20200719210716-7eff1c0463d2 h1:ksa7qXd7x9DQSzUUQSwLxa+P60GziU4KBXON+PFf9L4=
+github.com/grupokindynos/common v0.0.0-20200719210716-7eff1c0463d2/go.mod h1:lCXEoFdFmLhbC6bGfhkByFYv6ndS+j+qr+SUBZ4ryx0=
+github.com/grupokindynos/common v0.0.0-20200719231425-a81a61093d97 h1:aebgrLTYi5DD89pNUr8JAcSMaZQ2ifoHYhiLHlV9FOY=
+github.com/grupokindynos/common v0.0.0-20200719231425-a81a61093d97/go.mod h1:lCXEoFdFmLhbC6bGfhkByFYv6ndS+j+qr+SUBZ4ryx0=
 github.com/grupokindynos/go-binance v0.0.0-20200521174839-befa530034d2 h1:tR0HXvKN67jYqN7d0w5fHvNqfuGcWWvFk7HQ6PWJEG8=
 github.com/grupokindynos/go-binance v0.0.0-20200521174839-befa530034d2/go.mod h1:t0HMFWanG5UtRfZo/2Hc4KO4sbrJSKQoOrlintfiVTM=
 github.com/hashicorp/consul/api v1.3.0/go.mod h1:MmDNSzIMUjNpY/mQ398R4bk2FnqQLoPndWW5VkKPlCE=

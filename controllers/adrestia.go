@@ -35,7 +35,11 @@ func (a *AdrestiaController) Withdraw(_ string, body []byte, params models.Param
 	if err != nil {
 		return nil, err
 	}
-	ex, err := a.ExFactory.GetExchangeByCoin(*coinInfo)
+	service, err := hestia.GetServiceAccountByString(params.Service)
+	if err != nil {
+		return nil, err
+	}
+	ex, err := a.ExFactory.GetExchangeByCoin(*coinInfo, service)
 	if err != nil {
 		return nil, err
 	}
@@ -55,9 +59,14 @@ func (a *AdrestiaController) Withdraw(_ string, body []byte, params models.Param
 func (a *AdrestiaController) WithdrawV2(_ string, body []byte, params models.Params) (interface{}, error) {
 	var withdrawParams models.WithdrawParamsV2
 	var exchange exchanges.Exchange
+	var service hestia.ServiceAccount
 	var err error
 
 	err = json.Unmarshal(body, &withdrawParams)
+	if err != nil {
+		return nil, err
+	}
+	service, err = hestia.GetServiceAccountByString(params.Service)
 	if err != nil {
 		return nil, err
 	}
@@ -66,12 +75,12 @@ func (a *AdrestiaController) WithdrawV2(_ string, body []byte, params models.Par
 		if err != nil {
 			return nil, err
 		}
-		exchange, err = a.ExFactory.GetExchangeByCoin(*coinInfo)
+		exchange, err = a.ExFactory.GetExchangeByCoin(*coinInfo, service)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		exchange, err = a.ExFactory.GetExchangeByName(withdrawParams.Exchange)
+		exchange, err = a.ExFactory.GetExchangeByName(withdrawParams.Exchange, service)
 		if err != nil {
 			return nil, err
 		}
@@ -89,27 +98,34 @@ func (a *AdrestiaController) WithdrawV2(_ string, body []byte, params models.Par
 	return response, nil
 }
 
-
-func (a *AdrestiaController) GetTradeStatus(_ string, body []byte, _ models.Params) (interface{}, error) {
+func (a *AdrestiaController) GetTradeStatus(_ string, body []byte, params models.Params) (interface{}, error) {
 	var trade hestia.Trade
 	err := json.Unmarshal(body, &trade)
 	if err != nil {
 		return nil, err
 	}
-	exchange, err := a.ExFactory.GetExchangeByName(trade.Exchange)
+	service, err := hestia.GetServiceAccountByString(params.Service)
+	if err != nil {
+		return nil, err
+	}
+	exchange, err := a.ExFactory.GetExchangeByName(trade.Exchange, service)
 	if err != nil {
 		return nil, err
 	}
 	return exchange.GetOrderStatus(trade)
 }
 
-func (a *AdrestiaController) GetWithdrawalTxHash(_ string, body []byte, _ models.Params) (interface{}, error) {
+func (a *AdrestiaController) GetWithdrawalTxHash(_ string, body []byte, params models.Params) (interface{}, error) {
 	var withdrawInfo models.WithdrawInfo
 	err := json.Unmarshal(body, &withdrawInfo)
 	if err != nil {
 		return "", err
 	}
-	exchange, err := a.ExFactory.GetExchangeByName(withdrawInfo.Exchange)
+	service, err := hestia.GetServiceAccountByString(params.Service)
+	if err != nil {
+		return nil, err
+	}
+	exchange, err := a.ExFactory.GetExchangeByName(withdrawInfo.Exchange, service)
 	if err != nil {
 		return "", err
 	}
@@ -121,7 +137,11 @@ func (a *AdrestiaController) GetAddress(_ string, _ []byte, params models.Params
 	if err != nil {
 		return nil, err
 	}
-	ex, err := a.ExFactory.GetExchangeByCoin(*coinInfo)
+	service, err := hestia.GetServiceAccountByString(params.Service)
+	if err != nil {
+		return nil, err
+	}
+	ex, err := a.ExFactory.GetExchangeByCoin(*coinInfo, service)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +163,7 @@ func (a *AdrestiaController) GetAddress(_ string, _ []byte, params models.Params
 	return response, nil
 }
 
-func (a *AdrestiaController) GetConversionPath(_ string, body []byte, _ models.Params) (interface{}, error) {
+func (a *AdrestiaController) GetConversionPath(_ string, body []byte, params models.Params) (interface{}, error) {
 	var pathParams models.PathParams
 	err := json.Unmarshal(body, &pathParams)
 	if err != nil {
@@ -160,7 +180,11 @@ func (a *AdrestiaController) GetConversionPath(_ string, body []byte, _ models.P
 	if err != nil {
 		return nil, err
 	}
-	ex, err := a.ExFactory.GetExchangeByCoin(*coinInfo)
+	service, err := hestia.GetServiceAccountByString(params.Service)
+	if err != nil {
+		return nil, err
+	}
+	ex, err := a.ExFactory.GetExchangeByCoin(*coinInfo, service)
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +223,7 @@ func (a *AdrestiaController) GetConversionPath(_ string, body []byte, _ models.P
 	if err != nil {
 		return nil, err
 	}
-	exTarget, err := a.ExFactory.GetExchangeByCoin(*targetCoinInfo)
+	exTarget, err := a.ExFactory.GetExchangeByCoin(*targetCoinInfo, service)
 	if err != nil {
 		return nil, err
 	}
@@ -208,6 +232,9 @@ func (a *AdrestiaController) GetConversionPath(_ string, body []byte, _ models.P
 		return nil, err
 	}
 	exOutwardInfo, err := a.getExchangeInfo(exNameTarget)
+	if err != nil {
+		return nil, err
+	}
 
 	if targetCoinInfo.Info.StableCoin && pathParams.ToCoin == exOutwardInfo.StockCurrency {
 		// target coin is the exchange's stock coin
@@ -226,7 +253,7 @@ func (a *AdrestiaController) GetConversionPath(_ string, body []byte, _ models.P
 		}
 	}
 	// If origin coin is not BTC Convert first
-	tradeFlag := true;
+	tradeFlag := true
 	log.Println("CHECKING INPUT ORDER")
 	for i, trade := range inPath {
 		pairInfo, err := ex.GetPair(trade.FromCoin, trade.ToCoin)
@@ -255,7 +282,7 @@ func (a *AdrestiaController) GetConversionPath(_ string, body []byte, _ models.P
 	return path, nil
 }
 
-func (a *AdrestiaController) GetVoucherConversionPath(_ string, body []byte, _ models.Params) (interface{}, error) {
+func (a *AdrestiaController) GetVoucherConversionPath(_ string, body []byte, params models.Params) (interface{}, error) {
 	var pathParams models.VoucherPathParams
 	err := json.Unmarshal(body, &pathParams)
 	if err != nil {
@@ -273,7 +300,11 @@ func (a *AdrestiaController) GetVoucherConversionPath(_ string, body []byte, _ m
 		log.Println("GetVoucherConversionPath::GetCoin::", pathParams)
 		return nil, err
 	}
-	ex, err := a.ExFactory.GetExchangeByCoin(*coinInfo)
+	service, err := hestia.GetServiceAccountByString(params.Service)
+	if err != nil {
+		return nil, err
+	}
+	ex, err := a.ExFactory.GetExchangeByCoin(*coinInfo, service)
 	if err != nil {
 		log.Println("GetVoucherConversionPath::GetExchangeByCoin::", coinInfo.Info.Name, "::", ex)
 		return nil, err
@@ -341,8 +372,7 @@ func (a *AdrestiaController) GetVoucherConversionPath(_ string, body []byte, _ m
 	return path, nil
 }
 
-
-func (a *AdrestiaController) GetVoucherConversionPathV2(_ string, body []byte, _ models.Params) (interface{}, error) {
+func (a *AdrestiaController) GetVoucherConversionPathV2(_ string, body []byte, params models.Params) (interface{}, error) {
 	var pathParams models.VoucherPathParamsV2
 	err := json.Unmarshal(body, &pathParams)
 	if err != nil {
@@ -360,7 +390,11 @@ func (a *AdrestiaController) GetVoucherConversionPathV2(_ string, body []byte, _
 		log.Println("GetVoucherConversionPath::GetCoin::", pathParams)
 		return nil, err
 	}
-	ex, err := a.ExFactory.GetExchangeByCoin(*coinInfo)
+	service, err := hestia.GetServiceAccountByString(params.Service)
+	if err != nil {
+		return nil, err
+	}
+	ex, err := a.ExFactory.GetExchangeByCoin(*coinInfo, service)
 	if err != nil {
 		log.Println("GetVoucherConversionPath::GetExchangeByCoin::", coinInfo.Info.Name, "::", ex)
 		return nil, err
@@ -377,7 +411,7 @@ func (a *AdrestiaController) GetVoucherConversionPathV2(_ string, body []byte, _
 			return nil, cerror.ErrorNotSupportedAmount
 		}
 
-		ex, err = a.ExFactory.GetExchangeByName(coinInfo.Rates.FallBackExchange)
+		ex, err = a.ExFactory.GetExchangeByName(coinInfo.Rates.FallBackExchange, service)
 		if err != nil {
 			return nil, err
 		}
@@ -451,14 +485,17 @@ func (a *AdrestiaController) GetVoucherConversionPathV2(_ string, body []byte, _
 	return path, nil
 }
 
-
-func (a *AdrestiaController) Trade(_ string, body []byte, _ models.Params) (interface{}, error) {
+func (a *AdrestiaController) Trade(_ string, body []byte, params models.Params) (interface{}, error) {
 	var trade hestia.Trade
 	err := json.Unmarshal(body, &trade)
 	if err != nil {
 		return "", err
 	}
-	exchange, err := a.ExFactory.GetExchangeByName(trade.Exchange)
+	service, err := hestia.GetServiceAccountByString(params.Service)
+	if err != nil {
+		return nil, err
+	}
+	exchange, err := a.ExFactory.GetExchangeByName(trade.Exchange, service)
 	if err != nil {
 		return "", err
 	}
@@ -482,7 +519,11 @@ func (a *AdrestiaController) Deposit(_ string, body []byte, params models.Params
 	if err != nil {
 		return nil, err
 	}
-	ex, err := a.ExFactory.GetExchangeByCoin(*coinInfo)
+	service, err := hestia.GetServiceAccountByString(params.Service)
+	if err != nil {
+		return nil, err
+	}
+	ex, err := a.ExFactory.GetExchangeByCoin(*coinInfo, service)
 	if err != nil {
 		return nil, err
 	}
@@ -513,12 +554,16 @@ func (a *AdrestiaController) getExchangeInfo(exchange string) (info hestia.Excha
 /*
 Returns an exchange's stock balance, given an input coin.
 */
-func (a *AdrestiaController) StockBalance(_ string, body []byte, params models.Params) (interface{}, error) {
+func (a *AdrestiaController) StockBalance(_ string, _ []byte, params models.Params) (interface{}, error) {
 	coinInfo, err := coinfactory.GetCoin(params.Coin)
 	if err != nil {
 		return nil, err
 	}
-	ex, err := a.ExFactory.GetExchangeByCoin(*coinInfo)
+	service, err := hestia.GetServiceAccountByString(params.Service)
+	if err != nil {
+		return nil, err
+	}
+	ex, err := a.ExFactory.GetExchangeByCoin(*coinInfo, service)
 	if err != nil {
 		return nil, err
 	}
@@ -543,7 +588,7 @@ func (a *AdrestiaController) StockBalance(_ string, body []byte, params models.P
 	return response, nil
 }
 
-func (a *AdrestiaController) Balances(_ string, body []byte, params models.Params) (interface{}, error) {
+func (a *AdrestiaController) Balances(_ string, _ []byte, params models.Params) (interface{}, error) {
 	var response models.GlobalBalanceResponse
 
 	for coinName, coinInfo := range coinfactory.Coins {
@@ -553,8 +598,12 @@ func (a *AdrestiaController) Balances(_ string, body []byte, params models.Param
 			Balances: nil,
 			Total: 0.0,
 		}
+		service, err := hestia.GetServiceAccountByString(params.Service)
+		if err != nil {
+			return nil, err
+		}
 		// Main Exchange
-		mainExchange, err := a.ExFactory.GetExchangeByName(coinInfo.Rates.Exchange)
+		mainExchange, err := a.ExFactory.GetExchangeByName(coinInfo.Rates.Exchange, service)
 		if err == nil {
 			name, _ := mainExchange.GetName()
 			coinBalance, err := mainExchange.GetBalance(coinTicker)

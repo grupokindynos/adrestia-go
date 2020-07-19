@@ -17,14 +17,13 @@ type bittrexCurrrencyInfo struct {
 }
 
 type Bittrex struct {
-	exchangeInfo hestia.ExchangeInfo
+	Name string
 	exchange *bittrex.Bittrex
 	minConfs map[string]bittrexCurrrencyInfo
 }
 
-func NewBittrex(exchange hestia.ExchangeInfo) (*Bittrex, error) {
-
-	b := bittrex.New(exchange.ApiPublicKey, exchange.ApiPrivateKey)
+func NewBittrex(params models.ExchangeParams) (*Bittrex, error) {
+	b := bittrex.New(params.Keys.PublicKey, params.Keys.PrivateKey)
 
 	currencies, err := b.GetCurrencies()
 	if err != nil {
@@ -46,14 +45,14 @@ func NewBittrex(exchange hestia.ExchangeInfo) (*Bittrex, error) {
 	minConfs["usdt"] = ci
 
 	return &Bittrex{
-		exchangeInfo: exchange,
+		Name: params.Name,
 		exchange: b,
 		minConfs: minConfs,
 	}, nil
 }
 
 func (b *Bittrex) GetName() (string, error) {
-	return b.exchangeInfo.Name, nil
+	return b.Name, nil
 }
 
 func (b *Bittrex) GetAddress(coin string) (string, error) {

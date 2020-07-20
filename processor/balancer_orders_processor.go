@@ -64,7 +64,7 @@ func (bp *BalancerOrderProcessor) handlerBalancerOrdersExchangeDepositSent(wg *s
 	defer wg.Done()
 	balancerOrders := bp.getBalancerOrdersByStatus(hestia.BalancerOrderStatusExchangeDepositSent)
 	for _, order := range balancerOrders {
-		exchange, err := hwExFactory.GetExchangeByName(order.Exchange)
+		exchange, err := hwExFactory.GetExchangeByName(order.Exchange, hestia.ShiftAccount)
 		if err != nil {
 			log.Println("balancer_orders - handlerBalancerOrdersExchangeDepositSent - GetExchangeByName - " + err.Error())
 			continue
@@ -101,7 +101,7 @@ func (bp *BalancerOrderProcessor) handlerBalancerOrdersTrades(wg *sync.WaitGroup
 	balancerOrders := append(firstTrades, secondTrades...)
 	var tradeOrder *hestia.Trade
 	for _, order := range balancerOrders {
-		exchange, err := hwExFactory.GetExchangeByName(order.Exchange)
+		exchange, err := hwExFactory.GetExchangeByName(order.Exchange, hestia.ShiftAccount)
 		if err != nil {
 			log.Println("balancer_orders - handlerBalancerOrdersTrades - GetExchangeByName - " + err.Error())
 			continue
@@ -152,7 +152,7 @@ func (bp *BalancerOrderProcessor) handlerBalancerOrdersWithdrawal(wg *sync.WaitG
 	defer wg.Done()
 	balancerOrders := bp.getBalancerOrdersByStatus(hestia.BalancerOrderStatusWithdrawal)
 	for _, order := range balancerOrders {
-		exchange, err := hwExFactory.GetExchangeByName(order.Exchange)
+		exchange, err := hwExFactory.GetExchangeByName(order.Exchange, hestia.ShiftAccount)
 		if err != nil {
 			log.Println("balancer_orders - handlerBalancerOrdersWithdrawal - GetExchangeByName - " + err.Error())
 			continue

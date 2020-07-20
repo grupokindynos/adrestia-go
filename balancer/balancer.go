@@ -101,7 +101,7 @@ func (b *Balancer) Start(id string) error {
 }
 
 func (b *Balancer) createBalancerOrder(fromCoin string, toCoin string, amount float64) error {
-	exchange, err := exFactory.GetExchangeByName("binance") // All the stable coin conversions will be performed on binance
+	exchange, err := exFactory.GetExchangeByName("binance", hestia.ShiftAccount) // All the stable coin conversions will be performed on binance
 	if err != nil {
 		return err
 	}

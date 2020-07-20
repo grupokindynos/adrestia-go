@@ -35,7 +35,7 @@ func (wp *WithdrawalsProcessor) handlerCreatedWithdrawal(wg *sync.WaitGroup) {
 	defer wg.Done()
 	withdrawals := wp.getWithdrawalsByStatus(hestia.SimpleTxStatusCreated)
 	for _, withdrawal := range withdrawals {
-		exchange, err := hwExFactory.GetExchangeByName(withdrawal.Exchange)
+		exchange, err := hwExFactory.GetExchangeByName(withdrawal.Exchange, hestia.ShiftAccount)
 		if err != nil {
 			log.Println("withdrawals - handlerCreatedWithdrawal - GetExchangeByName - " + err.Error())
 			continue
@@ -58,7 +58,7 @@ func (wp *WithdrawalsProcessor) handlerPerformedWithdrawal(wg *sync.WaitGroup) {
 	defer wg.Done()
 	withdrawals := wp.getWithdrawalsByStatus(hestia.SimpleTxStatusPerformed)
 	for _, withdrawal := range withdrawals {
-		exchange, err := hwExFactory.GetExchangeByName(withdrawal.Exchange)
+		exchange, err := hwExFactory.GetExchangeByName(withdrawal.Exchange, hestia.ShiftAccount)
 		if err != nil {
 			log.Println("withdrawals - handlerPerformedWithdrawal - GetExchangeByName - " + err.Error())
 			continue

@@ -67,7 +67,7 @@ func (p *DepositProcessor) handlePerformedDeposit(wg *sync.WaitGroup) {
 	defer wg.Done()
 	deposits := getDepositsByStatus(hestia.SimpleTxStatusPerformed)
 	for _, deposit := range deposits {
-		exchange, err := depositstExFactory.GetExchangeByName(deposit.Exchange)
+		exchange, err := depositstExFactory.GetExchangeByName(deposit.Exchange, hestia.ShiftAccount)
 		if err != nil {
 			log.Println("deposits - handlePerformedDeposit - GetExchangeByName - " + err.Error())
 			continue

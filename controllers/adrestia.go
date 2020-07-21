@@ -292,6 +292,8 @@ func (a *AdrestiaController) GetVoucherConversionPath(_ string, body []byte, _ m
 		}
 		return nil, errors.New("adrestia could not retrieve address")
 	}
+
+	stayInBTC := StayInBTC(exName, pathParams.FromCoin)
 	if coinInfo.Info.StableCoin {
 		log.Println("payment already in stable coin")
 	} else {
@@ -302,17 +304,19 @@ func (a *AdrestiaController) GetVoucherConversionPath(_ string, body []byte, _ m
 				Exchange: exName,
 			})
 		}
-		for _, ex := range a.ExInfo {
-			if ex.Name == exName {
-				exInwardInfo = ex
-				break
+		if !stayInBTC {
+			for _, ex := range a.ExInfo {
+				if ex.Name == exName {
+					exInwardInfo = ex
+					break
+				}
 			}
+			inPath = append(inPath, models.ExchangeTrade{
+				FromCoin: "BTC",
+				ToCoin:   exInwardInfo.StockCurrency,
+				Exchange: exName,
+			})
 		}
-		inPath = append(inPath, models.ExchangeTrade{
-			FromCoin: "BTC",
-			ToCoin:   exInwardInfo.StockCurrency,
-			Exchange: exName,
-		})
 	}
 	// If origin coin is not BTC Convert first
 	tradeFlag := true
@@ -328,7 +332,11 @@ func (a *AdrestiaController) GetVoucherConversionPath(_ string, body []byte, _ m
 
 	path.InwardOrder = inPath
 	path.Trade = tradeFlag
-	path.TargetStableCoin = exInwardInfo.StockCurrency
+	if stayInBTC {
+		path.TargetStableCoin = "BTC"
+	} else {
+		path.TargetStableCoin = exInwardInfo.StockCurrency
+	}
 	path.Address = address
 	return path, nil
 }
@@ -379,6 +387,7 @@ func (a *AdrestiaController) GetVoucherConversionPathV2(_ string, body []byte, _
 	}
 
 	directConversion := HasDirectConversionToStableCoin(exName, pathParams.FromCoin)
+	stayInBTC := StayInBTC(exName, pathParams.FromCoin)
 
 	address, err := ex.GetAddress(pathParams.FromCoin)
 	if err != nil || address == "" {
@@ -412,11 +421,14 @@ func (a *AdrestiaController) GetVoucherConversionPathV2(_ string, body []byte, _
 					Exchange: exName,
 				})
 			}
-			inPath = append(inPath, models.ExchangeTrade{
-				FromCoin: "BTC",
-				ToCoin:   exInwardInfo.StockCurrency,
-				Exchange: exName,
-			})
+
+			if !stayInBTC {
+				inPath = append(inPath, models.ExchangeTrade{
+					FromCoin: "BTC",
+					ToCoin:   exInwardInfo.StockCurrency,
+					Exchange: exName,
+				})
+			}
 		}
 	}
 	// If origin coin is not BTC Convert first
@@ -566,4 +578,34 @@ func (a *AdrestiaController) CoinBalance(_ string, body []byte, params models.Pa
 		return nil, err
 	}
 	return bal, nil
+}
+
+func (a *AdrestiaController) Balances(_ string, body []byte, params models.Params) (interface{}, error) {
+	var response models.GlobalBalanceResponse
+
+	for coinName, coinInfo := range coinfactory.Coins {
+		coinTicker := coinInfo.Info.Tag
+		asset := models.AssetGlobalBalance{
+			Asset:  coinName + " (" + coinTicker + ")",
+			Balances: nil,
+			Total: 0.0,
+		}
+		// Main Exchange
+		mainExchange, err := a.ExFactory.GetExchangeByName(coinInfo.Rates.Exchange)
+		if err == nil {
+			name, _ := mainExchange.GetName()
+			coinBalance, err := mainExchange.GetBalance(coinTicker)
+			if err == nil {
+				balanceMain := models.BalanceResponse{
+					Exchange: name,
+					Balance:  coinBalance,
+					Asset:    coinTicker,
+				}
+				asset.Balances = append(asset.Balances, balanceMain)
+				asset.Total += balanceMain.Balance
+			}
+		}
+		response.Assets = append(response.Assets, asset)
+	}
+	return response, nil
 }

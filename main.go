@@ -148,8 +148,8 @@ func main() {
 		ExInfo:         exchangeInfo,
 		PaymentCoin:    "USDT",
 		BTCExchanges:   map[string]bool{"southxchange": true},
-		PaymentAddress: "0x9d7c5c959ee456654992d3ba5915f6f4a4dc9542",
-		BTCAddress:     "3PSRznWSgpxmYbSuCvERhp3zNKmxXEkeVV",
+		PaymentAddress: os.Getenv("USDT_ADDRESS_BITCOU"),
+		BTCAddress:     os.Getenv("BTC_ADDRESS_BITCOU"),
 		TgBot:  telegram.NewTelegramBot(os.Getenv("BITCOU_TELEGRAM_KEY"), os.Getenv("BITCOU_CHAT_ID")),
 	}
 

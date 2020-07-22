@@ -3,6 +3,7 @@ package services
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/google/go-querystring/query"
 	"github.com/grupokindynos/adrestia-go/models"
 	"github.com/grupokindynos/common/hestia"
@@ -76,8 +77,8 @@ func (h *HestiaRequests) GetDeposits(includeComplete bool, sinceTimestamp int64)
 	return response, nil
 }
 
-func (h *HestiaRequests) GetWithdrawals(includeComplete bool, sinceTimestamp int64) ([]hestia.SimpleTx, error) {
-	payload, err := h.get("/adrestia/withdrawals", models.GetFilters{IncludeComplete:includeComplete, AddedSince:sinceTimestamp})
+func (h *HestiaRequests) GetWithdrawals(includeComplete bool, sinceTimestamp int64, balancerId string) ([]hestia.SimpleTx, error) {
+	payload, err := h.get("/adrestia/withdrawals", models.GetFilters{IncludeComplete:includeComplete, AddedSince:sinceTimestamp, BalancerId: balancerId})
 	if err != nil {
 		return nil, err
 	}
@@ -184,6 +185,20 @@ func (h *HestiaRequests) UpdateBalancerOrder(order hestia.BalancerOrder) (string
 		return "", err
 	}
 	return doResponseToString(h.do(req))
+}
+
+// Bitcou Payment
+func (h *HestiaRequests) GetVouchersByStatusV2(status hestia.VoucherStatusV2) ([]hestia.VoucherV2, error) {
+	payload, err := h.get("/voucher2/all?filter="+fmt.Sprintf("%d", status), models.GetFilters{})
+	if err != nil {
+		return nil, err
+	}
+	var response []hestia.VoucherV2
+	err = json.Unmarshal(payload, &response)
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
 }
 
 func (h *HestiaRequests) get(url string, params models.GetFilters) ([]byte, error) {

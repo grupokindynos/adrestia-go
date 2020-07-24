@@ -73,6 +73,12 @@ func (b *Binance) GetAddress(coin string) (string, error) {
 		l.Println("binance - GetAddress - DepositAddress() - ", err.Error())
 		return "", err
 	}
+
+	if address.Address == "" {
+		l.Println("binance::GetAddress::EmptyAddress")
+		return "", errors.New("empty address")
+	}
+
 	return address.Address, nil
 }
 
@@ -157,7 +163,7 @@ func (b *Binance) GetPair(fromCoin string, toCoin string) (models.TradeInfo, err
 
 func (b *Binance) GetBalance(coin string) (float64, error) {
 	res, err := b.binanceApi.Account(binance.AccountRequest{
-		RecvWindow: 5 * time.Second,
+		RecvWindow: 6 * time.Second,
 		Timestamp:  time.Now(),
 	})
 

@@ -6,6 +6,7 @@ type GetFilters struct {
 	Id              string `json:"id"`
 	IncludeComplete bool   `json:"include_complete"`
 	AddedSince      int64  `json:"added_since"`
+	BalancerId      string `json:"balancer_id"`
 }
 
 type TradeInfo struct {
@@ -22,6 +23,11 @@ type ExchangeTradeOrder struct {
 type Params struct {
 	Coin string `json:"coin"`
 	Service string
+}
+
+type ParamsV2 struct {
+	Coin string `json:"coin"`
+	Exchange string `json:"exchange"`
 }
 
 type AddressResponse struct {

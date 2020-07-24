@@ -588,7 +588,46 @@ func (a *AdrestiaController) StockBalance(_ string, _ []byte, params models.Para
 	return response, nil
 }
 
-func (a *AdrestiaController) Balances(_ string, _ []byte, params models.Params) (interface{}, error) {
+func (a *AdrestiaController) CoinBalance(_ string, body []byte, params models.ParamsV2) (interface{}, error) {
+	var asset string
+	var exchange exchanges.Exchange
+	var err error
+	if params.Coin != "" && params.Exchange != "" {
+		exchange, err = a.ExFactory.GetExchangeByName(params.Exchange)
+		if err != nil {
+			return nil, err
+		}
+		asset = params.Coin
+	} else if params.Coin != "" {
+		coinInfo, err := coinfactory.GetCoin(params.Coin)
+		if err != nil {
+			return nil, err
+		}
+		exchange, err = a.ExFactory.GetExchangeByCoin(*coinInfo)
+		if err != nil {
+			return nil, err
+		}
+		asset = params.Coin
+	} else {
+		exchange, err = a.ExFactory.GetExchangeByName(params.Exchange)
+		if err != nil {
+			return nil, err
+		}
+		exInfo, err := a.getExchangeInfo(params.Exchange)
+		if err != nil {
+			return nil, err
+		}
+		asset = exInfo.StockCurrency
+	}
+
+	bal, err := exchange.GetBalance(asset)
+	if err != nil {
+		return nil, err
+	}
+	return bal, nil
+}
+
+func (a *AdrestiaController) Balances(_ string, body []byte, params models.Params) (interface{}, error) {
 	var response models.GlobalBalanceResponse
 
 	for coinName, coinInfo := range coinfactory.Coins {

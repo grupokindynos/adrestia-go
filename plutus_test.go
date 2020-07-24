@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/grupokindynos/adrestia-go/models"
 	"log"
 	"os"
 	"testing"
@@ -92,7 +93,13 @@ func TestBlockbook(t *testing.T) {
 func TestExchange(t *testing.T) {
 	hr := services.HestiaRequests{HestiaURL: os.Getenv("HESTIA_LOCAL_URL")}
 	exchange, _ := hr.GetExchange("southxchange")
-	ex := exchanges.NewSouthXchange(exchange)
+	ex := exchanges.NewSouthXchange(models.ExchangeParams{
+		Name: "southxchange",
+		Keys: hestia.ApiKeys{
+			PublicKey: exchange.Accounts[0].PublicKey,
+			PrivateKey: exchange.Accounts[0].PrivateKey,
+		},
+	})
 	buy := hestia.Trade{
 		OrderId:  "",
 		Amount:   18,

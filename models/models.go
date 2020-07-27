@@ -28,7 +28,7 @@ type Params struct {
 type ParamsV2 struct {
 	Coin string `json:"coin"`
 	Exchange string `json:"exchange"`
-	Service hestia.ServiceAccount `json:"service"`
+	Service string `json:"service"`
 }
 
 type AddressResponse struct {

@@ -2,6 +2,7 @@ package exchanges
 
 import (
 	"errors"
+	"github.com/grupokindynos/adrestia-go/models"
 	"github.com/grupokindynos/adrestia-go/services"
 	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/obol"
@@ -10,7 +11,6 @@ import (
 
 	coinfactory "github.com/grupokindynos/common/coin-factory"
 	"github.com/grupokindynos/common/coin-factory/coins"
-	"github.com/joho/godotenv"
 )
 
 type ExchangeFactory struct {
@@ -20,10 +20,6 @@ type ExchangeFactory struct {
 }
 
 func NewExchangeFactory(obol obol.ObolService, hestiaDb services.HestiaService) *ExchangeFactory {
-	if err := godotenv.Load(); err != nil {
-		log.Println("Not .env file found for ExchangeFactory")
-	}
-
 	exFactory := new(ExchangeFactory)
 	exchanges, err := hestiaDb.GetExchanges()
 	if err != nil {
@@ -41,28 +37,35 @@ func NewExchangeFactory(obol obol.ObolService, hestiaDb services.HestiaService) 
 	return exFactory
 }
 
-func (e *ExchangeFactory) createInstance(name string) (Exchange, error) {
+func (e *ExchangeFactory) createInstance(name string, service hestia.ServiceAccount) (Exchange, error) {
 	var exName = strings.ToLower(name)
-	if exName == "binance" {
-		return NewBinance(e.exchangesInfo[exName]), nil
-	} else if exName == "southxchange" {
-		return NewSouthXchange(e.exchangesInfo[exName]), nil
-	} else if exName == "stex" {
-		return NewStex(e.exchangesInfo[exName])
-	} else if exName == "bittrex" {
-		return NewBittrex(e.exchangesInfo[exName])
-	} else if exName == "crex24" {
-		return NewCrex24(e.exchangesInfo[exName]), nil
-	} else {
-		return nil, errors.New("Exchange not found")
+	if val, ok := e.exchangesInfo[exName]; ok {
+		params := models.ExchangeParams{
+			Name: val.Name,
+			Keys: val.Accounts[service],
+		}
+		switch exName {
+			case "binance":
+				return NewBinance(params), nil
+			case "southxchange":
+				return NewSouthXchange(params), nil
+			case "stex":
+				return NewStex(params)
+			case "bittrex":
+				return NewBittrex(params)
+			case "crex24":
+				return NewCrex24(params), nil
+		}
 	}
+
+	return nil, errors.New("Exchange not found")
 }
 
-func (e *ExchangeFactory) GetExchangeByCoin(coin coins.Coin) (Exchange, error) {
+func (e *ExchangeFactory) GetExchangeByCoin(coin coins.Coin, service hestia.ServiceAccount) (Exchange, error) {
 	coinInfo, _ := coinfactory.GetCoin(coin.Info.Tag)
-	return e.createInstance(coinInfo.Rates.Exchange)
+	return e.createInstance(coinInfo.Rates.Exchange, service)
 }
 
-func (e *ExchangeFactory) GetExchangeByName(name string) (Exchange, error) {
-	return e.createInstance(name)
+func (e *ExchangeFactory) GetExchangeByName(name string, service hestia.ServiceAccount) (Exchange, error) {
+	return e.createInstance(name, service)
 }

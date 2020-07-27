@@ -17,7 +17,8 @@ import (
 )
 
 type Stex struct {
-	exchangeInfo hestia.ExchangeInfo
+	Name string
+	PrivateKey string
 	client      *http.Client
 	currencyIDs map[string]currencyInfo
 	pairIDs     map[string]pairInfo
@@ -66,9 +67,10 @@ type pairInfo struct {
 }
 
 // NewStex creates a new STEX exchange instance.
-func NewStex(exchange hestia.ExchangeInfo) (*Stex, error) {
+func NewStex(params models.ExchangeParams) (*Stex, error) {
 	s := &Stex{
-		exchangeInfo: exchange,
+		Name:        params.Name,
+		PrivateKey:  params.Keys.PrivateKey,
 		client:      http.DefaultClient,
 		currencyIDs: map[string]currencyInfo{},
 		pairIDs:     map[string]pairInfo{},
@@ -212,7 +214,7 @@ type stexOrderBookResponse struct {
 	} `json:"data"`
 }
 
-func (s *Stex) getBestPrice(amount decimal.Decimal, market string, side string) (decimal.Decimal, error) {
+func (s *Stex) getBestPrice(market string, side string) (decimal.Decimal, error) {
 	respBytes, err := s.doRequest("GET", fmt.Sprintf("/public/orderbook/%d", s.pairIDs[market].id), nil)
 	if err != nil {
 		return decimal.Decimal{}, err
@@ -266,7 +268,7 @@ func (s *Stex) SellAtMarketPrice(sellOrder hestia.Trade) (string, error) {
 			return "", err
 		}
 		buyAmount := amount.Div(*price)
-		bestPrice, err := s.getBestPrice(buyAmount, marketPair, "buy")
+		bestPrice, err := s.getBestPrice(marketPair, "buy")
 		if err != nil {
 			return "", err
 		}
@@ -281,7 +283,7 @@ func (s *Stex) SellAtMarketPrice(sellOrder hestia.Trade) (string, error) {
 			return "", err
 		}
 	} else {
-		bestPrice, err := s.getBestPrice(amount, marketPair, "sell")
+		bestPrice, err := s.getBestPrice(marketPair, "sell")
 		if err != nil {
 			return "", err
 		}
@@ -443,7 +445,7 @@ type stexWithdrawInfoResponse struct {
 	} `json:"data"`
 }
 
-func (s *Stex) GetWithdrawalTxHash(txId string, asset string) (string, error) {
+func (s *Stex) GetWithdrawalTxHash(txId string, _ string) (string, error) {
 	withdrawInfoBytes, err := s.doRequest("GET", fmt.Sprintf("/profile/withdrawals/%s", txId), nil)
 	if err != nil {
 		return "", err
@@ -544,6 +546,10 @@ func (s *Stex) GetAddress(asset string) (string, error) {
 	}
 
 	coinInfo, err := coinfactory.GetCoin(asset)
+	if err != nil {
+		return "", err
+	}
+
 	if coinInfo.Info.Token {
 		for _, depositAddress := range walletResponse.Data.MultiDepositAddresses {
 			if depositAddress.ProtocolName == "ERC20" {
@@ -567,7 +573,7 @@ func (s *Stex) doRequest(method string, path string, body url.Values) ([]byte, e
 		return nil, err
 	}
 
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.exchangeInfo.ApiPrivateKey))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.PrivateKey))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	res, err := s.client.Do(req)
@@ -585,5 +591,5 @@ func (s *Stex) doRequest(method string, path string, body url.Values) ([]byte, e
 }
 
 func (s *Stex) GetName() (string, error) {
-	return s.exchangeInfo.Name, nil
+	return s.Name, nil
 }

@@ -22,25 +22,25 @@ type binanceCurrencyInfo struct {
 }
 
 type Binance struct {
-	exchangeInfo hestia.ExchangeInfo
+	Name string
 	binanceApi  binance.Binance
 	currenciesInfo map[string]binanceCurrencyInfo
 }
 
-func NewBinance(exchange hestia.ExchangeInfo) *Binance {
+func NewBinance(params models.ExchangeParams) *Binance {
 	c := new(Binance)
-	c.exchangeInfo = exchange
+	c.Name = params.Name
 	var logger log.Logger
 	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 	logger = log.With(logger, "time", log.DefaultTimestampUTC, "caller", log.DefaultCaller)
 
 	hmacSigner := &binance.HmacSigner{
-		Key: []byte(exchange.ApiPrivateKey),
+		Key: []byte(params.Keys.PrivateKey),
 	}
 	ctx, _ := context.WithCancel(context.Background())
 	binanceService := binance.NewAPIService(
 		"https://api.binance.com",
-		exchange.ApiPublicKey,
+		params.Keys.PublicKey,
 		hmacSigner,
 		logger,
 		ctx,
@@ -61,7 +61,7 @@ func NewBinance(exchange hestia.ExchangeInfo) *Binance {
 }
 
 func (b *Binance) GetName() (string, error) {
-	return b.exchangeInfo.Name, nil
+	return b.Name, nil
 }
 
 func (b *Binance) GetAddress(coin string) (string, error) {
@@ -181,6 +181,7 @@ func (b *Binance) GetBalance(coin string) (float64, error) {
 func (b *Binance) SellAtMarketPrice(order hestia.Trade) (string, error) {
 	var side binance.OrderSide
 	var newOrder *binance.ProcessedOrder
+	var precision int
 	var err error
 	quoteOrderAvailable, err := b.isQuoteOrderAvailable(order.Symbol)
 	if err != nil {
@@ -188,7 +189,7 @@ func (b *Binance) SellAtMarketPrice(order hestia.Trade) (string, error) {
 		return "", err
 	}
 	if order.Side == "buy" && quoteOrderAvailable {
-		precision, err := b.getTradePrecision(order.Symbol, "quote")
+		precision, err = b.getTradePrecision(order.Symbol, "quote")
 		if err != nil {
 			l.Println("binance - SellAtMarketPrice - getTradePrecision() - " + err.Error())
 			return "", err
@@ -222,7 +223,7 @@ func (b *Binance) SellAtMarketPrice(order hestia.Trade) (string, error) {
 			side = binance.SideSell
 			amount = order.Amount
 		}
-		precision, err := b.getTradePrecision(order.Symbol, "base")
+		precision, err = b.getTradePrecision(order.Symbol, "base")
 		if err != nil {
 			l.Println("binance - SellAtMarketPrice - getTradePrecision() - " + err.Error())
 			return "", err

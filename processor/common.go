@@ -6,6 +6,7 @@ import (
 	"github.com/grupokindynos/adrestia-go/services"
 	cf "github.com/grupokindynos/common/coin-factory"
 	"github.com/grupokindynos/common/explorer"
+	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/obol"
 	"math"
 	"strconv"
@@ -48,7 +49,7 @@ func getPlutusReceivedAmount(addr string, txId string) (float64, error) {
 }
 
 func getBalance(exFac *exchanges.ExchangeFactory, exchangeName string, currency string) (float64, error) {
-	exchange, err := exFac.GetExchangeByName(exchangeName)
+	exchange, err := exFac.GetExchangeByName(exchangeName, hestia.ShiftAccount)
 	if err != nil {
 		return 0, nil
 	}

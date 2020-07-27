@@ -100,7 +100,7 @@ func (p *ExchangesProcessor) balanceExchanges() {
 }
 
 func (p *ExchangesProcessor) createDeposit(exchangeInfo hestia.ExchangeInfo, amount float64) error {
-	exchangeInstance, err := exchangeFactory.GetExchangeByName(exchangeInfo.Name)
+	exchangeInstance, err := exchangeFactory.GetExchangeByName(exchangeInfo.Name, hestia.ShiftAccount)
 	if err != nil {
 		return err
 	}

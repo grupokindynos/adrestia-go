@@ -15,19 +15,19 @@ import (
 )
 
 type SouthXchange struct {
-	exchangeInfo hestia.ExchangeInfo
+	Name string
 	southClient  south.SouthXchange
 }
 
-func NewSouthXchange(exchange hestia.ExchangeInfo) *SouthXchange {
+func NewSouthXchange(params models.ExchangeParams) *SouthXchange {
 	s := new(SouthXchange)
-	s.exchangeInfo = exchange
-	s.southClient = *south.New(exchange.ApiPublicKey, exchange.ApiPrivateKey, "user-agent")
+	s.Name = params.Name
+	s.southClient = *south.New(params.Keys.PublicKey, params.Keys.PrivateKey, "user-agent")
 	return s
 }
 
 func (s *SouthXchange) GetName() (string, error) {
-	return s.exchangeInfo.Name, nil
+	return s.Name, nil
 }
 
 func (s *SouthXchange) GetAddress(coin string) (string, error) {
@@ -54,11 +54,11 @@ func (s *SouthXchange) GetAddress(coin string) (string, error) {
 			}
 			time.Sleep(90 * time.Second) // wait 90 seconds to generate a new address
 		} else {
-			os.Setenv(envTag, address)
+			_ = os.Setenv(envTag, address)
 			break
 		}
 	}
-	str := string(address)
+	str := address
 	str = strings.Replace(str, "\\", "", -1)
 	str = strings.Replace(str, "\"", "", -1)
 	str = strings.Replace(str, "/", "", -1)
@@ -114,12 +114,13 @@ func (s *SouthXchange) SellAtMarketPrice(order hestia.Trade) (string, error) {
 	l, r := order.GetTradingPair()
 	var res string
 	var err error
+	var bestPrice float64
 
 	var orderType south.OrderType
 
 	if order.Side == "buy" {
 		orderType = south.Buy
-		bestPrice, err := s.getBestPrice(decimal.NewFromFloat(order.Amount), l, r, "buy")
+		bestPrice, err = s.getBestPrice(decimal.NewFromFloat(order.Amount), l, r, "buy")
 		if err != nil {
 			return "", err
 		}
@@ -127,7 +128,7 @@ func (s *SouthXchange) SellAtMarketPrice(order hestia.Trade) (string, error) {
 		res, err = s.southClient.PlaceOrder(l, r, orderType, buyAmount, bestPrice, false)
 	} else {
 		orderType = south.Sell
-		bestPrice, err := s.getBestPrice(decimal.NewFromFloat(order.Amount), l, r, "sell")
+		bestPrice, err = s.getBestPrice(decimal.NewFromFloat(order.Amount), l, r, "sell")
 		if err != nil {
 			return "", err
 		}

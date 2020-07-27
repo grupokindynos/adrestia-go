@@ -20,7 +20,8 @@ import (
 )
 
 type Crex24 struct {
-	exchangeInfo hestia.ExchangeInfo
+	Name string
+	Keys hestia.ApiKeys
 	client *http.Client
 	crexCurrenciesInfo map[string]currenciesResponse
 }
@@ -32,10 +33,11 @@ type currenciesResponse struct {
 	WithdrawalPrecision int `json:"withdrawalPrecision"`
 }
 
-func NewCrex24(exchange hestia.ExchangeInfo) *Crex24 {
+func NewCrex24(params models.ExchangeParams) *Crex24 {
 
 	crex := Crex24{
-		exchangeInfo: exchange,
+		Name: params.Name,
+		Keys: params.Keys,
 		client: &http.Client{},
 		crexCurrenciesInfo: make(map[string]currenciesResponse),
 	}
@@ -52,7 +54,7 @@ func NewCrex24(exchange hestia.ExchangeInfo) *Crex24 {
 }
 
 func (c *Crex24) GetName() (string, error) {
-	return c.exchangeInfo.Name, nil
+	return c.Name, nil
 }
 
 type errorDescriptionResponse struct {
@@ -76,7 +78,7 @@ func (c *Crex24) doRequest(method string, path string, body []byte) ([]byte, err
 		return nil, err
 	}
 
-	hmacB64, err := base64.StdEncoding.DecodeString(c.exchangeInfo.ApiPrivateKey)
+	hmacB64, err := base64.StdEncoding.DecodeString(c.Keys.PrivateKey)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +92,7 @@ func (c *Crex24) doRequest(method string, path string, body []byte) ([]byte, err
 
 	sig := h.Sum(nil)
 
-	req.Header.Set("x-crex24-api-key", c.exchangeInfo.ApiPublicKey)
+	req.Header.Set("x-crex24-api-key", c.Keys.PublicKey)
 	req.Header.Set("x-crex24-api-nonce", nonce)
 	req.Header.Set("x-crex24-api-sign", base64.StdEncoding.EncodeToString(sig))
 

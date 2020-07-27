@@ -10,7 +10,7 @@ func HasDirectConversionToStableCoin(exchange string, coin string) bool {
 	return whiteList[coin]
 }
 
-func StayInBTC(exchange string, coin string) bool {
+func StayInBTC(exchange string, _ string) bool {
 	return exchange == "southxchange"
 }
 

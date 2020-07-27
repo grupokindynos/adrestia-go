@@ -22,11 +22,13 @@ type ExchangeTradeOrder struct {
 
 type Params struct {
 	Coin string `json:"coin"`
+	Service string
 }
 
 type ParamsV2 struct {
 	Coin string `json:"coin"`
 	Exchange string `json:"exchange"`
+	Service string `json:"service"`
 }
 
 type AddressResponse struct {
@@ -117,4 +119,9 @@ type AssetGlobalBalance struct {
 	Asset string `json:"asset"`
 	Balances []BalanceResponse `json:"balances"`
 	Total float64 `json:"total"`
+}
+
+type ExchangeParams struct {
+	Name string
+	Keys hestia.ApiKeys
 }

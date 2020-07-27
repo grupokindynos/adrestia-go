@@ -593,7 +593,7 @@ func (a *AdrestiaController) CoinBalance(_ string, body []byte, params models.Pa
 	var exchange exchanges.Exchange
 	var err error
 	if params.Coin != "" && params.Exchange != "" {
-		exchange, err = a.ExFactory.GetExchangeByName(params.Exchange)
+		exchange, err = a.ExFactory.GetExchangeByName(params.Exchange, params.Service)
 		if err != nil {
 			return nil, err
 		}
@@ -603,13 +603,13 @@ func (a *AdrestiaController) CoinBalance(_ string, body []byte, params models.Pa
 		if err != nil {
 			return nil, err
 		}
-		exchange, err = a.ExFactory.GetExchangeByCoin(*coinInfo)
+		exchange, err = a.ExFactory.GetExchangeByCoin(*coinInfo, params.Service)
 		if err != nil {
 			return nil, err
 		}
 		asset = params.Coin
 	} else {
-		exchange, err = a.ExFactory.GetExchangeByName(params.Exchange)
+		exchange, err = a.ExFactory.GetExchangeByName(params.Exchange, params.Service)
 		if err != nil {
 			return nil, err
 		}

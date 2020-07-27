@@ -32,8 +32,8 @@ type BitcouPayment struct {
 }
 
 var withdrawals[] hestia.SimpleTx
-var MINIMUM_PAYMENT_AMOUNT = 1000.0
-var MINIMUM_WITHDRAWAL_AMOUNT = 50.0
+const minimumPaymentAmount = 1000.0
+const minimumWithdrawalAmount = 50.0
 
 
 func (bp *BitcouPayment) GenerateWithdrawals() {
@@ -55,7 +55,7 @@ func (bp *BitcouPayment) GenerateWithdrawals() {
 			paymentCoin = bp.PaymentCoin
 		}
 
-		exInstance, err := bp.ExFactory.GetExchangeByName(exchange.Name)
+		exInstance, err := bp.ExFactory.GetExchangeByName(exchange.Name, hestia.VouchersAccount)
 		if err != nil {
 			log.Println("bitcouPayment::Start::GetExchangeByName::" + err.Error())
 			continue
@@ -72,7 +72,7 @@ func (bp *BitcouPayment) GenerateWithdrawals() {
 			bal *= rateBtcUsd
 		}
 
-		if bal >= MINIMUM_WITHDRAWAL_AMOUNT {
+		if bal >= minimumWithdrawalAmount {
 			if paymentCoin == "BTC" {
 				balances[exchange.Name] = balBTC
 			} else {
@@ -83,7 +83,7 @@ func (bp *BitcouPayment) GenerateWithdrawals() {
 		}
 	}
 
-	if totalBalanceUSD >= MINIMUM_PAYMENT_AMOUNT {
+	if totalBalanceUSD >= minimumPaymentAmount {
 		for _, exchange := range bp.ExInfo {
 			if _, ok := balances[exchange.Name]; !ok {continue}
 			if _, ok := bp.BTCExchanges[exchange.Name]; ok { // exchanges where we should leave payment coin on BTC
@@ -95,7 +95,7 @@ func (bp *BitcouPayment) GenerateWithdrawals() {
 				paymentAddress = bp.PaymentAddress
 			}
 
-			exInstance, err := bp.ExFactory.GetExchangeByName(exchange.Name)
+			exInstance, err := bp.ExFactory.GetExchangeByName(exchange.Name, hestia.VouchersAccount)
 			if err != nil {
 				log.Println("bitcouPayment::Start::GetExchangeByName::" + err.Error())
 				continue
@@ -127,7 +127,7 @@ func (bp *BitcouPayment) GenerateWithdrawals() {
 			}
 		}
 	} else {
-		bp.TgBot.SendMessage(fmt.Sprintf("Total balance is less than the minimum payment amount.\nMinimum payment amount: %f USD\nTotal balance: %f USD", MINIMUM_PAYMENT_AMOUNT, totalBalanceUSD))
+		bp.TgBot.SendMessage(fmt.Sprintf("Total balance is less than the minimum payment amount.\nMinimum payment amount: %f USD\nTotal balance: %f USD", minimumPaymentAmount, totalBalanceUSD))
 	}
 }
 
@@ -150,7 +150,7 @@ func (bp *BitcouPayment) handleCreatedWithdrawals(wg *sync.WaitGroup) {
 	defer wg.Done()
 	withdrawals := getWithdrawalsByStatus(hestia.SimpleTxStatusCreated)
 	for _, withdrawal := range withdrawals {
-		exchange, err := bp.ExFactory.GetExchangeByName(withdrawal.Exchange)
+		exchange, err := bp.ExFactory.GetExchangeByName(withdrawal.Exchange, hestia.VouchersAccount)
 		if err != nil {
 			log.Println("bitcouPayment::handleWithdrawals::GetExchangeByName::" + err.Error())
 			continue
@@ -212,7 +212,7 @@ func getBitcouReceivedAmount(currency string, addr string, txId string) (float64
 	token := false
 	coin, err := cf.GetCoin(currency)
 	if err != nil {
-		return 0.0, errors.New("Unable to get coin")
+		return 0.0, errors.New("unable to get coin")
 	}
 	if coin.Info.Token && coin.Info.Tag != "ETH" {
 		coin, _ = cf.GetCoin("ETH")

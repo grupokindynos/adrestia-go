@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/grupokindynos/adrestia-go/exchanges"
 	"github.com/grupokindynos/adrestia-go/models"
 	"github.com/grupokindynos/adrestia-go/services"
@@ -457,6 +458,10 @@ func (a *AdrestiaController) GetVoucherConversionPathV2(_ string, body []byte, p
 	path.InwardOrder = inPath
 	path.Trade = tradeFlag
 	path.TargetStableCoin = exInwardInfo.StockCurrency
+	if stayInBTC {
+		path.TargetStableCoin = "BTC"
+	}
+
 	path.Address = address
 	return path, nil
 }
@@ -552,6 +557,7 @@ func (a *AdrestiaController) StockBalance(_ string, _ []byte, params models.Para
 		Balance:  balance,
 		Asset: exInfo.StockCurrency,
 	}
+	fmt.Println("Stock Balance: ", response)
 	return response, nil
 }
 

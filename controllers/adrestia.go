@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/grupokindynos/adrestia-go/exchanges"
 	"github.com/grupokindynos/adrestia-go/models"
 	"github.com/grupokindynos/adrestia-go/services"
@@ -557,7 +556,6 @@ func (a *AdrestiaController) StockBalance(_ string, _ []byte, params models.Para
 		Balance:  balance,
 		Asset: exInfo.StockCurrency,
 	}
-	fmt.Println("Stock Balance: ", response)
 	return response, nil
 }
 

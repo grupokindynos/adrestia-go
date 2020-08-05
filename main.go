@@ -238,7 +238,8 @@ func ValidateRequestV2(c *gin.Context, method func(uid string, payload []byte, p
 		Coin: c.Param("coin"),
 		Exchange: c.Param("exchange"),
 	}
-	payload, err := mvt.VerifyRequest(c)
+	payload, s, err := mvt.VerifyRequest(c)
+	params.Service  = s
 	response, err := method(uid, payload, params)
 	if err != nil {
 		responses.GlobalOpenError(nil, err, c)
@@ -258,7 +259,8 @@ func ValidateRequest(c *gin.Context, method func(uid string, payload []byte, par
 		Coin: c.Param("coin"),
 		Service: c.GetHeader("service"),
 	}
-	payload, err := mvt.VerifyRequest(c)
+	payload, s,  err := mvt.VerifyRequest(c)
+	params.Service = s
 	response, err := method(uid, payload, params)
 	if err != nil {
 		responses.GlobalOpenError(nil, err, c)

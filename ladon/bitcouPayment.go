@@ -208,7 +208,7 @@ func getWithdrawalsByStatus(status hestia.SimpleTxStatus) (filteredWithdrawals [
 	return
 }
 
-func getBitcouReceivedAmount(currency string, addr string, txId string) (float64, error) { // Currently doesnt support tokens
+func getBitcouReceivedAmount(currency string, addr string, txId string) (float64, error) {
 	token := false
 	coin, err := cf.GetCoin(currency)
 	if err != nil {

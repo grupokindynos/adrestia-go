@@ -76,11 +76,11 @@ func runBitcouPayment() {
 	ticker := time.NewTicker(5 * time.Minute)
 	generatedWithdrawals := false
 	for _ = range ticker.C {
-		if time.Now().Hour() != 9 {
+		if time.Now().Hour() != 17 {
 			generatedWithdrawals = false
 		}
 
-		if time.Now().Hour() == 9 && !generatedWithdrawals {
+		if time.Now().Hour() == 17 && !generatedWithdrawals {
 			bitcouPayment.GenerateWithdrawals()
 			generatedWithdrawals = true
 		} else {

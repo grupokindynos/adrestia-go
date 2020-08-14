@@ -53,21 +53,29 @@ func (p *ExchangesProcessor) Start() {
 		return
 	}
 	exchangeFactory = exchanges.NewExchangeFactory(p.Obol, p.Hestia)
+	err = p.Hestia.ChangeShiftProcessorStatus(false)
+	if err != nil {
+		log.Println("ex_balancer::Start::ChangeShiftProcessorStatus::" + err.Error())
+		return
+	}
 	p.balanceExchanges()
 }
 
 func (p *ExchangesProcessor) balanceExchanges() {
+	// Traer balances sin shifts
+	balances, err := GetStockBalancesWithoutPendingShifts(p.Hestia, exchangesInfo, exchangeFactory)
+	if err != nil {
+		log.Println("ex_balancer::balanceExchanges::GetStockBalancesWithoutPendingShifts::" + err.Error())
+		return
+	}
 	for _, exchangeInfo := range exchangesInfo {
-		bal, err := getBalance(exchangeFactory, exchangeInfo.Name, exchangeInfo.StockCurrency)
-		if err != nil {
-			log.Println("ex_balancer - balanceExchanges - " + err.Error())
-			continue
-		}
-		if bal < exchangeInfo.StockMinimumAmount {
-			err := p.createDeposit(exchangeInfo, exchangeInfo.StockExpectedAmount - bal)
-			if err != nil {
-				// This error is important, we should send a telegram message
-				log.Println("ex_balancer - balanceExchanges - " + err.Error())
+		if bal, ok := balances[exchangeInfo.Name]; ok {
+			if bal < exchangeInfo.StockMinimumAmount {
+				err := p.createDeposit(exchangeInfo, exchangeInfo.StockExpectedAmount - bal)
+				if err != nil {
+					// This error is important, we should send a telegram message
+					log.Println("ex_balancer - balanceExchanges - " + err.Error())
+				}
 			}
 		}
 	}
@@ -84,6 +92,10 @@ func (p *ExchangesProcessor) balanceExchanges() {
 			if err != nil {
 				log.Println("ex_balancer - balanceExchanges - createDeposit - " + err.Error())
 			}
+		}
+		err := p.Hestia.ChangeShiftProcessorStatus(true)
+		if err != nil {
+			log.Println("ex_balancer::balanceExchanges::ChangeShiftProcessorStatus::" + err.Error())
 		}
 	} else {
 		balancer := hestia.Balancer{

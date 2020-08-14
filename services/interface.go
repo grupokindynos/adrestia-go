@@ -22,6 +22,8 @@ type HestiaService interface {
 	UpdateBalancerOrder(order hestia.BalancerOrder) (string, error)
 	// Bitcou Payment
 	GetVouchersByStatusV2(status hestia.VoucherStatusV2) ([]hestia.VoucherV2, error)
+	ChangeShiftProcessorStatus(status bool) error
+	GetOpenShifts(timestamp string) ([]hestia.ShiftV2, error)
 }
 
 type PlutusService interface {

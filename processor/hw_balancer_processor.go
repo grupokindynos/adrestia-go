@@ -65,6 +65,10 @@ func (hp *HwProcessor) Start() {
 		if err != nil {
 			log.Println("hw_balancer - Start - StatusCreated - Unable to change status to balancer " + err.Error())
 		}
+		err = hp.Hestia.ChangeShiftProcessorStatus(true)
+		if err != nil {
+			log.Println("hw_balancer::Start::StatusCreated::ChangeShiftProcessorStatus::" + err.Error())
+		}
 		break
 	case hestia.BalancerStatusWithdrawal:
 		if len(pendingWithdrawals) > 0 {
@@ -97,16 +101,18 @@ func (hp *HwProcessor) Start() {
 }
 
 func (hp *HwProcessor) withdrawFromExchanges() {
+	balances, err := GetStockBalancesWithoutPendingShifts(hp.Hestia, exchangesInfo, exchangeFactory)
+	if err != nil {
+		log.Println("hw_balancer::withdrawFromExchanges::GetStockBalancesWithoutPendingShifts::" + err.Error())
+		return
+	}
 	for _, exchangeInfo := range hwExchangesInfo {
-		bal, err := getBalance(hwExFactory, exchangeInfo.Name, exchangeInfo.StockCurrency)
-		if err != nil {
-			log.Println("hw_balancer - withdrawFromExchanges - getBalance - " + err.Error())
-			continue
-		}
-		if bal > exchangeInfo.StockMaximumAmount {
-			err := hp.createWithdrawalOrder(exchangeInfo, bal - exchangeInfo.StockExpectedAmount)
-			if err != nil {
-				log.Println("hw_balancer - withdrawFromExchanges - createWithdrawalOrder " + err.Error())
+		if bal, ok := balances[exchangeInfo.Name]; ok {
+			if bal > exchangeInfo.StockMaximumAmount {
+				err := hp.createWithdrawalOrder(exchangeInfo, bal - exchangeInfo.StockExpectedAmount)
+				if err != nil {
+					log.Println("hw_balancer - withdrawFromExchanges - createWithdrawalOrder " + err.Error())
+				}
 			}
 		}
 	}

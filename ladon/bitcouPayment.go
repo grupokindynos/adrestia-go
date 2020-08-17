@@ -32,7 +32,7 @@ type BitcouPayment struct {
 }
 
 var withdrawals[] hestia.SimpleTx
-const minimumPaymentAmount = 900.0
+const minimumPaymentAmount = 600.0
 const minimumWithdrawalAmount = 50.0
 
 

@@ -11,13 +11,21 @@ import (
 	"github.com/grupokindynos/common/obol"
 	"github.com/grupokindynos/common/telegram"
 	"github.com/grupokindynos/common/utils"
+	"github.com/joho/godotenv"
 	"log"
 	"math"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 )
+
+func init() {
+	if err := godotenv.Load(); err != nil {
+		log.Println("Unable to initialize .env " + err.Error())
+	}
+}
 
 type BitcouPayment struct {
 	Hestia services.HestiaService
@@ -25,16 +33,12 @@ type BitcouPayment struct {
 	ExFactory     *exchanges.ExchangeFactory
 	ExInfo 		  []hestia.ExchangeInfo
 	PaymentCoin   string
-	BTCExchanges  map[string]bool
 	PaymentAddress string
 	BTCAddress	   string
 	TgBot telegram.TelegramBot
 }
 
-var withdrawals[] hestia.SimpleTx
-const minimumPaymentAmount = 600.0
-const minimumWithdrawalAmount = 50.0
-
+var withdrawals []hestia.SimpleTx
 
 func (bp *BitcouPayment) GenerateWithdrawals() {
 	var paymentCoin string
@@ -49,7 +53,7 @@ func (bp *BitcouPayment) GenerateWithdrawals() {
 	}
 
 	for _, exchange := range bp.ExInfo {
-		if _, ok := bp.BTCExchanges[exchange.Name]; ok { // exchanges where we should leave payment coin on BTC
+		if _, ok := BTCExchanges[exchange.Name]; ok { // exchanges where we should leave payment coin on BTC
 			paymentCoin = "BTC"
 		} else {
 			paymentCoin = bp.PaymentCoin
@@ -86,7 +90,7 @@ func (bp *BitcouPayment) GenerateWithdrawals() {
 	if totalBalanceUSD >= minimumPaymentAmount {
 		for _, exchange := range bp.ExInfo {
 			if _, ok := balances[exchange.Name]; !ok {continue}
-			if _, ok := bp.BTCExchanges[exchange.Name]; ok { // exchanges where we should leave payment coin on BTC
+			if _, ok := BTCExchanges[exchange.Name]; ok { // exchanges where we should leave payment coin on BTC
 				paymentCoin = "BTC"
 				paymentAddress = bp.BTCAddress
 
@@ -127,7 +131,7 @@ func (bp *BitcouPayment) GenerateWithdrawals() {
 			}
 		}
 	} else {
-		bp.TgBot.SendMessage(fmt.Sprintf("Total balance is less than the minimum payment amount.\nMinimum payment amount: %f USD\nTotal balance: %f USD", minimumPaymentAmount, totalBalanceUSD))
+		bp.TgBot.SendMessage(fmt.Sprintf("Total balance is less than the minimum payment amount.\nMinimum payment amount: %f USD\nTotal balance: %f USD", minimumPaymentAmount, totalBalanceUSD), os.Getenv("BITCOU_CHAT_ID"))
 	}
 }
 
@@ -195,7 +199,7 @@ func (bp *BitcouPayment) handlePerformedWithdrawals(wg *sync.WaitGroup) {
 		} else {
 			blockExplorer = coin.Info.Blockbook
 		}
-		bp.TgBot.SendMessage(fmt.Sprintf("Sent %f %s at\n%s/tx/%s\nTo Bitcou Address %s", withdrawal.ReceivedAmount, withdrawal.Currency, blockExplorer, withdrawal.TxId, withdrawal.Address))
+		bp.TgBot.SendMessage(fmt.Sprintf("Sent %f %s at\n%s/tx/%s\nTo Bitcou Address %s", withdrawal.ReceivedAmount, withdrawal.Currency, blockExplorer, withdrawal.TxId, withdrawal.Address), os.Getenv("BITCOU_CHAT_ID"))
 	}
 }
 

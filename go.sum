@@ -147,6 +147,8 @@ github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0/go.mod h1:8NvIoxWQoOIhqOTXgf
 github.com/grpc-ecosystem/grpc-gateway v1.9.5/go.mod h1:vNeuVxBJEsws4ogUvrchl83t/GYV9WGTSLVdBhOQFDY=
 github.com/grupokindynos/common v0.0.0-20200818145451-a89d12b80174 h1:y53h0lEycYhfwBLZvith8MRVP6hah0/e4EW43VmqPuY=
 github.com/grupokindynos/common v0.0.0-20200818145451-a89d12b80174/go.mod h1:lCXEoFdFmLhbC6bGfhkByFYv6ndS+j+qr+SUBZ4ryx0=
+github.com/grupokindynos/common v0.0.0-20200818153943-4672e360b8cb h1:8dSVv5FAvrtzgPYHM9HATBM5NPbJDgp2rTUgCVGgSKI=
+github.com/grupokindynos/common v0.0.0-20200818153943-4672e360b8cb/go.mod h1:lCXEoFdFmLhbC6bGfhkByFYv6ndS+j+qr+SUBZ4ryx0=
 github.com/grupokindynos/go-binance v0.0.0-20200805175429-875b1354f598 h1:dYQbPdkou9E+Ax6/1afVaBtUIlP8FtjJquUUCMYpgfc=
 github.com/grupokindynos/go-binance v0.0.0-20200805175429-875b1354f598/go.mod h1:t0HMFWanG5UtRfZo/2Hc4KO4sbrJSKQoOrlintfiVTM=
 github.com/hashicorp/consul/api v1.3.0/go.mod h1:MmDNSzIMUjNpY/mQ398R4bk2FnqQLoPndWW5VkKPlCE=

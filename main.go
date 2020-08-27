@@ -3,13 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/grupokindynos/adrestia-go/ladon"
-	"github.com/grupokindynos/common/hestia"
-	"github.com/grupokindynos/common/telegram"
 	"log"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/grupokindynos/adrestia-go/ladon"
+	"github.com/grupokindynos/common/hestia"
+	"github.com/grupokindynos/common/telegram"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -34,9 +35,9 @@ var (
 	exchangesProcessor processor.ExchangesProcessor
 	depositProcessor   processor.DepositProcessor
 	hwProcessor        processor.HwProcessor
-	bitcouPayment	   ladon.BitcouPayment
+	bitcouPayment      ladon.BitcouPayment
 	exchangeInfo       []hestia.ExchangeInfo
-	botCommands 	   ladon.BitcouPaymentCommands
+	botCommands        ladon.BitcouPaymentCommands
 
 	// Flags
 	devMode bool
@@ -153,15 +154,14 @@ func main() {
 		PaymentCoin:    "USDT",
 		PaymentAddress: os.Getenv("USDT_ADDRESS_BITCOU"),
 		BTCAddress:     os.Getenv("BTC_ADDRESS_BITCOU"),
-		TgBot:  telegram.NewTelegramBot(os.Getenv("BITCOU_TELEGRAM_KEY")),
+		TgBot:          telegram.NewTelegramBot(os.Getenv("BITCOU_TELEGRAM_KEY")),
 	}
 	botCommands = ladon.BitcouPaymentCommands{
-		Obol: 		  &Obol,
-		ExFactory:    exchanges.NewExchangeFactory(&obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}, &services.HestiaRequests{HestiaURL: os.Getenv(hestiaUrl)}),
-		ExInfo:       exchangeInfo,
-		TgBot:        telegram.NewTelegramBot(os.Getenv("BITCOU_TELEGRAM_KEY")),
+		Obol:      &Obol,
+		ExFactory: exchanges.NewExchangeFactory(&obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}, &services.HestiaRequests{HestiaURL: os.Getenv(hestiaUrl)}),
+		ExInfo:    exchangeInfo,
+		TgBot:     telegram.NewTelegramBot(os.Getenv("BITCOU_TELEGRAM_KEY")),
 	}
-
 
 	if !*stopProcessor {
 		log.Println("Starting processors")
@@ -202,8 +202,8 @@ func ApplyRoutes(r *gin.Engine) {
 	}))
 	{
 		api.GET("address/:coin", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.GetAddress) })
-		api.POST("trade/status", func(context *gin.Context) {ValidateRequest(context, adrestiaCtrl.GetTradeStatus)})
-		api.POST("withdraw/hash", func(context *gin.Context) {ValidateRequest(context, adrestiaCtrl.GetWithdrawalTxHash)})
+		api.POST("trade/status", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.GetTradeStatus) })
+		api.POST("withdraw/hash", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.GetWithdrawalTxHash) })
 		api.POST("path", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.GetConversionPath) })
 		api.POST("voucher/path", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.GetVoucherConversionPath) })
 		api.POST("trade", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.Trade) })
@@ -245,11 +245,11 @@ func ValidateRequestV2(c *gin.Context, method func(uid string, payload []byte, p
 		responses.GlobalOpenNoAuth(c)
 	}
 	params := models.ParamsV2{
-		Coin: c.Param("coin"),
+		Coin:     c.Param("coin"),
 		Exchange: c.Param("exchange"),
 	}
 	payload, s, err := mvt.VerifyRequest(c)
-	params.Service  = s
+	params.Service = s
 	response, err := method(uid, payload, params)
 	if err != nil {
 		responses.GlobalOpenError(nil, err, c)
@@ -266,10 +266,10 @@ func ValidateRequest(c *gin.Context, method func(uid string, payload []byte, par
 		responses.GlobalOpenNoAuth(c)
 	}
 	params := models.Params{
-		Coin: c.Param("coin"),
-		Service: c.GetHeader("service"),
+		Coin:    c.Param("coin"),
+		Service: "",
 	}
-	payload, s,  err := mvt.VerifyRequest(c)
+	payload, s, err := mvt.VerifyRequest(c)
 	params.Service = s
 	response, err := method(uid, payload, params)
 	if err != nil {

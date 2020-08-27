@@ -1,19 +1,12 @@
 package main
 
 import (
-	"fmt"
-	"github.com/grupokindynos/adrestia-go/models"
-	"log"
-	"os"
-	"testing"
-
-	"github.com/grupokindynos/adrestia-go/exchanges"
-	"github.com/grupokindynos/adrestia-go/services"
 	coinfactory "github.com/grupokindynos/common/coin-factory"
 	"github.com/grupokindynos/common/explorer"
-	"github.com/grupokindynos/common/hestia"
-	"github.com/grupokindynos/common/obol"
-	plutus2 "github.com/grupokindynos/common/plutus"
+	"github.com/stretchr/testify/assert"
+	"log"
+	"testing"
+
 	"github.com/joho/godotenv"
 )
 
@@ -23,7 +16,7 @@ func init() {
 	}
 }
 
-func TestGetAddress(t *testing.T) {
+/* func TestGetAddress(t *testing.T) {
 	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}
 	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_PRODUCTION_URL")}
 	fmt.Println(plutus.GetAddress("dash"))
@@ -42,9 +35,9 @@ func TestSendToExchange(t *testing.T) {
 		return
 	}
 	fmt.Println(res)
-}
+} */
 
-func TestGetBalance(t *testing.T) {
+/* func TestGetBalance(t *testing.T) {
 	oboli := obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}
 	plutus := services.PlutusRequests{Obol: &oboli, PlutusURL: os.Getenv("PLUTUS_PRODUCTION_URL")}
 	bal, err := plutus.GetWalletBalance("dash")
@@ -53,9 +46,9 @@ func TestGetBalance(t *testing.T) {
 		return
 	}
 	fmt.Println("Balance", bal)
-}
+} */
 
-func TestSendAllBalanceToExchange(t *testing.T) {
+/* func TestSendAllBalanceToExchange(t *testing.T) {
 	address := "PHg666Ef8Zz32y8V2i4essNMBSsDwXfr1q"
 	asset := "POLIS"
 
@@ -78,19 +71,17 @@ func TestSendAllBalanceToExchange(t *testing.T) {
 		return
 	}
 	fmt.Println(res)
-}
+}*/
 
 func TestBlockbook(t *testing.T) {
 	coin, _ := coinfactory.GetCoin("ETH")
 	var blockExplorer explorer.BlockBook
 	blockExplorer.Url = "https://" + coin.BlockchainInfo.ExternalSource
-	res, err := blockExplorer.GetEthAddress("0xaDaE31C0b1857A5c4B1b0e48128A22a6b11d8bdB")
-	log.Println(err)
-	//res, _ := blockExplorer.GetTx("0x475f5d6f71aec76c4f112a0902c7da506f0324504cf521c4fe00dbbabdac2a16")
-	fmt.Printf("%+v\n", res)
+	res, _ := blockExplorer.GetEthAddress("0xaDaE31C0b1857A5c4B1b0e48128A22a6b11d8bdB")
+	assert.Equal(t, res.Address, "0xaDaE31C0b1857A5c4B1b0e48128A22a6b11d8bdB")
 }
 
-func TestExchange(t *testing.T) {
+/* func TestExchange(t *testing.T) {
 	hr := services.HestiaRequests{HestiaURL: os.Getenv("HESTIA_LOCAL_URL")}
 	exchange, _ := hr.GetExchange("southxchange")
 	ex := exchanges.NewSouthXchange(models.ExchangeParams{
@@ -124,4 +115,4 @@ func TestExchange(t *testing.T) {
 		return
 	}
 	log.Println(txId)
-}
+} */

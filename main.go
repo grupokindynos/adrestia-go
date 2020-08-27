@@ -36,6 +36,7 @@ var (
 	hwProcessor        processor.HwProcessor
 	bitcouPayment	   ladon.BitcouPayment
 	exchangeInfo       []hestia.ExchangeInfo
+	botCommands 	   ladon.BitcouPaymentCommands
 
 	// Flags
 	devMode bool
@@ -73,14 +74,17 @@ func runHwProcessor() {
 }
 
 func runBitcouPayment() {
+	// run script to receive adrestia bot commands
+	go botCommands.Start()
+
 	ticker := time.NewTicker(5 * time.Minute)
 	generatedWithdrawals := false
 	for _ = range ticker.C {
-		if time.Now().Hour() != 9 {
+		if time.Now().Hour() != ladon.GetBitcouPaymentHour() {
 			generatedWithdrawals = false
 		}
 
-		if time.Now().Hour() == 9 && !generatedWithdrawals {
+		if time.Now().Hour() == ladon.GetBitcouPaymentHour() && !generatedWithdrawals {
 			bitcouPayment.GenerateWithdrawals()
 			generatedWithdrawals = true
 		} else {
@@ -147,11 +151,17 @@ func main() {
 		ExFactory:      exchanges.NewExchangeFactory(&obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}, &services.HestiaRequests{HestiaURL: os.Getenv(hestiaUrl)}),
 		ExInfo:         exchangeInfo,
 		PaymentCoin:    "USDT",
-		BTCExchanges:   map[string]bool{"southxchange": true},
 		PaymentAddress: os.Getenv("USDT_ADDRESS_BITCOU"),
 		BTCAddress:     os.Getenv("BTC_ADDRESS_BITCOU"),
-		TgBot:  telegram.NewTelegramBot(os.Getenv("BITCOU_TELEGRAM_KEY"), os.Getenv("BITCOU_CHAT_ID")),
+		TgBot:  telegram.NewTelegramBot(os.Getenv("BITCOU_TELEGRAM_KEY")),
 	}
+	botCommands = ladon.BitcouPaymentCommands{
+		Obol: 		  &Obol,
+		ExFactory:    exchanges.NewExchangeFactory(&obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}, &services.HestiaRequests{HestiaURL: os.Getenv(hestiaUrl)}),
+		ExInfo:       exchangeInfo,
+		TgBot:        telegram.NewTelegramBot(os.Getenv("BITCOU_TELEGRAM_KEY")),
+	}
+
 
 	if !*stopProcessor {
 		log.Println("Starting processors")

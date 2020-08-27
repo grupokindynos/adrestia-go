@@ -457,6 +457,10 @@ func (a *AdrestiaController) GetVoucherConversionPathV2(_ string, body []byte, p
 	path.InwardOrder = inPath
 	path.Trade = tradeFlag
 	path.TargetStableCoin = exInwardInfo.StockCurrency
+	if stayInBTC {
+		path.TargetStableCoin = "BTC"
+	}
+
 	path.Address = address
 	return path, nil
 }

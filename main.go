@@ -3,13 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/grupokindynos/adrestia-go/ladon"
-	"github.com/grupokindynos/common/hestia"
-	"github.com/grupokindynos/common/telegram"
 	"log"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/grupokindynos/adrestia-go/ladon"
+	"github.com/grupokindynos/common/hestia"
+	"github.com/grupokindynos/common/telegram"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -34,8 +35,9 @@ var (
 	exchangesProcessor processor.ExchangesProcessor
 	depositProcessor   processor.DepositProcessor
 	hwProcessor        processor.HwProcessor
-	bitcouPayment	   ladon.BitcouPayment
+	bitcouPayment      ladon.BitcouPayment
 	exchangeInfo       []hestia.ExchangeInfo
+	botCommands        ladon.BitcouPaymentCommands
 
 	// Flags
 	devMode bool
@@ -73,14 +75,17 @@ func runHwProcessor() {
 }
 
 func runBitcouPayment() {
+	// run script to receive adrestia bot commands
+	go botCommands.Start()
+
 	ticker := time.NewTicker(5 * time.Minute)
 	generatedWithdrawals := false
 	for _ = range ticker.C {
-		if time.Now().Hour() != 9 {
+		if time.Now().Hour() != ladon.GetBitcouPaymentHour() {
 			generatedWithdrawals = false
 		}
 
-		if time.Now().Hour() == 9 && !generatedWithdrawals {
+		if time.Now().Hour() == ladon.GetBitcouPaymentHour() && !generatedWithdrawals {
 			bitcouPayment.GenerateWithdrawals()
 			generatedWithdrawals = true
 		} else {
@@ -147,10 +152,15 @@ func main() {
 		ExFactory:      exchanges.NewExchangeFactory(&obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}, &services.HestiaRequests{HestiaURL: os.Getenv(hestiaUrl)}),
 		ExInfo:         exchangeInfo,
 		PaymentCoin:    "USDT",
-		BTCExchanges:   map[string]bool{"southxchange": true},
 		PaymentAddress: os.Getenv("USDT_ADDRESS_BITCOU"),
 		BTCAddress:     os.Getenv("BTC_ADDRESS_BITCOU"),
-		TgBot:  telegram.NewTelegramBot(os.Getenv("BITCOU_TELEGRAM_KEY"), os.Getenv("BITCOU_CHAT_ID")),
+		TgBot:          telegram.NewTelegramBot(os.Getenv("BITCOU_TELEGRAM_KEY")),
+	}
+	botCommands = ladon.BitcouPaymentCommands{
+		Obol:      &Obol,
+		ExFactory: exchanges.NewExchangeFactory(&obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}, &services.HestiaRequests{HestiaURL: os.Getenv(hestiaUrl)}),
+		ExInfo:    exchangeInfo,
+		TgBot:     telegram.NewTelegramBot(os.Getenv("BITCOU_TELEGRAM_KEY")),
 	}
 
 	if !*stopProcessor {
@@ -192,8 +202,8 @@ func ApplyRoutes(r *gin.Engine) {
 	}))
 	{
 		api.GET("address/:coin", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.GetAddress) })
-		api.POST("trade/status", func(context *gin.Context) {ValidateRequest(context, adrestiaCtrl.GetTradeStatus)})
-		api.POST("withdraw/hash", func(context *gin.Context) {ValidateRequest(context, adrestiaCtrl.GetWithdrawalTxHash)})
+		api.POST("trade/status", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.GetTradeStatus) })
+		api.POST("withdraw/hash", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.GetWithdrawalTxHash) })
 		api.POST("path", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.GetConversionPath) })
 		api.POST("voucher/path", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.GetVoucherConversionPath) })
 		api.POST("trade", func(context *gin.Context) { ValidateRequest(context, adrestiaCtrl.Trade) })
@@ -235,14 +245,11 @@ func ValidateRequestV2(c *gin.Context, method func(uid string, payload []byte, p
 		responses.GlobalOpenNoAuth(c)
 	}
 	params := models.ParamsV2{
-		Coin: c.Param("coin"),
+		Coin:     c.Param("coin"),
 		Exchange: c.Param("exchange"),
 	}
-	payload, srv, err := mvt.VerifyRequest(c)
-	if err != nil {
-		responses.GlobalOpenError(nil, err, c)
-	}
-	params.Service = srv
+	payload, s, err := mvt.VerifyRequest(c)
+	params.Service = s
 	response, err := method(uid, payload, params)
 	if err != nil {
 		responses.GlobalOpenError(nil, err, c)
@@ -259,11 +266,11 @@ func ValidateRequest(c *gin.Context, method func(uid string, payload []byte, par
 		responses.GlobalOpenNoAuth(c)
 	}
 	params := models.Params{
-		Coin: c.Param("coin"),
+		Coin:    c.Param("coin"),
 		Service: "",
 	}
-	payload, srv, err := mvt.VerifyRequest(c)
-	params.Service = srv
+	payload, s, err := mvt.VerifyRequest(c)
+	params.Service = s
 	response, err := method(uid, payload, params)
 	if err != nil {
 		responses.GlobalOpenError(nil, err, c)

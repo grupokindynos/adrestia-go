@@ -18,6 +18,7 @@ require (
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/oedipusK/go-southxchange v0.0.0-20200505211816-fa6cf6edc378
 	github.com/shopspring/decimal v1.2.0
+	github.com/stretchr/testify v1.4.0
 	github.com/thebotguys/signalr v0.0.0-20190119054324-787ebe6729fc // indirect
 	golang.org/x/sys v0.0.0-20200202164722-d101bd2416d5 // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0 // indirect

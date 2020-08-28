@@ -59,3 +59,36 @@ func getBalance(exFac *exchanges.ExchangeFactory, exchangeName string, currency 
 	}
 	return bal, nil
 }
+
+// Returns stock balance of all exchanges without the pending amount of running shifts
+func GetStockBalancesWithoutPendingShifts(h services.HestiaService, exInfo []hestia.ExchangeInfo, exFactory *exchanges.ExchangeFactory) (map[string]float64, error) {
+	mp := make(map[string]float64)
+	openShifts, err := h.GetOpenShifts("") // if empty returns open shifts from a day ago
+	if err != nil {
+		return nil, err
+	}
+
+	for _, shift := range openShifts {
+		if len(shift.OutboundTrade.Conversions) == 0 { // should be in withdrawn status
+			if shift.OutboundTrade.Status < hestia.ShiftV2TradeStatusWithdrawn {
+				mp[shift.OutboundTrade.Exchange] += float64(shift.ToAmount) * 1e-8
+			}
+		} else if shift.OutboundTrade.Status == hestia.ShiftV2TradeStatusCreated {
+			mp[shift.OutboundTrade.Exchange] += shift.OutboundTrade.Conversions[0].Amount
+		}
+	}
+
+	for _, exchange := range exInfo {
+		ex, err := exFactory.GetExchangeByName(exchange.Name, hestia.ShiftAccount)
+		if err != nil {
+			return nil, err
+		}
+		bal, err := ex.GetBalance(exchange.StockCurrency)
+		if err != nil {
+			return nil, err
+		}
+		mp[exchange.Name] = bal - mp[exchange.Name]
+	}
+
+	return mp, nil
+}

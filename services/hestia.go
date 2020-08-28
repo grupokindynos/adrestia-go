@@ -255,3 +255,67 @@ func doResponseToString(payload []byte, err error) (string, error) {
 	}
 	return response, nil
 }
+
+// tyche
+func (h *HestiaRequests) GetOpenShifts(timestamp string) (shifts []hestia.ShiftV2, err error) {
+	payload, err := h.get("/shift2/open/all?timestamp="+timestamp, models.GetFilters{})
+	if err != nil {
+		return nil, err
+	}
+	var response []hestia.ShiftV2
+	err = json.Unmarshal(payload, &response)
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (h *HestiaRequests) ChangeShiftProcessorStatus(status bool) error {
+	payload, err := h.get("/config", models.GetFilters{})
+	if err != nil {
+		return err
+	}
+	var response hestia.Config
+	err = json.Unmarshal(payload, &response)
+	if err != nil {
+		return err
+	}
+
+	response.Shift.Processor = status
+
+	req, err := mvt.CreateMVTToken("POST", h.HestiaURL+"/config/update", "adrestia", os.Getenv("MASTER_PASSWORD"), response, os.Getenv("HESTIA_AUTH_USERNAME"), os.Getenv("HESTIA_AUTH_PASSWORD"), os.Getenv("ADRESTIA_PRIV_KEY"))
+	if err != nil {
+		return err
+	}
+	client := http.Client{
+		Transport:     nil,
+		CheckRedirect: nil,
+		Jar:           nil,
+		Timeout:       time.Second * 30,
+	}
+
+	res, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	tokenResponse, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+	var tokenString string
+	err = json.Unmarshal(tokenResponse, &tokenString)
+	if err != nil {
+		return err
+	}
+	headerSignature := res.Header.Get("service")
+	valid, payload := mrt.VerifyMRTToken(headerSignature, tokenString, os.Getenv("HESTIA_PUBLIC_KEY"), os.Getenv("MASTER_PASSWORD"))
+	if !valid {
+		return err
+	}
+
+	return nil
+}
+
+
+

@@ -153,7 +153,7 @@ type crex24Balance struct {
 }
 
 func (c *Crex24) GetBalance(coin string) (float64, error) {
-	out, err := c.doRequest("GET", "/v2/account/balance", []byte{})
+	out, err := c.doRequest("GET", "/v2/account/balance?currency=" + coin + "&nonZeroOnly=false", []byte{})
 	if err != nil {
 		return 0, err
 	}

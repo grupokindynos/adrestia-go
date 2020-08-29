@@ -101,7 +101,7 @@ func (hp *HwProcessor) Start() {
 }
 
 func (hp *HwProcessor) withdrawFromExchanges() {
-	balances, err := GetStockBalancesWithoutPendingShifts(hp.Hestia, exchangesInfo, exchangeFactory)
+	balances, err := GetStockBalancesWithoutPendingShifts(hp.Hestia, hwExchangesInfo, hwExFactory)
 	if err != nil {
 		log.Println("hw_balancer::withdrawFromExchanges::GetStockBalancesWithoutPendingShifts::" + err.Error())
 		return

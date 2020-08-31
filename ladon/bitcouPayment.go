@@ -44,6 +44,7 @@ func (bp *BitcouPayment) GenerateWithdrawals() {
 	var paymentCoin string
 	var paymentAddress string
 	var totalBalanceUSD float64
+	var totalBalanceUSDInfo float64
 	balances := make(map[string]float64)
 
 	rateBtcUsd, err := bp.Obol.GetCoin2FIATRate("BTC", "USD")
@@ -75,6 +76,9 @@ func (bp *BitcouPayment) GenerateWithdrawals() {
 		if paymentCoin == "BTC" {
 			bal *= rateBtcUsd
 		}
+		// this value is used just to send the total balance on the telegram message.
+		// shouldn't be used in any calculation
+		totalBalanceUSDInfo += bal
 
 		if bal >= minimumWithdrawalAmount {
 			if paymentCoin == "BTC" {
@@ -131,7 +135,7 @@ func (bp *BitcouPayment) GenerateWithdrawals() {
 			}
 		}
 	} else {
-		bp.TgBot.SendMessage(fmt.Sprintf("Total balance is less than the minimum payment amount.\nMinimum payment amount: %f USD\nTotal balance: %f USD", minimumPaymentAmount, totalBalanceUSD), os.Getenv("BITCOU_CHAT_ID"))
+		bp.TgBot.SendMessage(fmt.Sprintf("Total balance is less than the minimum payment amount.\nMinimum payment amount: %f USD\nTotal balance: %f USD", minimumPaymentAmount, totalBalanceUSDInfo), os.Getenv("BITCOU_CHAT_ID"))
 	}
 }
 

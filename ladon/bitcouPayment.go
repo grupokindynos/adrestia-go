@@ -115,6 +115,8 @@ func (bp *BitcouPayment) GenerateWithdrawals() {
 				continue
 			}
 
+			bp.TgBot.SendMessage(fmt.Sprintf("Withdrawn %f %s from %s\nOrderId: %s", balances[exchange.Name], paymentCoin, exchange.Name, orderId), os.Getenv("BITCOU_CHAT_ID"))
+
 			withdrawal := hestia.SimpleTx {
 				Id:             utils.RandomString(),
 				TxId:           orderId,
@@ -132,6 +134,7 @@ func (bp *BitcouPayment) GenerateWithdrawals() {
 			_, err = bp.Hestia.CreateWithdrawal(withdrawal)
 			if err != nil {
 				log.Println("bitcouPayment::Start::CreateWithdrawal::" + err.Error())
+				bp.TgBot.SendMessage("Unable to create withdrawal on bd.\nPlease check the withdrawal manually", os.Getenv("BITCOU_CHAT_ID"))
 			}
 		}
 	} else {

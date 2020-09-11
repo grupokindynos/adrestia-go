@@ -22,9 +22,12 @@ type ExchangeTradeOrder struct {
 
 type Params struct {
 	Coin string `json:"coin"`
-	Service string
+	Service string `json:"service"`
+	Exchange string `json:"exchange"`
 }
 
+
+// unused struct, replace with Params
 type ParamsV2 struct {
 	Coin string `json:"coin"`
 	Exchange string `json:"exchange"`
@@ -59,8 +62,10 @@ type WithdrawParams struct {
 	Asset   string  `json:"asset"`
 	Address string  `json:"address"`
 	Amount  float64 `json:"amount"`
+	Exchange string `json:"exchange"`
 }
 
+// unused struct, replace with WithdrawParams
 type WithdrawParamsV2 struct {
 	Asset   string  `json:"asset"`
 	Address string  `json:"address"`
@@ -68,10 +73,16 @@ type WithdrawParamsV2 struct {
 	Exchange string `json:"exchange"`
 }
 
+type GetAddressParams struct {
+	Coin string `json:"coin"`
+	Exchange string `json:"exchange"`
+}
+
 type DepositParams struct {
 	Asset   string `json:"asset"`
 	TxId    string `json:"txid"`
 	Address string `json:"address"`
+	Exchange string `json:"exchange"`
 }
 
 type WithdrawInfo struct {

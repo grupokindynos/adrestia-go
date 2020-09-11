@@ -148,6 +148,43 @@ func (a *AdrestiaController) GetAddress(_ string, _ []byte, params models.Params
 	return response, nil
 }
 
+func (a *AdrestiaController) GetAddressV2(_ string, body []byte, params models.Params) (interface{}, error) {
+	var addressParams models.GetAddressParams
+	err := json.Unmarshal(body, &addressParams)
+	if err != nil {
+		return nil, err
+	}
+
+	var exchange exchanges.Exchange
+	service := hestia.GetServiceAccountByString(params.Service)
+	if addressParams.Exchange != "" {
+		exchange, err = a.ExFactory.GetExchangeByName(addressParams.Exchange, service)
+	} else {
+		coin, err := coinfactory.GetCoin(addressParams.Coin)
+		if err != nil {
+			return nil, err
+		}
+		exchange, err = a.ExFactory.GetExchangeByCoin(*coin, service)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	exName, _ := exchange.GetName()
+	address, err := exchange.GetAddress(addressParams.Coin)
+	if err != nil {
+		return err, nil
+	}
+
+	return models.AddressResponse {
+		Coin:            addressParams.Coin,
+		ExchangeAddress: models.ExchangeAddress{
+			Address: address,
+			Exchange: exName,
+		},
+	}, nil
+}
+
 func (a *AdrestiaController) GetConversionPath(_ string, body []byte, params models.Params) (interface{}, error) {
 	var pathParams models.PathParams
 	err := json.Unmarshal(body, &pathParams)

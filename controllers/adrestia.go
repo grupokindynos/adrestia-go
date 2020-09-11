@@ -529,12 +529,17 @@ func (a *AdrestiaController) Deposit(_ string, body []byte, params models.Params
 	if err != nil {
 		return nil, err
 	}
-	coinInfo, err := coinfactory.GetCoin(depositParams.Asset)
-	if err != nil {
-		return nil, err
-	}
 	service := hestia.GetServiceAccountByString(params.Service)
-	ex, err := a.ExFactory.GetExchangeByCoin(*coinInfo, service)
+	var ex exchanges.Exchange
+	if depositParams.Exchange != "" {
+		ex, err = a.ExFactory.GetExchangeByName(depositParams.Exchange, service)
+	} else {
+		coinInfo, err := coinfactory.GetCoin(depositParams.Asset)
+		if err != nil {
+			return nil, err
+		}
+		ex, err = a.ExFactory.GetExchangeByCoin(*coinInfo, service)
+	}
 	if err != nil {
 		return nil, err
 	}

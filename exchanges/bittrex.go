@@ -3,7 +3,7 @@ package exchanges
 import (
 	"errors"
 	"fmt"
-	"github.com/Toorop/go-bittrex"
+	"github.com/PrettyBoyHelios/go-bittrex"
 	"github.com/grupokindynos/adrestia-go/models"
 	coinfactory "github.com/grupokindynos/common/coin-factory"
 	"github.com/grupokindynos/common/hestia"
@@ -33,9 +33,9 @@ func NewBittrex(params models.ExchangeParams) (*Bittrex, error) {
 	minConfs := make(map[string]bittrexCurrrencyInfo)
 
 	for _, c := range currencies {
-		fee, _ :=  c.TxFee.Float64()
-		minConfs[strings.ToLower(c.Currency)] = bittrexCurrrencyInfo {
-			minConfirms: c.MinConfirmation,
+		fee,_ :=  c.TxFee.Float64()
+		minConfs[strings.ToLower(c.Symbol)] = bittrexCurrrencyInfo {
+			minConfirms: c.MinConfirmations,
 			txFee: fee,
 		}
 	}
@@ -61,7 +61,7 @@ func (b *Bittrex) GetAddress(coin string) (string, error) {
 		return "", err
 	}
 
-	return addr.Address, nil
+	return addr.CryptoAddress, nil
 }
 
 func (b *Bittrex) GetDepositStatus(addr string, txId string, asset string) (orderStatus hestia.ExchangeOrderInfo, err error) {
@@ -103,7 +103,7 @@ func (b *Bittrex) GetBalance(coin string) (float64, error) {
 	}
 
 	for _, asset := range balances {
-		if coin == asset.Currency {
+		if coin == asset.CurrencySymbol {
 			value, _ := asset.Available.Float64()
 			return value, nil
 		}
@@ -173,7 +173,11 @@ func (b *Bittrex) SellAtMarketPrice(order hestia.Trade) (string, error) {
 }
 
 func (b *Bittrex) Withdraw(coin string, address string, amount float64) (string, error) {
-	return b.exchange.Withdraw(address, strings.ToUpper(coin), decimal.NewFromFloat(amount))
+	withdrawRes, err := b.exchange.Withdraw(address, coin, decimal.NewFromFloat(amount), "")
+	if err != nil {
+		return "", err
+	}
+	return withdrawRes.TxID, nil
 }
 
 func (b *Bittrex) GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderInfo, error) {
@@ -235,14 +239,15 @@ func (b *Bittrex) GetPair(fromCoin string, toCoin string) (models.TradeInfo, err
 }
 
 func (b *Bittrex) GetWithdrawalTxHash(txId string, asset string) (string, error) {
-	withdraws, err := b.exchange.GetWithdrawalHistory(strings.ToUpper(asset))
+	// TODO Optimize with V3 Method
+	withdraws, err := b.exchange.GetClosedWithdrawals(strings.ToUpper(asset), bittrex.ALL)
 	if err != nil {
 		return "", err
 	}
 
 	for _, w := range withdraws {
-		if w.PaymentUuid == txId {
-			return w.TxId, nil
+		if w.TxID == txId {
+			return w.TxID, nil
 		}
 	}
 

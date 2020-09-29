@@ -12,6 +12,8 @@ type Bithumb struct {
 	Name          string
 	user          string
 	authorization string
+	url           string
+	addresses     map[string]string
 	client        *http.Client
 }
 
@@ -22,6 +24,10 @@ func NewBithumb(params models.ExchangeParams) *Bithumb {
 	b.user = params.Keys.PublicKey
 	b.authorization = params.Keys.PrivateKey
 	b.client = &http.Client{}
+	b.addresses = map[string]string{
+		"BTC": "1L9jPKCbUbK9aKgn5miwRmUy51Pm64SeW6",
+	}
+	b.url = "https://global-openapi.bithumb.pro/openapi/v1"
 	return b
 }
 
@@ -30,10 +36,12 @@ func (b *Bithumb) GetName() (string, error) {
 	return b.Name, nil
 }
 
+// GetAddress Gets address from Bithumb WIP: Add error message
 func (b *Bithumb) GetAddress(asset string) (string, error) {
-	return "", nil
+	return b.addresses[asset], nil
 }
 
+// GetBalance Gets the balance for a given asset
 func (b *Bithumb) GetBalance(asset string) (float64, error) {
 	return 0, nil
 }

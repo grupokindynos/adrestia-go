@@ -2,20 +2,21 @@ package exchanges
 
 import (
 	"errors"
+	"log"
+	"strings"
+
 	"github.com/grupokindynos/adrestia-go/models"
 	"github.com/grupokindynos/adrestia-go/services"
 	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/obol"
-	"log"
-	"strings"
 
 	coinfactory "github.com/grupokindynos/common/coin-factory"
 	"github.com/grupokindynos/common/coin-factory/coins"
 )
 
 type ExchangeFactory struct {
-	Hestia services.HestiaService
-	Obol   obol.ObolService
+	Hestia        services.HestiaService
+	Obol          obol.ObolService
 	exchangesInfo map[string]hestia.ExchangeInfo
 }
 
@@ -45,16 +46,18 @@ func (e *ExchangeFactory) createInstance(name string, service hestia.ServiceAcco
 			Keys: val.Accounts[service],
 		}
 		switch exName {
-			case "binance":
-				return NewBinance(params), nil
-			case "southxchange":
-				return NewSouthXchange(params), nil
-			case "stex":
-				return NewStex(params)
-			case "bittrex":
-				return NewBittrex(params)
-			case "crex24":
-				return NewCrex24(params), nil
+		case "binance":
+			return NewBinance(params), nil
+		case "southxchange":
+			return NewSouthXchange(params), nil
+		case "stex":
+			return NewStex(params)
+		case "bittrex":
+			return NewBittrex(params)
+		case "crex24":
+			return NewCrex24(params), nil
+		case "bithumb":
+			return NewBithumb(params), nil
 		}
 	}
 

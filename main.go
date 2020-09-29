@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,11 +9,9 @@ import (
 
 	"github.com/grupokindynos/adrestia-go/ladon"
 	"github.com/grupokindynos/common/hestia"
-	"github.com/grupokindynos/common/telegram"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/grupokindynos/adrestia-go/balancer"
 	"github.com/grupokindynos/adrestia-go/controllers"
 	"github.com/grupokindynos/adrestia-go/exchanges"
 	"github.com/grupokindynos/adrestia-go/models"
@@ -94,7 +91,7 @@ func runBitcouPayment() {
 	}
 }
 
-func main() {
+/*func main() {
 	// Read input flag
 	localRun := flag.Bool("local", false, "set this flag to run adrestia with local db")
 	port := flag.String("port", os.Getenv("PORT"), "set different port for local run")
@@ -173,6 +170,20 @@ func main() {
 
 	App := GetApp()
 	_ = App.Run(":" + *port)
+} */
+
+func main() {
+
+	m := models.ExchangeParams{}
+	m.Name = "Bithumb"
+	m.Keys.PublicKey = "df060aba269f98d63ebce18e2355192c0212d593dde7eb6fab7a56f9c2c2ae50"
+	m.Keys.PrivateKey = "2ddfb6a7498f3b03754a8a818ddcb864"
+
+	b := exchanges.NewBithumb(m)
+
+	name, _ := b.GetAddress("BTC")
+	fmt.Println(name)
+
 }
 
 func GetApp() *gin.Engine {

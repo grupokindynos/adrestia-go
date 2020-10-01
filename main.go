@@ -176,13 +176,15 @@ func main() {
 
 	m := models.ExchangeParams{}
 	m.Name = "Bithumb"
-	m.Keys.PublicKey = "df060aba269f98d63ebce18e2355192c0212d593dde7eb6fab7a56f9c2c2ae50"
-	m.Keys.PrivateKey = "2ddfb6a7498f3b03754a8a818ddcb864"
+	m.Keys.PrivateKey = "b407ff6d078ebf4c4ab4f8ad6d96e192b369f606433dd01455ad9c154c4091f2"
+	m.Keys.PublicKey = "1d805214974e93cbde47556db1400da6"
 
 	b := exchanges.NewBithumb(m)
 
-	name, _ := b.GetAddress("BTC")
-	fmt.Println(name)
+	name := b.Assets("BTC")
+	responseData := name.Data
+	count := responseData["Count"]
+	fmt.Println()
 
 }
 

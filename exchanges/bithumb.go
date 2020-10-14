@@ -40,6 +40,8 @@ func NewBithumb(params models.ExchangeParams) *Bithumb {
 	b.client = &http.Client{}
 	b.addresses = map[string]string{
 		"BTC": "1L9jPKCbUbK9aKgn5miwRmUy51Pm64SeW6",
+		"GTH": "",
+		"USDT": "",
 	}
 	b.url = "https://global-openapi.bithumb.pro/openapi/v1"
 	return b
@@ -69,7 +71,7 @@ func (b *Bithumb) GetBalance(asset string) (float64, error) {
 }
 
 func (b *Bithumb) SellAtMarketPrice(order hestia.Trade) (string, error) {
-	orderInfo, err := b.createOrder(order.Symbol, order.Side, decimal.NewFromFloat(order.Amount), decimal.NewFromFloat(0), "market")
+	orderInfo, err := b.createOrder(order.Symbol, strings.ToLower(order.Side), decimal.NewFromFloat(order.Amount), decimal.NewFromFloat(0), strings.ToLower("market"))
 	if err != nil {
 		return "", err
 	}
@@ -85,32 +87,133 @@ func (b *Bithumb) Withdraw(asset string, address string, amount float64) (string
 }
 
 func (b *Bithumb) GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderInfo, error) {
-	h := hestia.ExchangeOrderInfo{}
-	return h, nil
+	orderStatus, err := b.orderDetail(order.Symbol, order.OrderId)
+	if err != nil {
+		return hestia.ExchangeOrderInfo{
+			Status:         hestia.ExchangeOrderStatusOpen,
+			ReceivedAmount: 0,
+		}, err
+	}
+	switch orderStatus.Data.Status {
+	case "send":
+		return hestia.ExchangeOrderInfo{
+			Status: hestia.ExchangeOrderStatusOpen,
+			ReceivedAmount: 0,
+		}, nil
+	case "pending":
+		return hestia.ExchangeOrderInfo{
+			Status: hestia.ExchangeOrderStatusOpen,
+			ReceivedAmount: 0,
+		}, nil
+	case "success":
+		tradedValue, _ := orderStatus.Data.TradedNum.Float64()
+		return hestia.ExchangeOrderInfo{
+			Status: hestia.ExchangeOrderStatusCompleted,
+			ReceivedAmount: tradedValue,
+		}, nil
+	case "cancel":
+		return hestia.ExchangeOrderInfo{
+			Status: hestia.ExchangeOrderStatusError,
+			ReceivedAmount: 0,
+		}, nil
+	default:
+		return hestia.ExchangeOrderInfo{
+			Status: hestia.ExchangeOrderStatusOpen,
+			ReceivedAmount: 0,
+		}, nil
+	}
 }
 
 func (b *Bithumb) GetPair(fromCoin string, toCoin string) (models.TradeInfo, error) {
+	markets, err := b.getConfig()
+	if err != nil {
+		return models.TradeInfo{}, err
+	}
+	symbolBuy := fmt.Sprintf("%s-%s", strings.ToUpper(fromCoin), strings.ToUpper(toCoin))
+	symbolSell := fmt.Sprintf("%s-%s", strings.ToUpper(toCoin), strings.ToUpper(fromCoin))
+	for _, spotData := range markets.Data.SpotConfig {
+		if spotData.Symbol == symbolBuy {
+			return models.TradeInfo{
+				Book: spotData.Symbol,
+				Type: "buy",
+			}, nil
+		} else if spotData.Symbol == symbolSell{
+			return models.TradeInfo{
+				Book: spotData.Symbol,
+				Type: "sell",
+			}, nil
+		}
+	}
 	t := models.TradeInfo{}
-	return t, nil
+	return t, errors.New("pair not found")
 }
 
 func (b *Bithumb) GetWithdrawalTxHash(txId string, asset string) (string, error) {
+	// No way of knowing a withdrawal tx hash
 	return "", nil
 }
 
 //  Gets the deposit status from an asset's exchange.
 func (b *Bithumb) GetDepositStatus(addr string, txId string, asset string) (hestia.ExchangeOrderInfo, error) {
+	// bithumb does not provide a way of searching for this, maybe we can use block explorer to determine XY network confirmations
 	e := hestia.ExchangeOrderInfo{}
 	return e, nil
 }
 
 // Functions to get Bithumb API data
+
+type configResp struct {
+	baseResp
+	Data struct {
+		CoinConfig []struct {
+			MakerFeeRate   decimal.Decimal `json:"makerFeeRate"`
+			MinWithdraw    decimal.Decimal `json:"minWithdraw"`
+			WithdrawFee    decimal.Decimal `json:"withdrawFee"`
+			Name           string `json:"name"`
+			DepositStatus  string `json:"depositStatus"`
+			FullName       string `json:"fullName"`
+			TakerFeeRate   decimal.Decimal `json:"takerFeeRate"`
+			WithdrawStatus decimal.Decimal `json:"withdrawStatus"`
+		} `json:"coinConfig"`
+		ContractConfig []struct {
+			Symbol       string `json:"symbol"`
+			MakerFeeRate decimal.Decimal `json:"makerFeeRate"`
+			TakerFeeRate decimal.Decimal `json:"takerFeeRate"`
+		} `json:"contractConfig"`
+		SpotConfig []struct {
+			Symbol       string   `json:"symbol"`
+			Accuracy     []string `json:"accuracy"`
+			PercentPrice struct {
+				MultiplierDown decimal.Decimal `json:"multiplierDown"`
+				MultiplierUp   decimal.Decimal `json:"multiplierUp"`
+			} `json:"percentPrice"`
+		} `json:"spotConfig"`
+	} `json:"data"`
+}
+
 type createOrderResp struct {
 	baseResp
 	Data struct {
 		OrderId string
 		Symbol  string
 	}
+}
+
+type orderDetailResp struct {
+	baseResp
+	Data struct {
+		OrderID    string `json:"orderId"`
+		Symbol     string `json:"symbol"`
+		Price      decimal.Decimal `json:"price"`
+		TradedNum  decimal.Decimal `json:"tradedNum"`
+		Quantity   decimal.Decimal `json:"quantity"`
+		AvgPrice   decimal.Decimal `json:"avgPrice"`
+		Status     string `json:"status"`
+		Type       string `json:"type"`
+		Side       string `json:"side"`
+		CreateTime string `json:"createTime"`
+		TradeTotal decimal.Decimal `json:"tradeTotal"`
+	} `json:"data"`
 }
 
 type assetsResp struct {
@@ -179,6 +282,17 @@ func (b *Bithumb) struct2map(params interface{}) map[string]string {
 		data[t.Field(i).Tag.Get("json")] = v.Field(i).String()
 	}
 	return data
+}
+
+func (b *Bithumb) get(url string, r interface{}) error {
+	resp := doGet(url)
+	err := doParse(resp, r)
+	return err
+}
+
+func doGet(url string) []byte {
+	resp, err := http.Get(url)
+	return handleResp(resp, err)
 }
 
 func post(url string, params interface{}, r interface{}) error {
@@ -264,11 +378,39 @@ func (b *Bithumb) createOrder(symbol string, side string, quantity decimal.Decim
 		Quantity  string `json:"quantity"`
 		Timestamp string `json:"timestamp"`
 	}{
-		symbol, orderType, side, pr.String(), quantity.String(), strconv.FormatInt(time.Now().UTC().UnixNano(), 10),
+		symbol, orderType, side, pr.String(), quantity.String(), strconv.FormatInt(time.Now().UTC().UnixNano()/1e6, 10),
+		// symbol, orderType, side, pr.String(), quantity.String(),
 	}
 	err := b.post(b.url+"/spot/placeOrder", p, &c)
 	if err != nil {
 		return &c, err
 	}
+	fmt.Println("message: ", c.Msg)
+	return &c, nil
+}
+
+func (b *Bithumb) orderDetail(symbol string, orderId string) (*orderDetailResp, error) {
+	var c orderDetailResp
+	p := struct {
+		Symbol  string `json:"symbol"`
+		OrderId string `json:"orderId"`
+	}{
+		symbol, orderId,
+	}
+	err := b.post(b.url+"/spot/singleOrder", p, &c)
+	if err != nil {
+		return &c, err
+	}
+	fmt.Println("message: ", &c.Msg)
+	return &c, nil
+}
+
+func (b *Bithumb) getConfig() (*configResp, error) {
+	var c configResp
+	err := b.get(b.url+"/spot/config", &c)
+	if err != nil {
+		return &c, err
+	}
+	fmt.Println("message: ", &c.Data)
 	return &c, nil
 }

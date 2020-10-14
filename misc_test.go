@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"github.com/grupokindynos/adrestia-go/exchanges"
 	"github.com/grupokindynos/adrestia-go/models"
+	"github.com/grupokindynos/common/hestia"
 	"github.com/joho/godotenv"
 	"log"
+	"os"
 	"testing"
 )
 
@@ -18,8 +20,8 @@ func init() {
 func TestBithumb(t *testing.T) {
 	m := models.ExchangeParams{}
 	m.Name = "Bithumb"
-	m.Keys.PrivateKey = "3158feaf09b9d9181c596036db90563c394d9eff0224e4c4c5b2d0bd91aff44"
-	m.Keys.PublicKey = "ee6819f1ec612258e743fc1aad71a7e0"
+	m.Keys.PrivateKey = os.Getenv("BITHUMB_SECRET")
+	m.Keys.PublicKey = os.Getenv("BITHUMB_API")
 
 	b := exchanges.NewBithumb(m)
 
@@ -33,8 +35,8 @@ func TestBithumb(t *testing.T) {
 func TestWithdrawBithumb(t *testing.T) {
 	m := models.ExchangeParams{}
 	m.Name = "Bithumb"
-	m.Keys.PrivateKey = "3158feaf09b9d9181c596036db90563c394d9eff0224e4c4c5b2d0bd91aff44"
-	m.Keys.PublicKey = "ee6819f1ec612258e743fc1aad71a7e0"
+	m.Keys.PrivateKey = os.Getenv("BITHUMB_SECRET")
+	m.Keys.PublicKey = os.Getenv("BITHUMB_API")
 
 	b := exchanges.NewBithumb(m)
 
@@ -43,4 +45,46 @@ func TestWithdrawBithumb(t *testing.T) {
 		return
 	}
 	fmt.Println(assetBalance)
+}
+
+func TestMarketPrice(t *testing.T) {
+	m := models.ExchangeParams{}
+	m.Name = "Bithumb"
+	m.Keys.PrivateKey = os.Getenv("BITHUMB_SECRET")
+	m.Keys.PublicKey = os.Getenv("BITHUMB_API")
+
+	b := exchanges.NewBithumb(m)
+
+	assetBalance, err := b.SellAtMarketPrice(hestia.Trade{
+		OrderId:        "",
+		Amount:         0.900000,
+		ReceivedAmount: 0,
+		FromCoin:       "USDT",
+		ToCoin:         "GTH",
+		Symbol:         "GTH-USDT",
+		Side:           "buy",
+		Status:         0,
+		Exchange:       "bithumb",
+		CreatedTime:    0,
+		FulfilledTime:  0,
+	})
+	if err != nil {
+		return
+	}
+	fmt.Println(assetBalance)
+}
+
+func TestBithumbConfig(t *testing.T) {
+	m := models.ExchangeParams{}
+	m.Name = "Bithumb"
+	m.Keys.PrivateKey = os.Getenv("BITHUMB_SECRET")
+	m.Keys.PublicKey = os.Getenv("BITHUMB_API")
+
+	b := exchanges.NewBithumb(m)
+
+	config, err := b.GetPair("USDT", "GTH")
+	if err != nil {
+		return
+	}
+	fmt.Println(config)
 }

@@ -6,7 +6,9 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/shopspring/decimal"
 	"io/ioutil"
 	"net/http"
 	"reflect"
@@ -55,15 +57,30 @@ func (b *Bithumb) GetAddress(asset string) (string, error) {
 
 // GetBalance Gets the balance for a given asset
 func (b *Bithumb) GetBalance(asset string) (float64, error) {
-
-	return 0, nil
+	assetInfo, err := b.Assets(asset)
+	if err != nil {
+		return 0, err
+	}
+	if len(assetInfo.Data) >= 1 {
+		balance, _ := assetInfo.Data[0].Count.Float64()
+		return balance, nil
+	}
+	return 0, errors.New("asset not found")
 }
 
 func (b *Bithumb) SellAtMarketPrice(order hestia.Trade) (string, error) {
-	return "", nil
+	orderInfo, err := b.createOrder(order.Symbol, order.Side, decimal.NewFromFloat(order.Amount), decimal.NewFromFloat(0), "market")
+	if err != nil {
+		return "", err
+	}
+	return orderInfo.Data.OrderId, nil
 }
 
 func (b *Bithumb) Withdraw(asset string, address string, amount float64) (string, error) {
+	_, err := b.withdraw(asset, address, decimal.NewFromFloat(amount), "")
+	if err != nil {
+		return "", err
+	}
 	return "", nil
 }
 
@@ -88,14 +105,22 @@ func (b *Bithumb) GetDepositStatus(addr string, txId string, asset string) (hest
 }
 
 // Functions to get Bithumb API data
+type createOrderResp struct {
+	baseResp
+	Data struct {
+		OrderId string
+		Symbol  string
+	}
+}
+
 type assetsResp struct {
 	baseResp
 	Data []struct {
 		CoinType    string
-		Count       string
-		Frozen      string
+		Count       decimal.Decimal
+		Frozen      decimal.Decimal
 		Type        string
-		BtcQuantity string
+		BtcQuantity decimal.Decimal
 	}
 }
 
@@ -136,13 +161,14 @@ func (b *Bithumb) sign(preMap map[string]string) string {
 	return signature
 }
 
-func (b *Bithumb) post(url string, params interface{}, result interface{}) {
+func (b *Bithumb) post(url string, params interface{}, result interface{}) error {
 	preMap := b.struct2map(params)
 	preMap["apiKey"] = b.user
 	preMap["timestamp"] = strconv.FormatInt(time.Now().UnixNano()/1e6, 10)
 	preMap["signature"] = b.sign(preMap)
 	err := post(url, preMap, result)
 	handleErr(err)
+	return err
 }
 
 func (b *Bithumb) struct2map(params interface{}) map[string]string {
@@ -153,18 +179,6 @@ func (b *Bithumb) struct2map(params interface{}) map[string]string {
 		data[t.Field(i).Tag.Get("json")] = v.Field(i).String()
 	}
 	return data
-}
-
-func (b *Bithumb) Assets(coinType string) *assetsResp {
-	var r assetsResp
-	p := struct {
-		CoinType  string `json:"coinType"`
-		AssetType string `json:"assetType"`
-	}{
-		coinType, "spot",
-	}
-	b.post(b.url+"/spot/assetList", p, &r)
-	return &r
 }
 
 func post(url string, params interface{}, r interface{}) error {
@@ -201,4 +215,60 @@ func handleResp(resp *http.Response, err error) []byte {
 		panic(err)
 	}
 	return r
+}
+
+/** API Implementation **/
+func (b *Bithumb) Assets(coinType string) (*assetsResp, error) {
+	var r assetsResp
+	p := struct {
+		CoinType  string `json:"coinType"`
+		AssetType string `json:"assetType"`
+	}{
+		coinType, "spot",
+	}
+	err := b.post(b.url+"/spot/assetList", p, &r)
+	if err != nil {
+		return &r, err
+	}
+	return &r, nil
+}
+
+func (b *Bithumb) withdraw(asset string, address string, quantity decimal.Decimal, mark string) (bool, error) {
+	var r assetsResp
+	p := struct {
+		CoinType string `json:"coinType"`
+		Address  string `json:"address"`
+		Quantity string `json:"quantity"`
+		Mark     string `json:"mark"`
+	}{
+		asset, address, quantity.String(), mark,
+	}
+	err := b.post(b.url+"/spot/assetList", p, &r)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (b *Bithumb) createOrder(symbol string, side string, quantity decimal.Decimal, price decimal.Decimal, orderType string) (*createOrderResp, error) {
+	var c createOrderResp
+	var pr = price
+	if orderType == "market" {
+		pr = decimal.NewFromFloat(-1)
+	}
+	p := struct {
+		Symbol    string `json:"symbol"`
+		Type      string `json:"type"`
+		Side      string `json:"side"`
+		Price     string `json:"price"`
+		Quantity  string `json:"quantity"`
+		Timestamp string `json:"timestamp"`
+	}{
+		symbol, orderType, side, pr.String(), quantity.String(), strconv.FormatInt(time.Now().UTC().UnixNano(), 10),
+	}
+	err := b.post(b.url+"/spot/placeOrder", p, &c)
+	if err != nil {
+		return &c, err
+	}
+	return &c, nil
 }

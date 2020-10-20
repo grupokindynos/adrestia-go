@@ -47,7 +47,7 @@ func TestWithdrawBithumb(t *testing.T) {
 	fmt.Println(assetBalance)
 }
 
-func TestMarketPrice(t *testing.T) {
+/*func TestMarketPrice(t *testing.T) {
 	m := models.ExchangeParams{}
 	m.Name = "Bithumb"
 	m.Keys.PrivateKey = os.Getenv("BITHUMB_SECRET")
@@ -72,7 +72,7 @@ func TestMarketPrice(t *testing.T) {
 		return
 	}
 	fmt.Println(assetBalance)
-}
+}*/
 
 func TestBithumbConfig(t *testing.T) {
 	m := models.ExchangeParams{}

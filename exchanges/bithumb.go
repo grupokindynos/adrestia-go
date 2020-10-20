@@ -1,24 +1,14 @@
 package exchanges
 
 import (
-	"bytes"
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/shopspring/decimal"
-	"io/ioutil"
-	"net/http"
-	"reflect"
-	"sort"
-	"strconv"
-	"strings"
-	"time"
-
+	"github.com/PrettyBoyHelios/go-bithumb"
 	"github.com/grupokindynos/adrestia-go/models"
 	"github.com/grupokindynos/common/hestia"
+	"github.com/shopspring/decimal"
+	"net/http"
+	"strings"
 )
 
 //Bithumb The attributes needed for the Bithumb exchanges
@@ -29,6 +19,7 @@ type Bithumb struct {
 	url           string
 	addresses     map[string]string
 	client        *http.Client
+	bithumbClient *go_bithumb.Bithumb
 }
 
 //NewBithumb Creates a new instance of Bithumb
@@ -40,9 +31,10 @@ func NewBithumb(params models.ExchangeParams) *Bithumb {
 	b.client = &http.Client{}
 	b.addresses = map[string]string{
 		"BTC":  "1L9jPKCbUbK9aKgn5miwRmUy51Pm64SeW6",
-		"GTH":  "",
-		"USDT": "",
+		"GTH":  "0xb9cc9b046a901cff4a6943e26158c6de415a8b32",
+		"USDT": "0xb9cc9b046a901cff4a6943e26158c6de415a8b32",
 	}
+	b.bithumbClient = go_bithumb.NewBithhumbAuth(params.Keys.PublicKey, params.Keys.PrivateKey)
 	b.url = "https://global-openapi.bithumb.pro/openapi/v1"
 	return b
 }
@@ -59,7 +51,7 @@ func (b *Bithumb) GetAddress(asset string) (string, error) {
 
 // GetBalance Gets the balance for a given asset
 func (b *Bithumb) GetBalance(asset string) (float64, error) {
-	assetInfo, err := b.Assets(asset)
+	assetInfo, err := b.bithumbClient.Assets(asset)
 	if err != nil {
 		return 0, err
 	}
@@ -71,7 +63,7 @@ func (b *Bithumb) GetBalance(asset string) (float64, error) {
 }
 
 func (b *Bithumb) SellAtMarketPrice(order hestia.Trade) (string, error) {
-	orderInfo, err := b.createOrder(order.Symbol, strings.ToLower(order.Side), decimal.NewFromFloat(order.Amount), decimal.NewFromFloat(0), strings.ToLower("market"))
+	orderInfo, err := b.bithumbClient.CreateOrder(order.Symbol, strings.ToLower(order.Side), decimal.NewFromFloat(order.Amount), decimal.NewFromFloat(0), strings.ToLower("market"))
 	if err != nil {
 		return "", err
 	}
@@ -79,7 +71,7 @@ func (b *Bithumb) SellAtMarketPrice(order hestia.Trade) (string, error) {
 }
 
 func (b *Bithumb) Withdraw(asset string, address string, amount float64) (string, error) {
-	_, err := b.withdraw(asset, address, decimal.NewFromFloat(amount), "")
+	_, err := b.bithumbClient.Withdraw(asset, address, decimal.NewFromFloat(amount), "")
 	if err != nil {
 		return "", err
 	}
@@ -87,7 +79,7 @@ func (b *Bithumb) Withdraw(asset string, address string, amount float64) (string
 }
 
 func (b *Bithumb) GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderInfo, error) {
-	orderStatus, err := b.orderDetail(order.Symbol, order.OrderId)
+	orderStatus, err := b.bithumbClient.OrderDetail(order.Symbol, order.OrderId)
 	if err != nil {
 		return hestia.ExchangeOrderInfo{
 			Status:         hestia.ExchangeOrderStatusOpen,
@@ -125,7 +117,7 @@ func (b *Bithumb) GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderInfo, 
 }
 
 func (b *Bithumb) GetPair(fromCoin string, toCoin string) (models.TradeInfo, error) {
-	markets, err := b.getConfig()
+	markets, err := b.bithumbClient.GetConfig()
 	if err != nil {
 		return models.TradeInfo{}, err
 	}
@@ -158,7 +150,7 @@ func (b *Bithumb) GetWithdrawalTxHash(txId string, asset string) (string, error)
 func (b *Bithumb) GetDepositStatus(addr string, txId string, asset string) (hestia.ExchangeOrderInfo, error) {
 	// bithumb does not provide a way of searching for this, maybe we can use block explorer to determine XY network confirmations
 	depositInfo := hestia.ExchangeOrderInfo{}
-	deposits, err := b.depositHistory(asset)
+	deposits, err := b.bithumbClient.DepositHistory(asset)
 	if err != nil {
 		return depositInfo, err
 	}
@@ -180,291 +172,4 @@ func (b *Bithumb) GetDepositStatus(addr string, txId string, asset string) (hest
 		}
 	}
 	return depositInfo, errors.New("deposit not found")
-}
-
-// Functions to get Bithumb API data
-
-type configResp struct {
-	baseResp
-	Data struct {
-		CoinConfig []struct {
-			MakerFeeRate   decimal.Decimal `json:"makerFeeRate"`
-			MinWithdraw    decimal.Decimal `json:"minWithdraw"`
-			WithdrawFee    decimal.Decimal `json:"withdrawFee"`
-			Name           string          `json:"name"`
-			DepositStatus  string          `json:"depositStatus"`
-			FullName       string          `json:"fullName"`
-			TakerFeeRate   decimal.Decimal `json:"takerFeeRate"`
-			WithdrawStatus decimal.Decimal `json:"withdrawStatus"`
-		} `json:"coinConfig"`
-		ContractConfig []struct {
-			Symbol       string          `json:"symbol"`
-			MakerFeeRate decimal.Decimal `json:"makerFeeRate"`
-			TakerFeeRate decimal.Decimal `json:"takerFeeRate"`
-		} `json:"contractConfig"`
-		SpotConfig []struct {
-			Symbol       string   `json:"symbol"`
-			Accuracy     []string `json:"accuracy"`
-			PercentPrice struct {
-				MultiplierDown decimal.Decimal `json:"multiplierDown"`
-				MultiplierUp   decimal.Decimal `json:"multiplierUp"`
-			} `json:"percentPrice"`
-		} `json:"spotConfig"`
-	} `json:"data"`
-}
-
-type createOrderResp struct {
-	baseResp
-	Data struct {
-		OrderId string
-		Symbol  string
-	} `json:"data"`
-}
-
-type depositHistory struct {
-	baseResp
-	Data []struct {
-		CoinType   string          `json:"coinType"`
-		Address    string          `json:"address"`
-		Quantity   decimal.Decimal `json:"quantity"`
-		CreateTime int64           `json:"createTime"`
-		Txid       string          `json:"txid"`
-		AcountName string          `json:"acountName"`
-		ID         string          `json:"id"`
-		Status     string          `json:"status"`
-	} `json:"data"`
-}
-
-type orderDetailResp struct {
-	baseResp
-	Data struct {
-		OrderID    string          `json:"orderId"`
-		Symbol     string          `json:"symbol"`
-		Price      decimal.Decimal `json:"price"`
-		TradedNum  decimal.Decimal `json:"tradedNum"`
-		Quantity   decimal.Decimal `json:"quantity"`
-		AvgPrice   decimal.Decimal `json:"avgPrice"`
-		Status     string          `json:"status"`
-		Type       string          `json:"type"`
-		Side       string          `json:"side"`
-		CreateTime string          `json:"createTime"`
-		TradeTotal decimal.Decimal `json:"tradeTotal"`
-	} `json:"data"`
-}
-
-type assetsResp struct {
-	baseResp
-	Data []struct {
-		CoinType    string
-		Count       decimal.Decimal
-		Frozen      decimal.Decimal
-		Type        string
-		BtcQuantity decimal.Decimal
-	}
-}
-
-type baseResp struct {
-	Code      string
-	Msg       string
-	Timestamp int64
-	Data      interface{}
-}
-
-func handleErr(err error) {
-	if err != nil {
-		fmt.Println(err)
-	}
-}
-
-func (b *Bithumb) getSha256HashCode(preSign string) string {
-	h := hmac.New(sha256.New, []byte(b.authorization))
-	h.Write([]byte(preSign))
-	hashCode := hex.EncodeToString(h.Sum(nil))
-	return hashCode
-}
-
-func (b *Bithumb) sign(preMap map[string]string) string {
-	var keys []string
-	for k := range preMap {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	var preSign string
-	for _, k := range keys {
-		preSign += k + "=" + preMap[k] + "&"
-	}
-	preSign = strings.TrimSuffix(preSign, "&")
-	fmt.Println("prepare signature string >======= ", preSign)
-	signature := b.getSha256HashCode(preSign)
-	fmt.Println("signature string >====== ", signature)
-	return signature
-}
-
-func (b *Bithumb) post(url string, params interface{}, result interface{}) error {
-	preMap := b.struct2map(params)
-	preMap["apiKey"] = b.user
-	preMap["timestamp"] = strconv.FormatInt(time.Now().UnixNano()/1e6, 10)
-	preMap["signature"] = b.sign(preMap)
-	err := post(url, preMap, result)
-	handleErr(err)
-	return err
-}
-
-func (b *Bithumb) struct2map(params interface{}) map[string]string {
-	t := reflect.TypeOf(params)
-	v := reflect.ValueOf(params)
-	var data = make(map[string]string)
-	for i := 0; i < t.NumField(); i++ {
-		data[t.Field(i).Tag.Get("json")] = v.Field(i).String()
-	}
-	return data
-}
-
-func (b *Bithumb) get(url string, r interface{}) error {
-	resp := doGet(url)
-	err := doParse(resp, r)
-	return err
-}
-
-func doGet(url string) []byte {
-	resp, err := http.Get(url)
-	return handleResp(resp, err)
-}
-
-func post(url string, params interface{}, r interface{}) error {
-	jsonBytes, err := json.Marshal(params)
-	if err != nil {
-		return err
-	}
-	resp := doPost(url, jsonBytes)
-	nil := doParse(resp, r)
-	return nil
-}
-
-func doParse(resp []byte, in interface{}) error {
-	err := json.Unmarshal(resp, in)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func doPost(url string, data []byte) []byte {
-	body := bytes.NewReader(data)
-	resp, err := http.Post(url, "application/json", body)
-	return handleResp(resp, err)
-}
-
-func handleResp(resp *http.Response, err error) []byte {
-	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close()
-	r, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		panic(err)
-	}
-	return r
-}
-
-/** API Implementation **/
-func (b *Bithumb) Assets(coinType string) (*assetsResp, error) {
-	var r assetsResp
-	p := struct {
-		CoinType  string `json:"coinType"`
-		AssetType string `json:"assetType"`
-	}{
-		coinType, "spot",
-	}
-	err := b.post(b.url+"/spot/assetList", p, &r)
-	if err != nil {
-		return &r, err
-	}
-	return &r, nil
-}
-
-func (b *Bithumb) withdraw(asset string, address string, quantity decimal.Decimal, mark string) (bool, error) {
-	var r assetsResp
-	p := struct {
-		CoinType string `json:"coinType"`
-		Address  string `json:"address"`
-		Quantity string `json:"quantity"`
-		Mark     string `json:"mark"`
-	}{
-		asset, address, quantity.String(), mark,
-	}
-	err := b.post(b.url+"/spot/assetList", p, &r)
-	if err != nil {
-		return false, err
-	}
-	return true, nil
-}
-
-func (b *Bithumb) createOrder(symbol string, side string, quantity decimal.Decimal, price decimal.Decimal, orderType string) (*createOrderResp, error) {
-	var c createOrderResp
-	var pr = price
-	if orderType == "market" {
-		pr = decimal.NewFromFloat(-1)
-	}
-	p := struct {
-		Symbol    string `json:"symbol"`
-		Type      string `json:"type"`
-		Side      string `json:"side"`
-		Price     string `json:"price"`
-		Quantity  string `json:"quantity"`
-		Timestamp string `json:"timestamp"`
-	}{
-		symbol, orderType, side, pr.String(), quantity.String(), strconv.FormatInt(time.Now().UTC().UnixNano()/1e6, 10),
-		// symbol, orderType, side, pr.String(), quantity.String(),
-	}
-	err := b.post(b.url+"/spot/placeOrder", p, &c)
-	if err != nil {
-		return &c, err
-	}
-	fmt.Println("message: ", c.Msg)
-	return &c, nil
-}
-
-func (b *Bithumb) orderDetail(symbol string, orderId string) (*orderDetailResp, error) {
-	var c orderDetailResp
-	p := struct {
-		Symbol  string `json:"symbol"`
-		OrderId string `json:"orderId"`
-	}{
-		symbol, orderId,
-	}
-	err := b.post(b.url+"/spot/singleOrder", p, &c)
-	if err != nil {
-		return &c, err
-	}
-	fmt.Println("message: ", &c.Msg)
-	return &c, nil
-}
-
-func (b *Bithumb) getConfig() (*configResp, error) {
-	var c configResp
-	err := b.get(b.url+"/spot/config", &c)
-	if err != nil {
-		return &c, err
-	}
-	fmt.Println("message: ", &c.Data)
-	return &c, nil
-}
-
-func (b *Bithumb) depositHistory(asset string) (*depositHistory, error) {
-	var c depositHistory
-	fromDate := int64(1000 * 60 * 60 * 24 * 90) // 90 days in milliseconds
-	p := struct {
-		Symbol  string `json:"coin"`
-		Start string `json:"start"`
-	}{
-		asset, strconv.FormatInt(time.Now().UnixNano()/1e6 - fromDate, 10),
-	}
-	fmt.Println(time.Now().UnixNano()/1e6)
-	err := b.post(b.url+"/wallet/depositHistory", p, &c)
-	if err != nil {
-		return &c, err
-	}
-	fmt.Println("message: ", &c.Msg)
-	return &c, nil
 }

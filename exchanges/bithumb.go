@@ -39,8 +39,8 @@ func NewBithumb(params models.ExchangeParams) *Bithumb {
 	b.authorization = params.Keys.PrivateKey
 	b.client = &http.Client{}
 	b.addresses = map[string]string{
-		"BTC": "1L9jPKCbUbK9aKgn5miwRmUy51Pm64SeW6",
-		"GTH": "",
+		"BTC":  "1L9jPKCbUbK9aKgn5miwRmUy51Pm64SeW6",
+		"GTH":  "",
 		"USDT": "",
 	}
 	b.url = "https://global-openapi.bithumb.pro/openapi/v1"
@@ -97,28 +97,28 @@ func (b *Bithumb) GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderInfo, 
 	switch orderStatus.Data.Status {
 	case "send":
 		return hestia.ExchangeOrderInfo{
-			Status: hestia.ExchangeOrderStatusOpen,
+			Status:         hestia.ExchangeOrderStatusOpen,
 			ReceivedAmount: 0,
 		}, nil
 	case "pending":
 		return hestia.ExchangeOrderInfo{
-			Status: hestia.ExchangeOrderStatusOpen,
+			Status:         hestia.ExchangeOrderStatusOpen,
 			ReceivedAmount: 0,
 		}, nil
 	case "success":
 		tradedValue, _ := orderStatus.Data.TradedNum.Float64()
 		return hestia.ExchangeOrderInfo{
-			Status: hestia.ExchangeOrderStatusCompleted,
+			Status:         hestia.ExchangeOrderStatusCompleted,
 			ReceivedAmount: tradedValue,
 		}, nil
 	case "cancel":
 		return hestia.ExchangeOrderInfo{
-			Status: hestia.ExchangeOrderStatusError,
+			Status:         hestia.ExchangeOrderStatusError,
 			ReceivedAmount: 0,
 		}, nil
 	default:
 		return hestia.ExchangeOrderInfo{
-			Status: hestia.ExchangeOrderStatusOpen,
+			Status:         hestia.ExchangeOrderStatusOpen,
 			ReceivedAmount: 0,
 		}, nil
 	}
@@ -137,7 +137,7 @@ func (b *Bithumb) GetPair(fromCoin string, toCoin string) (models.TradeInfo, err
 				Book: spotData.Symbol,
 				Type: "buy",
 			}, nil
-		} else if spotData.Symbol == symbolSell{
+		} else if spotData.Symbol == symbolSell {
 			return models.TradeInfo{
 				Book: spotData.Symbol,
 				Type: "sell",
@@ -149,6 +149,7 @@ func (b *Bithumb) GetPair(fromCoin string, toCoin string) (models.TradeInfo, err
 }
 
 func (b *Bithumb) GetWithdrawalTxHash(txId string, asset string) (string, error) {
+
 	// No way of knowing a withdrawal tx hash
 	return "", nil
 }
@@ -156,8 +157,29 @@ func (b *Bithumb) GetWithdrawalTxHash(txId string, asset string) (string, error)
 //  Gets the deposit status from an asset's exchange.
 func (b *Bithumb) GetDepositStatus(addr string, txId string, asset string) (hestia.ExchangeOrderInfo, error) {
 	// bithumb does not provide a way of searching for this, maybe we can use block explorer to determine XY network confirmations
-	e := hestia.ExchangeOrderInfo{}
-	return e, nil
+	depositInfo := hestia.ExchangeOrderInfo{}
+	deposits, err := b.depositHistory(asset)
+	if err != nil {
+		return depositInfo, err
+	}
+	var orderStatus hestia.ExchangeOrderStatus
+	var amount float64
+	for _, deposit := range deposits.Data {
+		if deposit.Txid == txId && deposit.Address == addr {
+			amount, _ = deposit.Quantity.Float64()
+			switch deposit.Status {
+			case "0":
+				orderStatus = hestia.ExchangeOrderStatusOpen
+			case "1":
+				orderStatus = hestia.ExchangeOrderStatusCompleted
+			}
+			return hestia.ExchangeOrderInfo{
+				Status: orderStatus,
+				ReceivedAmount: amount,
+			}, nil
+		}
+	}
+	return depositInfo, errors.New("deposit not found")
 }
 
 // Functions to get Bithumb API data
@@ -169,14 +191,14 @@ type configResp struct {
 			MakerFeeRate   decimal.Decimal `json:"makerFeeRate"`
 			MinWithdraw    decimal.Decimal `json:"minWithdraw"`
 			WithdrawFee    decimal.Decimal `json:"withdrawFee"`
-			Name           string `json:"name"`
-			DepositStatus  string `json:"depositStatus"`
-			FullName       string `json:"fullName"`
+			Name           string          `json:"name"`
+			DepositStatus  string          `json:"depositStatus"`
+			FullName       string          `json:"fullName"`
 			TakerFeeRate   decimal.Decimal `json:"takerFeeRate"`
 			WithdrawStatus decimal.Decimal `json:"withdrawStatus"`
 		} `json:"coinConfig"`
 		ContractConfig []struct {
-			Symbol       string `json:"symbol"`
+			Symbol       string          `json:"symbol"`
 			MakerFeeRate decimal.Decimal `json:"makerFeeRate"`
 			TakerFeeRate decimal.Decimal `json:"takerFeeRate"`
 		} `json:"contractConfig"`
@@ -196,22 +218,36 @@ type createOrderResp struct {
 	Data struct {
 		OrderId string
 		Symbol  string
-	}
+	} `json:"data"`
+}
+
+type depositHistory struct {
+	baseResp
+	Data []struct {
+		CoinType   string          `json:"coinType"`
+		Address    string          `json:"address"`
+		Quantity   decimal.Decimal `json:"quantity"`
+		CreateTime int64           `json:"createTime"`
+		Txid       string          `json:"txid"`
+		AcountName string          `json:"acountName"`
+		ID         string          `json:"id"`
+		Status     string          `json:"status"`
+	} `json:"data"`
 }
 
 type orderDetailResp struct {
 	baseResp
 	Data struct {
-		OrderID    string `json:"orderId"`
-		Symbol     string `json:"symbol"`
+		OrderID    string          `json:"orderId"`
+		Symbol     string          `json:"symbol"`
 		Price      decimal.Decimal `json:"price"`
 		TradedNum  decimal.Decimal `json:"tradedNum"`
 		Quantity   decimal.Decimal `json:"quantity"`
 		AvgPrice   decimal.Decimal `json:"avgPrice"`
-		Status     string `json:"status"`
-		Type       string `json:"type"`
-		Side       string `json:"side"`
-		CreateTime string `json:"createTime"`
+		Status     string          `json:"status"`
+		Type       string          `json:"type"`
+		Side       string          `json:"side"`
+		CreateTime string          `json:"createTime"`
 		TradeTotal decimal.Decimal `json:"tradeTotal"`
 	} `json:"data"`
 }
@@ -412,5 +448,23 @@ func (b *Bithumb) getConfig() (*configResp, error) {
 		return &c, err
 	}
 	fmt.Println("message: ", &c.Data)
+	return &c, nil
+}
+
+func (b *Bithumb) depositHistory(asset string) (*depositHistory, error) {
+	var c depositHistory
+	fromDate := int64(1000 * 60 * 60 * 24 * 90) // 90 days in milliseconds
+	p := struct {
+		Symbol  string `json:"coin"`
+		Start string `json:"start"`
+	}{
+		asset, strconv.FormatInt(time.Now().UnixNano()/1e6 - fromDate, 10),
+	}
+	fmt.Println(time.Now().UnixNano()/1e6)
+	err := b.post(b.url+"/wallet/depositHistory", p, &c)
+	if err != nil {
+		return &c, err
+	}
+	fmt.Println("message: ", &c.Msg)
 	return &c, nil
 }

@@ -88,3 +88,18 @@ func TestBithumbConfig(t *testing.T) {
 	}
 	fmt.Println(config)
 }
+
+func TestBithumbDeposits(t *testing.T) {
+	m := models.ExchangeParams{}
+	m.Name = "Bithumb"
+	m.Keys.PrivateKey = os.Getenv("BITHUMB_SECRET")
+	m.Keys.PublicKey = os.Getenv("BITHUMB_API")
+
+	b := exchanges.NewBithumb(m)
+
+	deposits, err := b.GetDepositStatus("0xb9cc9b046a901cff4a6943e26158c6de415a8b32", "0x5d18fb16b9a3dad6e1ff6cbc6dab3687a58269c2851325f1830b4c8c2d4d87ad", "USDT")
+	if err != nil {
+		return
+	}
+	fmt.Println(hestia.ExchangeOrderStatusStr[deposits.Status])
+}

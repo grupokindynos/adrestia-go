@@ -46,7 +46,10 @@ func (b *Bithumb) GetName() (string, error) {
 
 // GetAddress Gets address from Bithumb WIP: Add error message
 func (b *Bithumb) GetAddress(asset string) (string, error) {
-	return b.addresses[asset], nil
+	if val, ok := b.addresses[asset]; ok {
+		return val, nil
+	}
+	return "", errors.New("address not found for " + asset)
 }
 
 // GetBalance Gets the balance for a given asset
@@ -141,9 +144,17 @@ func (b *Bithumb) GetPair(fromCoin string, toCoin string) (models.TradeInfo, err
 }
 
 func (b *Bithumb) GetWithdrawalTxHash(txId string, asset string) (string, error) {
-
+	withdrawals, err := b.bithumbClient.WithdrawalHistory(asset)
+	if err != nil {
+		return "", err
+	}
+	for _, w := range withdrawals.Data {
+		if w.Txid == txId {
+			return w.Txid, nil
+		}
+	}
 	// No way of knowing a withdrawal tx hash
-	return "", nil
+	return "", errors.New(fmt.Sprintf("no withdrawal matching id: %s", txId))
 }
 
 //  Gets the deposit status from an asset's exchange.

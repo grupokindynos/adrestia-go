@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/grupokindynos/adrestia-go/balancer"
+	"github.com/grupokindynos/common/telegram"
 	"log"
 	"net/http"
 	"os"
@@ -10,11 +12,9 @@ import (
 
 	"github.com/grupokindynos/adrestia-go/ladon"
 	"github.com/grupokindynos/common/hestia"
-	"github.com/grupokindynos/common/telegram"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/grupokindynos/adrestia-go/balancer"
 	"github.com/grupokindynos/adrestia-go/controllers"
 	"github.com/grupokindynos/adrestia-go/exchanges"
 	"github.com/grupokindynos/adrestia-go/models"

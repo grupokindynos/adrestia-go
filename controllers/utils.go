@@ -31,7 +31,11 @@ func getWhiteListMarketsMap(exchange string) map[string]bool {
 		},
 		"stex": {
 			"DIVI": true,
-		}}
+		},
+		"bithumb": {
+			"GTH": true,
+		},
+	}
 
 	return whiteList[exchange]
 }

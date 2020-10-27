@@ -115,11 +115,11 @@ func (b *Bittrex) GetBalance(coin string) (float64, error) {
 // cantidad a comprar/vender
 func (b *Bittrex) getBestPrice(amount decimal.Decimal, market string, side string) (decimal.Decimal, error) {
 	var err error
-	var orders []bittrex.Orderb
+	var orders []bittrex.OrderbV3
 	if side == "buy" {
-		orders, err = b.exchange.GetOrderBookBuySell(market, "sell")
+		orders, err = b.exchange.GetOrderBookBuySell(market, 50,"sell")
 	} else {
-		orders, err = b.exchange.GetOrderBookBuySell(market, "buy")
+		orders, err = b.exchange.GetOrderBookBuySell(market, 50,"buy")
 	}
 
 	if err != nil {

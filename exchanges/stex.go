@@ -375,8 +375,6 @@ func (s *Stex) GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderInfo, err
 		return hestia.ExchangeOrderInfo{}, err
 	}
 
-	log.Println(string(statusBytes))
-
 	var status stexResponseOrderStatus
 	var emptyStatus stexResponseOrderStatusEmpty
 

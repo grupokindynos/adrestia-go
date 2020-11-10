@@ -23,7 +23,7 @@ func InitBitcouV2Service() *BitcouV2Service {
 }
 
 func (bs *BitcouV2Service) GetFloatingAccountInfo() (float64, error) {
-	path := bs.BitcouURL + "voucher/transaction"
+	path := bs.BitcouURL + "/account/balance"
 	log.Println("Getting floating account balance using url: ", path)
 	token := "Bearer " + os.Getenv("BITCOU_TOKEN_V2")
 	req, err := http.NewRequest("GET", path, nil)
@@ -45,7 +45,7 @@ func (bs *BitcouV2Service) GetFloatingAccountInfo() (float64, error) {
 	if err != nil {
 		return 0, err
 	}
-	var vouchersList float64
+	var vouchersList []BalanceResponse
 	dataBytes, err := json.Marshal(response.Data)
 	if err != nil {
 		return 0, err
@@ -54,7 +54,7 @@ func (bs *BitcouV2Service) GetFloatingAccountInfo() (float64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return vouchersList, nil
+	return vouchersList[0].Amount, nil
 }
 
 type BaseResponse struct {
@@ -64,4 +64,8 @@ type BaseResponse struct {
 
 type MetaData struct {
 	Datetime string `json:"datetime"`
+}
+
+type BalanceResponse struct {
+	Amount float64 `json:"amount"`
 }

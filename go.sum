@@ -5,8 +5,6 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/Groestlcoin/go-groestl-hash v0.0.0-20181012171753-790653ac190c h1:8bYNmjELeCj7DEh/dN7zFzkJ0upK3GkbOC/0u1HMQ5s=
 github.com/Groestlcoin/go-groestl-hash v0.0.0-20181012171753-790653ac190c/go.mod h1:DwgC62sAn4RgH4L+O8REgcE7f0XplHPNeRYFy+ffy1M=
 github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible/go.mod h1:r7JcOSlj0wfOMncg0iLm8Leh48TZaKVeNIfJntJ2wa0=
-github.com/PrettyBoyHelios/go-bithumb v0.0.0-20201020174518-fef4c0c03dc9 h1:DUQ/yzIXBbHYE6JtDhxJ1I86ot132Hmr5MTg+tdCLOQ=
-github.com/PrettyBoyHelios/go-bithumb v0.0.0-20201020174518-fef4c0c03dc9/go.mod h1:pqcKIc5gpSIPlxPZKH86x5ElZC6QMlzfnQg0VQOowQ8=
 github.com/PrettyBoyHelios/go-bithumb v0.0.0-20201102134820-4c67777bf14e h1:u6X4NmrkwaeHeQ+Vy1L8PUlvrC5z5DCnwqfs26CDTk4=
 github.com/PrettyBoyHelios/go-bithumb v0.0.0-20201102134820-4c67777bf14e/go.mod h1:pqcKIc5gpSIPlxPZKH86x5ElZC6QMlzfnQg0VQOowQ8=
 github.com/Shopify/sarama v1.19.0/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWXgklEdEo=

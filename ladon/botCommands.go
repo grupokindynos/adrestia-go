@@ -113,7 +113,7 @@ func (bpc *BitcouPaymentCommands) floatingAccountBalance(chatId string) {
 	if err != nil {
 		bpc.TgBot.SendMessage(fmt.Sprintf("Error Retrieving Floating Account Balance: %s", err.Error()), chatId)
 	}
-	bpc.TgBot.SendMessage(fmt.Sprintf("Floating Account Balance: %.2f", balance/100), chatId)
+	bpc.TgBot.SendMessage(fmt.Sprintf("Floating Account Balance: € %.2f", balance/100), chatId)
 }
 
 func (bpc *BitcouPaymentCommands) setPaymentHour(message string, chatId string) {

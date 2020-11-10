@@ -130,12 +130,12 @@ func (b *Bithumb) GetPair(fromCoin string, toCoin string) (models.TradeInfo, err
 		if spotData.Symbol == symbolBuy {
 			return models.TradeInfo{
 				Book: spotData.Symbol,
-				Type: "buy",
+				Type: "sell",
 			}, nil
 		} else if spotData.Symbol == symbolSell {
 			return models.TradeInfo{
 				Book: spotData.Symbol,
-				Type: "sell",
+				Type: "buy",
 			}, nil
 		}
 	}

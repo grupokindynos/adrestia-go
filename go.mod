@@ -3,7 +3,7 @@ module github.com/grupokindynos/adrestia-go
 go 1.13
 
 require (
-	github.com/PrettyBoyHelios/go-bithumb v0.0.0-20201020174518-fef4c0c03dc9
+	github.com/PrettyBoyHelios/go-bithumb v0.0.0-20201102134820-4c67777bf14e
 	github.com/Toorop/go-bittrex v0.0.0-20190830073639-940e8b39e80d
 	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.5.0

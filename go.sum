@@ -147,8 +147,8 @@ github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0/go.mod h1:8NvIoxWQoOIhqOTXgf
 github.com/grpc-ecosystem/grpc-gateway v1.9.5/go.mod h1:vNeuVxBJEsws4ogUvrchl83t/GYV9WGTSLVdBhOQFDY=
 github.com/grupokindynos/common v0.0.0-20201026140532-cf860c14415d h1:WEyIsvaKoUzPHja+IE7ZQ0BgyvFqoQ7l7gUsdNZ4w0c=
 github.com/grupokindynos/common v0.0.0-20201026140532-cf860c14415d/go.mod h1:01s5/fk/NE85VAR6RiFfUWWiy/UnSBRLIltJCAu56Bw=
-github.com/grupokindynos/go-binance v0.0.0-20200805175429-875b1354f598 h1:dYQbPdkou9E+Ax6/1afVaBtUIlP8FtjJquUUCMYpgfc=
-github.com/grupokindynos/go-binance v0.0.0-20200805175429-875b1354f598/go.mod h1:t0HMFWanG5UtRfZo/2Hc4KO4sbrJSKQoOrlintfiVTM=
+github.com/grupokindynos/go-binance v0.0.0-20201120163936-631d35ae5812 h1:NISMkYP87nwbn+QoDsaWzKquRmsxR/ylN+KCkYE1YcQ=
+github.com/grupokindynos/go-binance v0.0.0-20201120163936-631d35ae5812/go.mod h1:t0HMFWanG5UtRfZo/2Hc4KO4sbrJSKQoOrlintfiVTM=
 github.com/hashicorp/consul/api v1.3.0/go.mod h1:MmDNSzIMUjNpY/mQ398R4bk2FnqQLoPndWW5VkKPlCE=
 github.com/hashicorp/consul/sdk v0.3.0/go.mod h1:VKf9jXwCTEY1QZP2MOLRhb5i/I/ssyNV1vwHyQBF0x8=
 github.com/hashicorp/errwrap v1.0.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=

@@ -2,6 +2,7 @@ package exchanges
 
 import (
 	"errors"
+	"fmt"
 	"github.com/grupokindynos/adrestia-go/models"
 	"github.com/shopspring/decimal"
 	"log"
@@ -154,11 +155,11 @@ func (s *SouthXchange) Withdraw(coin string, address string, amount float64) (st
 	return id, err
 }
 
-func (s *SouthXchange) GetDepositStatus(_ string, txId string, _ string) (hestia.ExchangeOrderInfo, error) {
+func (s *SouthXchange) GetDepositStatus(_ string, txId string, asset string) (hestia.ExchangeOrderInfo, error) {
 	var status hestia.ExchangeOrderInfo
 	txs, err := s.southClient.GetTransactions("deposits", 0, 1000, "", false)
 	if err != nil {
-		log.Println("south - GetDepositStatus - GetTransactions() - ", err.Error())
+		log.Println(fmt.Sprintf("south::GetDepositStatus::GetTransactions()::%s - %s", err.Error(), asset))
 		return status, err
 	}
 	status.Status = hestia.ExchangeOrderStatusError
@@ -173,11 +174,11 @@ func (s *SouthXchange) GetDepositStatus(_ string, txId string, _ string) (hestia
 				status.Status = hestia.ExchangeOrderStatusOpen
 				return status, nil
 			} else {
-				return status, errors.New("south - GetDepositStatus - unknown status " + tx.Status)
+				return status, errors.New("south::GetDepositStatus::unknown status " + tx.Status)
 			}
 		}
 	}
-	log.Println("Southxchange::GetDepositStatus::GetTransactions:: transaction not found:: ", txId)
+	log.Println(fmt.Sprintf("south::GetDepositStatus::GetTransactions:: transaction not found:: %s %s", txId, asset))
 	return status, errors.New("south - transaction not found")
 }
 

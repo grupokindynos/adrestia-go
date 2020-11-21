@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/grupokindynos/adrestia-go/exchanges"
+	"github.com/grupokindynos/adrestia-go/services"
 	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/obol"
 	"github.com/grupokindynos/common/telegram"
@@ -17,6 +18,7 @@ type BitcouPaymentCommands struct {
 	ExFactory *exchanges.ExchangeFactory
 	ExInfo []hestia.ExchangeInfo
 	TgBot telegram.TelegramBot
+	BitcouService services.BitcouV2Service
 }
 
 func (bpc *BitcouPaymentCommands) Start() {
@@ -49,6 +51,8 @@ func (bpc *BitcouPaymentCommands) Start() {
 				bpc.setPaymentHour(update.Message.Text, chatId)
 			case "setamount":
 				bpc.setMinimumPaymentAmount(update.Message.Text, chatId)
+			case "floating":
+				bpc.floatingAccountBalance(chatId)
 			case "help":
 				bpc.TgBot.SendMessage("List of available commands:" +
 					"\n/info -> returns system variables info (payment hour and minimum payment amount)" +
@@ -102,6 +106,14 @@ func (bpc *BitcouPaymentCommands) sendAllBalances(chatId string) {
 	}
 
 	bpc.TgBot.SendMessage(fmt.Sprintf("Total balance in USD: %.8f", totalBalanceUSD), chatId)
+}
+
+func (bpc *BitcouPaymentCommands) floatingAccountBalance(chatId string) {
+	balance, err := bpc.BitcouService.GetFloatingAccountInfo()
+	if err != nil {
+		bpc.TgBot.SendMessage(fmt.Sprintf("Error Retrieving Floating Account Balance: %s", err.Error()), chatId)
+	}
+	bpc.TgBot.SendMessage(fmt.Sprintf("Floating Account Balance: € %.2f", balance/100), chatId)
 }
 
 func (bpc *BitcouPaymentCommands) setPaymentHour(message string, chatId string) {

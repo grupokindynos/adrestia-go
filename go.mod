@@ -3,7 +3,7 @@ module github.com/grupokindynos/adrestia-go
 go 1.13
 
 require (
-	github.com/PrettyBoyHelios/go-bithumb v0.0.0-20201020174518-fef4c0c03dc9
+	github.com/PrettyBoyHelios/go-bithumb v0.0.0-20201102134820-4c67777bf14e
 	github.com/PrettyBoyHelios/go-bittrex v0.0.0-20200925181828-c2aab6314431
 	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.5.0
@@ -12,7 +12,7 @@ require (
 	github.com/golang/protobuf v1.3.3 // indirect
 	github.com/google/go-querystring v1.0.0
 	github.com/grupokindynos/common v0.0.0-20201026140532-cf860c14415d
-	github.com/grupokindynos/go-binance v0.0.0-20200805175429-875b1354f598
+	github.com/grupokindynos/go-binance v0.0.0-20201120163936-631d35ae5812
 	github.com/joho/godotenv v1.3.0
 	github.com/json-iterator/go v1.1.9 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect

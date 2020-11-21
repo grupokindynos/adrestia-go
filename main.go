@@ -161,6 +161,7 @@ func main() {
 		ExFactory: exchanges.NewExchangeFactory(&obol.ObolRequest{ObolURL: os.Getenv("OBOL_PRODUCTION_URL")}, &services.HestiaRequests{HestiaURL: os.Getenv(hestiaUrl)}),
 		ExInfo:    exchangeInfo,
 		TgBot:     telegram.NewTelegramBot(os.Getenv("BITCOU_TELEGRAM_KEY")),
+		BitcouService: *services.InitBitcouV2Service(),
 	}
 
 	if !*stopProcessor {

@@ -5,8 +5,8 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/Groestlcoin/go-groestl-hash v0.0.0-20181012171753-790653ac190c h1:8bYNmjELeCj7DEh/dN7zFzkJ0upK3GkbOC/0u1HMQ5s=
 github.com/Groestlcoin/go-groestl-hash v0.0.0-20181012171753-790653ac190c/go.mod h1:DwgC62sAn4RgH4L+O8REgcE7f0XplHPNeRYFy+ffy1M=
 github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible/go.mod h1:r7JcOSlj0wfOMncg0iLm8Leh48TZaKVeNIfJntJ2wa0=
-github.com/PrettyBoyHelios/go-bithumb v0.0.0-20201020174518-fef4c0c03dc9 h1:DUQ/yzIXBbHYE6JtDhxJ1I86ot132Hmr5MTg+tdCLOQ=
-github.com/PrettyBoyHelios/go-bithumb v0.0.0-20201020174518-fef4c0c03dc9/go.mod h1:pqcKIc5gpSIPlxPZKH86x5ElZC6QMlzfnQg0VQOowQ8=
+github.com/PrettyBoyHelios/go-bithumb v0.0.0-20201102134820-4c67777bf14e h1:u6X4NmrkwaeHeQ+Vy1L8PUlvrC5z5DCnwqfs26CDTk4=
+github.com/PrettyBoyHelios/go-bithumb v0.0.0-20201102134820-4c67777bf14e/go.mod h1:pqcKIc5gpSIPlxPZKH86x5ElZC6QMlzfnQg0VQOowQ8=
 github.com/PrettyBoyHelios/go-bittrex v0.0.0-20200925181828-c2aab6314431 h1:I+B2gmX86HtQQ8MHtvHlpFza7CB1rPdL529IYIpGGbU=
 github.com/PrettyBoyHelios/go-bittrex v0.0.0-20200925181828-c2aab6314431/go.mod h1:fo+1Z6Q0H5NVbu+C1ZrHJ9RG9fhCddbbijFnkOahHPQ=
 github.com/Shopify/sarama v1.19.0/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWXgklEdEo=
@@ -147,8 +147,8 @@ github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0/go.mod h1:8NvIoxWQoOIhqOTXgf
 github.com/grpc-ecosystem/grpc-gateway v1.9.5/go.mod h1:vNeuVxBJEsws4ogUvrchl83t/GYV9WGTSLVdBhOQFDY=
 github.com/grupokindynos/common v0.0.0-20201026140532-cf860c14415d h1:WEyIsvaKoUzPHja+IE7ZQ0BgyvFqoQ7l7gUsdNZ4w0c=
 github.com/grupokindynos/common v0.0.0-20201026140532-cf860c14415d/go.mod h1:01s5/fk/NE85VAR6RiFfUWWiy/UnSBRLIltJCAu56Bw=
-github.com/grupokindynos/go-binance v0.0.0-20200805175429-875b1354f598 h1:dYQbPdkou9E+Ax6/1afVaBtUIlP8FtjJquUUCMYpgfc=
-github.com/grupokindynos/go-binance v0.0.0-20200805175429-875b1354f598/go.mod h1:t0HMFWanG5UtRfZo/2Hc4KO4sbrJSKQoOrlintfiVTM=
+github.com/grupokindynos/go-binance v0.0.0-20201120163936-631d35ae5812 h1:NISMkYP87nwbn+QoDsaWzKquRmsxR/ylN+KCkYE1YcQ=
+github.com/grupokindynos/go-binance v0.0.0-20201120163936-631d35ae5812/go.mod h1:t0HMFWanG5UtRfZo/2Hc4KO4sbrJSKQoOrlintfiVTM=
 github.com/hashicorp/consul/api v1.3.0/go.mod h1:MmDNSzIMUjNpY/mQ398R4bk2FnqQLoPndWW5VkKPlCE=
 github.com/hashicorp/consul/sdk v0.3.0/go.mod h1:VKf9jXwCTEY1QZP2MOLRhb5i/I/ssyNV1vwHyQBF0x8=
 github.com/hashicorp/errwrap v1.0.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=

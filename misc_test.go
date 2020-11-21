@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"github.com/grupokindynos/adrestia-go/exchanges"
 	"github.com/grupokindynos/adrestia-go/models"
+	"github.com/grupokindynos/adrestia-go/services"
 	"github.com/grupokindynos/common/hestia"
 	"github.com/joho/godotenv"
+	"github.com/stretchr/testify/assert"
 	"log"
 	"os"
 	"testing"
@@ -32,7 +34,14 @@ func TestBithumb(t *testing.T) {
 	fmt.Println(assetBalance)
 }
 
-func TestWithdrawBithumb(t *testing.T) {
+func TestBitcouService(t *testing.T) {
+	s := services.InitBitcouV2Service()
+	balance, err := s.GetFloatingAccountInfo()
+	assert.Nil(t, err)
+	fmt.Println(balance)
+}
+
+/*func TestWithdrawBithumb(t *testing.T) {
 	m := models.ExchangeParams{}
 	m.Name = "Bithumb"
 	m.Keys.PrivateKey = os.Getenv("BITHUMB_SECRET")
@@ -45,7 +54,7 @@ func TestWithdrawBithumb(t *testing.T) {
 		return
 	}
 	fmt.Println(assetBalance)
-}
+}*/
 
 /*func TestMarketPrice(t *testing.T) {
 	m := models.ExchangeParams{}

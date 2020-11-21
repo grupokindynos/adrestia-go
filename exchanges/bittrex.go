@@ -152,23 +152,50 @@ func (b *Bittrex) SellAtMarketPrice(order hestia.Trade) (string, error) {
 	}
 
 	if order.Side == "buy" {
-		bidPrice := summary[0].High
+		bidPrice := summary.High
 		buyAmount := decimal.NewFromFloat(order.Amount).Div(bidPrice)
 		fee := decimal.NewFromFloat( b.minConfs[strings.ToLower(order.ToCoin)].txFee)
 		buyAmount.Add(fee.Neg())
 
-		bestPrice, err := b.getBestPrice(buyAmount, marketName, "buy")
+		/* bestPrice, err := b.getBestPrice(buyAmount, marketName, "buy")
+		if err != nil {
+			return "", err
+		} */
+		orderData, err := b.exchange.CreateOrder(bittrex.CreateOrderParams{
+			MarketSymbol:  marketName,
+			Direction:     "BUY",
+			Type:          "MARKET",
+			Quantity:      buyAmount,
+			Ceiling:       decimal.Decimal{},
+			Limit:         decimal.Decimal{},
+			TimeInForce:   "GOOD_TIL_CANCELLED",
+			ClientOrderID: "",
+			UseAwards:     "",
+		})
 		if err != nil {
 			return "", err
 		}
-		return b.exchange.BuyLimit(marketName, buyAmount, bestPrice)
+		return orderData.ID, nil
 	} else {
 		order.Amount -= b.minConfs[strings.ToLower(order.FromCoin)].txFee
-		bestPrice, err := b.getBestPrice(decimal.NewFromFloat(order.Amount), marketName, "sell")
+		/* bestPrice, err := b.getBestPrice(decimal.NewFromFloat(order.Amount), marketName, "sell")
+		if err != nil {
+			return "", err
+		} */
+		// return b.exchange.SellLimit(marketName, decimal.NewFromFloat(order.Amount), bestPrice)
+		orderData, err := b.exchange.CreateOrder(bittrex.CreateOrderParams{
+			MarketSymbol:  marketName,
+			Direction:     "SELL",
+			Type:          "MARKET",
+			Quantity:      decimal.NewFromFloat(order.Amount),
+			TimeInForce:   "GOOD_TIL_CANCELLED",
+			ClientOrderID: "",
+			UseAwards:     "",
+		})
 		if err != nil {
 			return "", err
 		}
-		return b.exchange.SellLimit(marketName, decimal.NewFromFloat(order.Amount), bestPrice)
+		return orderData.ID, nil
 	}
 }
 
@@ -214,10 +241,10 @@ func (b *Bittrex) GetPair(fromCoin string, toCoin string) (models.TradeInfo, err
 	fromLower := strings.ToLower(fromCoin)
 	toLower := strings.ToLower(toCoin)
 
-	var book *bittrex.Market
+	var book *bittrex.MarketV3
 	for _, m := range markets {
-		marketLower := strings.ToLower(m.MarketCurrency)
-		baseLower := strings.ToLower(m.BaseCurrency)
+		marketLower := strings.ToLower(m.QuoteCurrencySymbol)
+		baseLower := strings.ToLower(m.BaseCurrencySymbol)
 		if (marketLower == fromLower && baseLower == toLower) || (marketLower == toLower && baseLower == fromLower) {
 			book = &m
 			break
@@ -228,8 +255,8 @@ func (b *Bittrex) GetPair(fromCoin string, toCoin string) (models.TradeInfo, err
 		return side, fmt.Errorf("could not find market for currencies %s and %s", fromCoin, toCoin)
 	}
 
-	side.Book = book.MarketName
-	if strings.ToLower(book.BaseCurrency) == fromLower {
+	side.Book = book.Symbol
+	if strings.ToLower(book.BaseCurrencySymbol) == fromLower {
 		side.Type = "buy"
 	} else {
 		side.Type = "sell"

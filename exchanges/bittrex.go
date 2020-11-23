@@ -3,7 +3,7 @@ package exchanges
 import (
 	"errors"
 	"fmt"
-	"github.com/Toorop/go-bittrex"
+	"github.com/PrettyBoyHelios/go-bittrex"
 	"github.com/grupokindynos/adrestia-go/models"
 	coinfactory "github.com/grupokindynos/common/coin-factory"
 	"github.com/grupokindynos/common/hestia"
@@ -33,9 +33,9 @@ func NewBittrex(params models.ExchangeParams) (*Bittrex, error) {
 	minConfs := make(map[string]bittrexCurrrencyInfo)
 
 	for _, c := range currencies {
-		fee, _ :=  c.TxFee.Float64()
-		minConfs[strings.ToLower(c.Currency)] = bittrexCurrrencyInfo {
-			minConfirms: c.MinConfirmation,
+		fee,_ :=  c.TxFee.Float64()
+		minConfs[strings.ToLower(c.Symbol)] = bittrexCurrrencyInfo {
+			minConfirms: c.MinConfirmations,
 			txFee: fee,
 		}
 	}
@@ -61,7 +61,7 @@ func (b *Bittrex) GetAddress(coin string) (string, error) {
 		return "", err
 	}
 
-	return addr.Address, nil
+	return addr.CryptoAddress, nil
 }
 
 func (b *Bittrex) GetDepositStatus(addr string, txId string, asset string) (orderStatus hestia.ExchangeOrderInfo, err error) {
@@ -103,7 +103,7 @@ func (b *Bittrex) GetBalance(coin string) (float64, error) {
 	}
 
 	for _, asset := range balances {
-		if coin == asset.Currency {
+		if coin == asset.CurrencySymbol {
 			value, _ := asset.Available.Float64()
 			return value, nil
 		}
@@ -115,11 +115,11 @@ func (b *Bittrex) GetBalance(coin string) (float64, error) {
 // cantidad a comprar/vender
 func (b *Bittrex) getBestPrice(amount decimal.Decimal, market string, side string) (decimal.Decimal, error) {
 	var err error
-	var orders []bittrex.Orderb
+	var orders []bittrex.OrderbV3
 	if side == "buy" {
-		orders, err = b.exchange.GetOrderBookBuySell(market, "sell")
+		orders, err = b.exchange.GetOrderBookBuySell(market, 50,"sell")
 	} else {
-		orders, err = b.exchange.GetOrderBookBuySell(market, "buy")
+		orders, err = b.exchange.GetOrderBookBuySell(market, 50,"buy")
 	}
 
 	if err != nil {
@@ -152,28 +152,59 @@ func (b *Bittrex) SellAtMarketPrice(order hestia.Trade) (string, error) {
 	}
 
 	if order.Side == "buy" {
-		bidPrice := summary[0].High
+		bidPrice := summary.High
 		buyAmount := decimal.NewFromFloat(order.Amount).Div(bidPrice)
 		fee := decimal.NewFromFloat( b.minConfs[strings.ToLower(order.ToCoin)].txFee)
 		buyAmount.Add(fee.Neg())
 
-		bestPrice, err := b.getBestPrice(buyAmount, marketName, "buy")
+		/* bestPrice, err := b.getBestPrice(buyAmount, marketName, "buy")
+		if err != nil {
+			return "", err
+		} */
+		orderData, err := b.exchange.CreateOrder(bittrex.CreateOrderParams{
+			MarketSymbol:  marketName,
+			Direction:     "BUY",
+			Type:          "MARKET",
+			Quantity:      buyAmount,
+			Ceiling:       decimal.Decimal{},
+			Limit:         decimal.Decimal{},
+			TimeInForce:   "GOOD_TIL_CANCELLED",
+			ClientOrderID: "",
+			UseAwards:     "",
+		})
 		if err != nil {
 			return "", err
 		}
-		return b.exchange.BuyLimit(marketName, buyAmount, bestPrice)
+		return orderData.ID, nil
 	} else {
 		order.Amount -= b.minConfs[strings.ToLower(order.FromCoin)].txFee
-		bestPrice, err := b.getBestPrice(decimal.NewFromFloat(order.Amount), marketName, "sell")
+		/* bestPrice, err := b.getBestPrice(decimal.NewFromFloat(order.Amount), marketName, "sell")
+		if err != nil {
+			return "", err
+		} */
+		// return b.exchange.SellLimit(marketName, decimal.NewFromFloat(order.Amount), bestPrice)
+		orderData, err := b.exchange.CreateOrder(bittrex.CreateOrderParams{
+			MarketSymbol:  marketName,
+			Direction:     "SELL",
+			Type:          "MARKET",
+			Quantity:      decimal.NewFromFloat(order.Amount),
+			TimeInForce:   "GOOD_TIL_CANCELLED",
+			ClientOrderID: "",
+			UseAwards:     "",
+		})
 		if err != nil {
 			return "", err
 		}
-		return b.exchange.SellLimit(marketName, decimal.NewFromFloat(order.Amount), bestPrice)
+		return orderData.ID, nil
 	}
 }
 
 func (b *Bittrex) Withdraw(coin string, address string, amount float64) (string, error) {
-	return b.exchange.Withdraw(address, strings.ToUpper(coin), decimal.NewFromFloat(amount))
+	withdrawRes, err := b.exchange.Withdraw(address, coin, decimal.NewFromFloat(amount), "")
+	if err != nil {
+		return "", err
+	}
+	return withdrawRes.TxID, nil
 }
 
 func (b *Bittrex) GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderInfo, error) {
@@ -210,10 +241,10 @@ func (b *Bittrex) GetPair(fromCoin string, toCoin string) (models.TradeInfo, err
 	fromLower := strings.ToLower(fromCoin)
 	toLower := strings.ToLower(toCoin)
 
-	var book *bittrex.Market
+	var book *bittrex.MarketV3
 	for _, m := range markets {
-		marketLower := strings.ToLower(m.MarketCurrency)
-		baseLower := strings.ToLower(m.BaseCurrency)
+		marketLower := strings.ToLower(m.QuoteCurrencySymbol)
+		baseLower := strings.ToLower(m.BaseCurrencySymbol)
 		if (marketLower == fromLower && baseLower == toLower) || (marketLower == toLower && baseLower == fromLower) {
 			book = &m
 			break
@@ -224,8 +255,8 @@ func (b *Bittrex) GetPair(fromCoin string, toCoin string) (models.TradeInfo, err
 		return side, fmt.Errorf("could not find market for currencies %s and %s", fromCoin, toCoin)
 	}
 
-	side.Book = book.MarketName
-	if strings.ToLower(book.BaseCurrency) == fromLower {
+	side.Book = book.Symbol
+	if strings.ToLower(book.BaseCurrencySymbol) == fromLower {
 		side.Type = "buy"
 	} else {
 		side.Type = "sell"
@@ -235,14 +266,15 @@ func (b *Bittrex) GetPair(fromCoin string, toCoin string) (models.TradeInfo, err
 }
 
 func (b *Bittrex) GetWithdrawalTxHash(txId string, asset string) (string, error) {
-	withdraws, err := b.exchange.GetWithdrawalHistory(strings.ToUpper(asset))
+	// TODO Optimize with V3 Method
+	withdraws, err := b.exchange.GetClosedWithdrawals(strings.ToUpper(asset), bittrex.ALL)
 	if err != nil {
 		return "", err
 	}
 
 	for _, w := range withdraws {
-		if w.PaymentUuid == txId {
-			return w.TxId, nil
+		if w.TxID == txId {
+			return w.TxID, nil
 		}
 	}
 

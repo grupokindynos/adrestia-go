@@ -363,10 +363,12 @@ func (c *Crex24) Withdraw(coin string, address string, amount float64) (string, 
 
 	var res crex24IDResponse
 	if err := json.Unmarshal(resBytes, &res); err != nil {
+		log.Printf("crex24::balance:: %s :: %v :: %s", string(resBytes), req, err.Error())
 		return "", err
 	}
 
 	if res.ID == 0 {
+		log.Printf("crex24::balance:: failed request :: %s :: %v", string(resBytes), req)
 		return "", errors.New("returned id 0 on withdrawal - " + string(resBytes))
 	}
 

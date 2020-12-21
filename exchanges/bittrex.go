@@ -13,11 +13,11 @@ import (
 
 type bittrexCurrrencyInfo struct {
 	minConfirms int
-	txFee float64
+	txFee       float64
 }
 
 type Bittrex struct {
-	Name string
+	Name     string
 	exchange *bittrex.Bittrex
 	minConfs map[string]bittrexCurrrencyInfo
 }
@@ -33,10 +33,10 @@ func NewBittrex(params models.ExchangeParams) (*Bittrex, error) {
 	minConfs := make(map[string]bittrexCurrrencyInfo)
 
 	for _, c := range currencies {
-		fee,_ :=  c.TxFee.Float64()
-		minConfs[strings.ToLower(c.Symbol)] = bittrexCurrrencyInfo {
+		fee, _ := c.TxFee.Float64()
+		minConfs[strings.ToLower(c.Symbol)] = bittrexCurrrencyInfo{
 			minConfirms: c.MinConfirmations,
-			txFee: fee,
+			txFee:       fee,
 		}
 	}
 	// bittrex returns 0 for USDT
@@ -45,7 +45,7 @@ func NewBittrex(params models.ExchangeParams) (*Bittrex, error) {
 	minConfs["usdt"] = ci
 
 	return &Bittrex{
-		Name: params.Name,
+		Name:     params.Name,
 		exchange: b,
 		minConfs: minConfs,
 	}, nil
@@ -69,7 +69,7 @@ func (b *Bittrex) GetDepositStatus(addr string, txId string, asset string) (orde
 	if coinInfo.Info.Token {
 		if val, err := blockbookConfirmed(addr, txId, b.minConfs[asset].minConfirms); err == nil {
 			return hestia.ExchangeOrderInfo{
-				Status: hestia.ExchangeOrderStatusCompleted,
+				Status:         hestia.ExchangeOrderStatusCompleted,
 				ReceivedAmount: val,
 			}, nil
 		} else {
@@ -78,13 +78,20 @@ func (b *Bittrex) GetDepositStatus(addr string, txId string, asset string) (orde
 	}
 	orderStatus.Status = hestia.ExchangeOrderStatusOpen
 
-	deposits, err := b.exchange.GetDepositHistory(asset)
+	deposit, err := b.exchange.GetDepositHistory(txId)
 	if err != nil {
 		orderStatus.Status = hestia.ExchangeOrderStatusError
 		return
 	}
+	depositInfo := deposit[0]
+	if deposit[0].TxID == txId {
+		if int(depositInfo.Confirmations) >= b.minConfs[strings.ToLower(depositInfo.CurrencySymbol)].minConfirms {
+			orderStatus.Status = hestia.ExchangeOrderStatusCompleted
+			orderStatus.ReceivedAmount, _ = depositInfo.Quantity.Float64()
+		}
+	}
 
-	for _, d := range deposits {
+	/*for _, d := range deposits {
 		if d.TxId == txId {
 			if d.Confirmations >= b.minConfs[strings.ToLower(d.Currency)].minConfirms {
 				orderStatus.Status = hestia.ExchangeOrderStatusCompleted
@@ -92,7 +99,7 @@ func (b *Bittrex) GetDepositStatus(addr string, txId string, asset string) (orde
 			}
 			return
 		}
-	}
+	}*/
 	return
 }
 
@@ -117,9 +124,9 @@ func (b *Bittrex) getBestPrice(amount decimal.Decimal, market string, side strin
 	var err error
 	var orders []bittrex.OrderbV3
 	if side == "buy" {
-		orders, err = b.exchange.GetOrderBookBuySell(market, 50,"sell")
+		orders, err = b.exchange.GetOrderBookBuySell(market, 50, "sell")
 	} else {
-		orders, err = b.exchange.GetOrderBookBuySell(market, 50,"buy")
+		orders, err = b.exchange.GetOrderBookBuySell(market, 50, "buy")
 	}
 
 	if err != nil {
@@ -154,21 +161,16 @@ func (b *Bittrex) SellAtMarketPrice(order hestia.Trade) (string, error) {
 	if order.Side == "buy" {
 		bidPrice := summary.High
 		buyAmount := decimal.NewFromFloat(order.Amount).Div(bidPrice)
-		fee := decimal.NewFromFloat( b.minConfs[strings.ToLower(order.ToCoin)].txFee)
+		fee := decimal.NewFromFloat(b.minConfs[strings.ToLower(order.ToCoin)].txFee)
 		buyAmount.Add(fee.Neg())
 
-		/* bestPrice, err := b.getBestPrice(buyAmount, marketName, "buy")
-		if err != nil {
-			return "", err
-		} */
+		amount, _ := buyAmount.Float64()
 		orderData, err := b.exchange.CreateOrder(bittrex.CreateOrderParams{
 			MarketSymbol:  marketName,
 			Direction:     "BUY",
 			Type:          "MARKET",
-			Quantity:      buyAmount,
-			Ceiling:       decimal.Decimal{},
-			Limit:         decimal.Decimal{},
-			TimeInForce:   "GOOD_TIL_CANCELLED",
+			Quantity:      amount,
+			TimeInForce:   bittrex.FILL_OR_KILL,
 			ClientOrderID: "",
 			UseAwards:     "",
 		})
@@ -187,8 +189,8 @@ func (b *Bittrex) SellAtMarketPrice(order hestia.Trade) (string, error) {
 			MarketSymbol:  marketName,
 			Direction:     "SELL",
 			Type:          "MARKET",
-			Quantity:      decimal.NewFromFloat(order.Amount),
-			TimeInForce:   "GOOD_TIL_CANCELLED",
+			Quantity:      order.Amount,
+			TimeInForce:   bittrex.FILL_OR_KILL,
 			ClientOrderID: "",
 			UseAwards:     "",
 		})
@@ -257,9 +259,9 @@ func (b *Bittrex) GetPair(fromCoin string, toCoin string) (models.TradeInfo, err
 
 	side.Book = book.Symbol
 	if strings.ToLower(book.BaseCurrencySymbol) == fromLower {
-		side.Type = "buy"
-	} else {
 		side.Type = "sell"
+	} else {
+		side.Type = "buy"
 	}
 
 	return side, nil

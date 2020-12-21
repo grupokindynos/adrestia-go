@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/PrettyBoyHelios/go-bithumb v0.0.0-20201102134820-4c67777bf14e
-	github.com/PrettyBoyHelios/go-bittrex v0.0.0-20200925181828-c2aab6314431
+	github.com/PrettyBoyHelios/go-bittrex v0.0.0-20201221204853-cb998ec06e3a
 	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.5.0
 	github.com/go-kit/kit v0.10.0

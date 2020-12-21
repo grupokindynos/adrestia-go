@@ -454,7 +454,6 @@ func (a *AdrestiaController) GetVoucherConversionPathV2(_ string, body []byte, p
 				break
 			}
 		}
-
 		if directConversion {
 			inPath = append(inPath, models.ExchangeTrade{
 				FromCoin: pathParams.FromCoin,

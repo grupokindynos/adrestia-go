@@ -65,10 +65,12 @@ func (b *Binance) GetName() (string, error) {
 }
 
 func (b *Binance) GetAddress(coin string) (string, error) {
+	l.Println("binance - GetAddress - Params() - address :: ", strings.ToLower(coin))
 	address, err := b.binanceApi.DepositAddress(binance.AddressRequest{
 		Asset:     strings.ToLower(coin),
 		Timestamp: time.Now(),
 	})
+
 	if err != nil {
 		l.Println("binance - GetAddress - DepositAddress() - ", err.Error())
 		return "", err

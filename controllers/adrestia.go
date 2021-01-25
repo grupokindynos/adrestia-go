@@ -407,6 +407,7 @@ func (a *AdrestiaController) GetVoucherConversionPathV2(_ string, body []byte, p
 		return nil, err
 	}
 	service := hestia.GetServiceAccountByString(params.Service)
+	log.Println("using service ", service)
 	ex, err := a.ExFactory.GetExchangeByCoin(*coinInfo, service)
 	if err != nil {
 		log.Println("GetVoucherConversionPath::GetExchangeByCoin::", coinInfo.Info.Name, "::", ex)
@@ -419,7 +420,7 @@ func (a *AdrestiaController) GetVoucherConversionPathV2(_ string, body []byte, p
 	}
 
 	// Conversion of values less than 10 USDT is not possible on binance
-	if exName == "binance" && pathParams.AmountEuro < 10.0 {
+	if exName == "binance" && pathParams.AmountEuro < 40.0 {
 		if coinInfo.Rates.FallBackExchange == "" {
 			return nil, cerror.ErrorNotSupportedAmount
 		}

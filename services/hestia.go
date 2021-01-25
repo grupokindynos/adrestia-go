@@ -10,6 +10,7 @@ import (
 	"github.com/grupokindynos/common/tokens/mrt"
 	"github.com/grupokindynos/common/tokens/mvt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -61,6 +62,7 @@ func (h *HestiaRequests) GetExchanges() (exchangesInfo []hestia.ExchangeInfo, er
 	if err != nil {
 		return nil, err
 	}
+	log.Print(response)
 	return response, nil
 }
 

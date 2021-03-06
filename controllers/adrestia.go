@@ -326,6 +326,7 @@ func (a *AdrestiaController) GetVoucherConversionPath(_ string, body []byte, par
 		return nil, err
 	}
 	exName, err := ex.GetName()
+	log.Println("using exchange ", exName)
 	if err != nil {
 		log.Println("GetVoucherConversionPath::GetName::", err)
 		return nil, err

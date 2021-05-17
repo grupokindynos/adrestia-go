@@ -3,8 +3,10 @@ package main
 import (
 	coinfactory "github.com/grupokindynos/common/coin-factory"
 	"github.com/grupokindynos/common/explorer"
+	"github.com/grupokindynos/common/telegram"
 	"github.com/stretchr/testify/assert"
 	"log"
+	"os"
 	"testing"
 
 	"github.com/joho/godotenv"
@@ -80,6 +82,12 @@ func TestBlockbook(t *testing.T) {
 	res, _ := blockExplorer.GetEthAddress("0xaDaE31C0b1857A5c4B1b0e48128A22a6b11d8bdB")
 	assert.Equal(t, res.Address, "0xaDaE31C0b1857A5c4B1b0e48128A22a6b11d8bdB")
 }
+
+func TestBot(t *testing.T) {
+	bot := telegram.NewTelegramBot(os.Getenv("BITCOU_TELEGRAM_KEY"))
+	bot.SendMessage("test message", os.Getenv("BITCOU_CHAT_ID"))
+}
+
 
 /* func TestExchange(t *testing.T) {
 	hr := services.HestiaRequests{HestiaURL: os.Getenv("HESTIA_LOCAL_URL")}

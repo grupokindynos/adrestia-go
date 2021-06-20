@@ -58,7 +58,10 @@ func (e *ExchangeFactory) createInstance(name string, service hestia.ServiceAcco
 			return NewCrex24(params), nil
 		case "bithumb":
 			return NewBithumb(params), nil
+		case "pancake_swap":
+			return NewPancake(params), nil
 		}
+
 	}
 
 	return nil, errors.New("Exchange not found")

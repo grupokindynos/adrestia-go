@@ -1,10 +1,9 @@
 package main
 
 import (
-	coinfactory "github.com/grupokindynos/common/coin-factory"
-	"github.com/grupokindynos/common/explorer"
-	"github.com/stretchr/testify/assert"
+	"github.com/grupokindynos/common/telegram"
 	"log"
+	"os"
 	"testing"
 
 	"github.com/joho/godotenv"
@@ -73,13 +72,19 @@ func TestSendToExchange(t *testing.T) {
 	fmt.Println(res)
 }*/
 
-func TestBlockbook(t *testing.T) {
-	coin, _ := coinfactory.GetCoin("ETH")
-	var blockExplorer explorer.BlockBook
-	blockExplorer.Url = "https://" + coin.BlockchainInfo.ExternalSource
-	res, _ := blockExplorer.GetEthAddress("0xaDaE31C0b1857A5c4B1b0e48128A22a6b11d8bdB")
-	assert.Equal(t, res.Address, "0xaDaE31C0b1857A5c4B1b0e48128A22a6b11d8bdB")
+//func TestBlockbook(t *testing.T) {
+//	coin, _ := coinfactory.GetCoin("ETH")
+//	var blockExplorer explorer.BlockBook
+//	blockExplorer.Url = "https://" + coin.BlockchainInfo.ExternalSource
+//	res, _ := blockExplorer.GetEthAddress("0xaDaE31C0b1857A5c4B1b0e48128A22a6b11d8bdB")
+//	assert.Equal(t, res.Address, "0xaDaE31C0b1857A5c4B1b0e48128A22a6b11d8bdB")
+//}
+
+func TestBot(t *testing.T) {
+	bot := telegram.NewTelegramBot(os.Getenv("BITCOU_TELEGRAM_KEY"))
+	bot.SendMessage("test message", os.Getenv("BITCOU_CHAT_ID"))
 }
+
 
 /* func TestExchange(t *testing.T) {
 	hr := services.HestiaRequests{HestiaURL: os.Getenv("HESTIA_LOCAL_URL")}

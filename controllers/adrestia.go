@@ -438,9 +438,6 @@ func (a *AdrestiaController) GetVoucherConversionPathV2(_ string, body []byte, p
 		}
 	}
 
-	directConversion := HasDirectConversionToStableCoin(exName, pathParams.FromCoin)
-	stayInBTC := StayInBTC(exName, pathParams.FromCoin)
-
 	address, err := ex.GetAddress(pathParams.FromCoin)
 	if err != nil || address == "" {
 		log.Println("GetVoucherConversionPath::GetAddress::", exName)
@@ -449,6 +446,32 @@ func (a *AdrestiaController) GetVoucherConversionPathV2(_ string, body []byte, p
 		}
 		return nil, errors.New("adrestia could not retrieve address")
 	}
+
+	if coinInfo.Info.TokenNetwork == "binance" {
+		var tradeToBUSD = true
+		if coinInfo.Info.Tag == "BUSD" {
+			tradeToBUSD = false
+		}
+		path = models.VoucherPathResponse{
+			InwardOrder:      []models.ExchangeTrade{
+				{
+					FromCoin: pathParams.FromCoin,
+					ToCoin: "BUSD",
+					Exchange: exName,
+					Trade: models.TradeInfo{},
+				},
+			},
+			Trade:            tradeToBUSD,
+			TargetStableCoin: "BUSD",
+			Address:          address,
+		}
+		return path, nil
+	}
+
+	directConversion := HasDirectConversionToStableCoin(exName, pathParams.FromCoin)
+	stayInBTC := StayInBTC(exName, pathParams.FromCoin)
+
+
 	if coinInfo.Info.StableCoin {
 		log.Println("payment already in stable coin")
 	} else {
@@ -523,9 +546,7 @@ func (a *AdrestiaController) Trade(_ string, body []byte, params models.Params) 
 	return txId, nil
 }
 
-/*
-Returns the deposit status for a given txid.
-*/
+// Deposit  Returns the deposit status for a given txid.
 func (a *AdrestiaController) Deposit(_ string, body []byte, params models.Params) (interface{}, error) {
 	var depositParams models.DepositParams
 	err := json.Unmarshal(body, &depositParams)

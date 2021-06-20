@@ -3,9 +3,11 @@ package exchanges
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/grupokindynos/adrestia-go/models"
 	coinfactory "github.com/grupokindynos/common/coin-factory"
+	"github.com/grupokindynos/common/explorer"
 	"github.com/grupokindynos/common/hestia"
 	"io/ioutil"
 	"net/http"
@@ -50,7 +52,7 @@ func (p *Pancake) GetAddress(coin string) (string, error) {
 		_ = res.Body.Close()
 	}()
 	data, _ := ioutil.ReadAll(res.Body)
-	var address BSCAddressResponse
+	var address explorer.BSCAddressResponse
 	err = json.Unmarshal(data, &address)
 	if err != nil  || address.Status != 200{
 		return "", err
@@ -77,7 +79,7 @@ func (p *Pancake) GetBalance(coin string) (float64, error) {  // tal vez la modi
 		_ = res.Body.Close()
 	}()
 	data, _ := ioutil.ReadAll(res.Body)
-	var balance BSCBalanceResponse
+	var balance explorer.BSCBalanceResponse
 	err = json.Unmarshal(data, &balance)
 	if err != nil || balance.Status != 200{
 		return 0, err
@@ -88,15 +90,15 @@ func (p *Pancake) GetBalance(coin string) (float64, error) {  // tal vez la modi
 
 func (p *Pancake) SellAtMarketPrice(order hestia.Trade) (string, error) {
 	path := p.url + fmt.Sprintf("/api/v1/swap")
-	swap := BSCSwapInfo{
+	swap := explorer.BSCSwapInfo{
 		CoinFrom:  order.FromCoin,
-		AmountIn:  int64(order.Amount) * 1e18,
-		AmountOut: 0,
+		AmountIn:  order.Amount,
 	}
 	swapJSON, _ := json.Marshal(swap)
 	req, err := http.NewRequest("POST", path, bytes.NewReader(swapJSON))
 	if req != nil {
 		req.Header.Add("api-key", os.Getenv("PANCAKE_PASSWORD"))
+		req.Header.Add("Content-Type", "application/json")
 	}
 	if err != nil {
 		return "", err
@@ -110,9 +112,12 @@ func (p *Pancake) SellAtMarketPrice(order hestia.Trade) (string, error) {
 		_ = res.Body.Close()
 	}()
 	data, _ := ioutil.ReadAll(res.Body)
-	var txInfo BSCSwapResponse
+	var txInfo explorer.BSCSwapResponse
 	err = json.Unmarshal(data, &txInfo)
-	if err != nil || txInfo.Status != 200{
+	if err != nil || txInfo.Status != 200 {
+		if err != nil {
+			return "", errors.New(fmt.Sprintf("pancake_sawp sap error: %s", txInfo.Error))
+		}
 		return "", err
 	}
 	return txInfo.Data.TxID, nil
@@ -120,12 +125,12 @@ func (p *Pancake) SellAtMarketPrice(order hestia.Trade) (string, error) {
 
 func (p *Pancake) Withdraw(coin string, address string, amount float64) (string, error) {
 	path := p.url + fmt.Sprintf("/api/v1/withdraw")
-	withdrawData, _ := json.Marshal(BSCWithdrawInput{
+	withdrawData, _ := json.Marshal(explorer.BSCWithdrawInput{
 		Address: address,
 		Asset:   coin,
 		Amount:  amount,
 	})
-	req, err := http.NewRequest("GET", path, bytes.NewReader(withdrawData))
+	req, err := http.NewRequest("POST", path, bytes.NewReader(withdrawData))
 	if req != nil {
 		req.Header.Add("api-key", os.Getenv("PANCAKE_PASSWORD"))
 	}
@@ -141,7 +146,7 @@ func (p *Pancake) Withdraw(coin string, address string, amount float64) (string,
 		_ = res.Body.Close()
 	}()
 	data, _ := ioutil.ReadAll(res.Body)
-	var balance BSCWithdrawResponse
+	var balance explorer.BSCWithdrawResponse
 	err = json.Unmarshal(data, &balance)
 	if err != nil || balance.Status != 200{
 		return "", err
@@ -153,7 +158,7 @@ func (p *Pancake) GetDepositStatus(_ string, txId string, asset string) (hestia.
 	path := p.url + fmt.Sprintf("/api/v1/tx/%s", txId)
 	coinInfo, _ := coinfactory.GetCoin(asset)
 
-	req, err := http.NewRequest("POST", path, nil)
+	req, err := http.NewRequest("GET", path, nil)
 	if req != nil {
 		req.Header.Add("api-key", os.Getenv("PANCAKE_PASSWORD"))
 	}
@@ -175,7 +180,7 @@ func (p *Pancake) GetDepositStatus(_ string, txId string, asset string) (hestia.
 		_ = res.Body.Close()
 	}()
 	data, _ := ioutil.ReadAll(res.Body)
-	var txInfo BSCTxInfoResponse
+	var txInfo explorer.BSCTxInfoResponse
 	err = json.Unmarshal(data, &txInfo)
 	if err != nil || txInfo.Status != 200{
 		return hestia.ExchangeOrderInfo{
@@ -183,15 +188,15 @@ func (p *Pancake) GetDepositStatus(_ string, txId string, asset string) (hestia.
 			ReceivedAmount: 0.0,
 		}, err
 	}
-	if txInfo.Data.Confirmations > int64(coinInfo.BlockchainInfo.MinConfirmations) {
+	if txInfo.Data.TxInfo.Confirmations > int64(coinInfo.BlockchainInfo.MinConfirmations) {
 		return hestia.ExchangeOrderInfo{
 			Status: hestia.ExchangeOrderStatusCompleted,
-			ReceivedAmount: txInfo.Data.ReceivedAmount,
+			ReceivedAmount: txInfo.Data.TxInfo.ReceivedAmount,
 		}, nil
 	} else {
 		return hestia.ExchangeOrderInfo{
 			Status: hestia.ExchangeOrderStatusOpen,
-			ReceivedAmount: txInfo.Data.ReceivedAmount,
+			ReceivedAmount: txInfo.Data.TxInfo.ReceivedAmount,
 		}, nil
 	}
 }
@@ -200,7 +205,7 @@ func (p *Pancake) GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderInfo, 
 	path := p.url + fmt.Sprintf("/api/v1/exchange/%s", order.OrderId)
 	coinInfo, _ := coinfactory.GetCoin(order.ToCoin)
 
-	req, err := http.NewRequest("POST", path, nil)
+	req, err := http.NewRequest("GET", path, nil)
 	if req != nil {
 		req.Header.Add("api-key", os.Getenv("PANCAKE_PASSWORD"))
 	}
@@ -222,7 +227,7 @@ func (p *Pancake) GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderInfo, 
 		_ = res.Body.Close()
 	}()
 	data, _ := ioutil.ReadAll(res.Body)
-	var txInfo BSCTxInfoResponse
+	var txInfo explorer.BSCTxInfoResponse
 	err = json.Unmarshal(data, &txInfo)
 	if err != nil || txInfo.Status != 200{
 		return hestia.ExchangeOrderInfo{
@@ -230,39 +235,24 @@ func (p *Pancake) GetOrderStatus(order hestia.Trade) (hestia.ExchangeOrderInfo, 
 			ReceivedAmount: 0.0,
 		}, err
 	}
-	if txInfo.Data.Confirmations > int64(coinInfo.BlockchainInfo.MinConfirmations) {
+	if txInfo.Data.TxInfo.Confirmations > int64(coinInfo.BlockchainInfo.MinConfirmations) {
 		return hestia.ExchangeOrderInfo{
 			Status: hestia.ExchangeOrderStatusCompleted,
-			ReceivedAmount: txInfo.Data.ReceivedAmount,
+			ReceivedAmount: txInfo.Data.TxInfo.ReceivedAmount,
 		}, nil
 	} else {
 		return hestia.ExchangeOrderInfo{
 			Status: hestia.ExchangeOrderStatusOpen,
-			ReceivedAmount: txInfo.Data.ReceivedAmount,
+			ReceivedAmount: txInfo.Data.TxInfo.ReceivedAmount,
 		}, nil
 	}
 }
 
 func (p *Pancake) GetWithdrawalTxHash(txId string, _ string) (string, error) {
-	panic("not implemented")
-
-	//txs, err := s.southClient.GetTransactions("", 0, 500, "", true)
-	//if err != nil {
-	//	log.Println("south - GetWithdrawalTxHash - GetTransactions() - ", err.Error())
-	//	return "", err
-	//}
-	//tradeId, err := strconv.ParseInt(txId, 10, 64)
-	//if err != nil {
-	//	log.Println("south - GetWithdrawalTxHash - ParseInt() - ", err.Error())
-	//	return "", err
-	//}
-	//for _, tx := range txs {
-	//	if tx.MovementId == tradeId && tx.Type == "withdraw" {
-	//		return tx.Hash, nil
-	//	}
-	//}
-	//
-	//return "", errors.New("south - withdrawal not found")
+	if txId != "" {
+		return txId, nil
+	}
+	return "", errors.New("missing pancake trade txid")
 }
 
 func (p *Pancake) GetPair(fromCoin string, toCoin string) (models.TradeInfo, error) {
@@ -292,61 +282,4 @@ func (p *Pancake) GetPair(fromCoin string, toCoin string) (models.TradeInfo, err
 	//}
 	//
 	//return orderSide, nil
-}
-
-type BSCBase struct {
-	Status int32 `json:"status"`
-	Error string `json:"error"`
-}
-
-type BSCAddressResponse struct {
-	BSCBase
-	Data struct{
-		Address string `json:"address"`
-	} `json:"data"`
-}
-
-type BSCBalanceResponse struct {
-	BSCBase
-	Data struct{
-		Balance float64 `json:"balance"`
-	} `json:"data"`
-}
-
-type BSCSwapInfo struct {
-	CoinFrom string `json:"coin_from"`
-	AmountIn int64 `json:"amount_in"`
-	AmountOut int64 `json:"amount_out"`
-}
-
-type BSCSwapResponse struct {
-	BSCBase
-	Data struct{
-		Path []string `json:"path"`
-		TxID string `json:"tx_id"`
-	} `json:"data"`
-}
-
-type BSCTxInfoResponse struct {
-	BSCBase
-	Data struct{
-		Block int64 `json:"block"`
-		Confirmations int64 `json:"confirmations"`
-		IsServiceTx bool `json:"service_tx"`
-		TransactionHash string `json:"tx_hash"`
-		ReceivedAmount float64 `json:"received_amount"`
-	} `json:"data"`
-}
-
-type BSCWithdrawResponse struct {
-	BSCBase
-	Data struct{
-		TxID string `json:"tx_id"`
-	} `json:"data"`
-}
-
-type BSCWithdrawInput struct {
-	Address string `json:"address"`
-	Asset string `json:"asset"`
-	Amount float64 `json:"amount"`
 }

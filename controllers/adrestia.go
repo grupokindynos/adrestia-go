@@ -11,6 +11,7 @@ import (
 	"github.com/grupokindynos/common/hestia"
 	"github.com/grupokindynos/common/obol"
 	"log"
+	"strings"
 	"sync"
 )
 
@@ -403,7 +404,9 @@ func (a *AdrestiaController) GetVoucherConversionPathV2(_ string, body []byte, p
 	var inPath []models.ExchangeTrade
 	var exInwardInfo hestia.ExchangeInfo
 
-	coinInfo, err := coinfactory.GetCoin(pathParams.FromCoin)
+	coin := strings.ToUpper(pathParams.FromCoin)
+
+	coinInfo, err := coinfactory.GetCoin(coin)
 	if err != nil {
 		log.Println("GetVoucherConversionPath::GetCoin::", pathParams)
 		return nil, err
@@ -438,7 +441,7 @@ func (a *AdrestiaController) GetVoucherConversionPathV2(_ string, body []byte, p
 		}
 	}
 
-	address, err := ex.GetAddress(pathParams.FromCoin)
+	address, err := ex.GetAddress(coin)
 	if err != nil || address == "" {
 		log.Println("GetVoucherConversionPath::GetAddress::", exName)
 		if err != nil {
@@ -448,28 +451,31 @@ func (a *AdrestiaController) GetVoucherConversionPathV2(_ string, body []byte, p
 	}
 
 	if coinInfo.Info.TokenNetwork == "binance" {
-		var tradeToBUSD = true
 		if coinInfo.Info.Tag == "BUSD" {
-			tradeToBUSD = false
+			path.InwardOrder = inPath
+			path.Trade = true
+			path.TargetStableCoin = "BUSD"
+			path.Address = address
+			return path, nil
 		}
 		path = models.VoucherPathResponse{
 			InwardOrder:      []models.ExchangeTrade{
 				{
-					FromCoin: pathParams.FromCoin,
+					FromCoin: coin,
 					ToCoin: "BUSD",
 					Exchange: exName,
 					Trade: models.TradeInfo{},
 				},
 			},
-			Trade:            tradeToBUSD,
+			Trade:            true,
 			TargetStableCoin: "BUSD",
 			Address:          address,
 		}
 		return path, nil
 	}
 
-	directConversion := HasDirectConversionToStableCoin(exName, pathParams.FromCoin)
-	stayInBTC := StayInBTC(exName, pathParams.FromCoin)
+	directConversion := HasDirectConversionToStableCoin(exName, coin)
+	stayInBTC := StayInBTC(exName, coin)
 
 
 	if coinInfo.Info.StableCoin {
@@ -483,14 +489,14 @@ func (a *AdrestiaController) GetVoucherConversionPathV2(_ string, body []byte, p
 		}
 		if directConversion {
 			inPath = append(inPath, models.ExchangeTrade{
-				FromCoin: pathParams.FromCoin,
+				FromCoin: coin,
 				ToCoin:   exInwardInfo.StockCurrency,
 				Exchange: exName,
 			})
 		} else {
-			if pathParams.FromCoin != "BTC" {
+			if coin != "BTC" {
 				inPath = append(inPath, models.ExchangeTrade{
-					FromCoin: pathParams.FromCoin,
+					FromCoin: coin,
 					ToCoin:   "BTC",
 					Exchange: exName,
 				})
